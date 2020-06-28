@@ -3,19 +3,21 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
-subtitle: ""
+title: "Lei Blog"
+subtitle: "Welcome My Blog"
 description: ""
-keywords:
-author: John Doe
-language: en
+keywords: "Blog WangLei"
+author: Lei Wang
+language:
+  - en
+  - zh-cn
 timezone: ""
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://yoursite.com
+url: http://leiblog.wang
 root: /
-permalink: :year/:month/:day/:title/
+permalink: :title/
 permalink_defaults:
 pretty_urls:
   trailing_index: true # Set to false to remove trailing 'index.html' from permalinks
@@ -64,7 +66,9 @@ index_generator:
 # Category & Tag
 default_category: uncategorized
 category_map:
+  无他: nothing
 tag_map:
+  随笔: anything
 
 # Metadata elements
 ## https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta
