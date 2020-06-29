@@ -1,10 +1,12 @@
 ---
+top: 7
 categories:
   - Technical
 tags:
   - FPGA
   - VsCode
   - Vivado
+date: 2020-02-03 23:05:12	
 ---
 
 大二的时候，接触硬件描述语言。Vivado 自带的编辑器实在很难用，为了有更加舒适的体验，我寻找着取而代之的方法。
@@ -171,7 +173,7 @@ set-alias createtb createtb_function
 
 ## 写在最后的
 
-    至此，我深深体会到了作为一名verilog编程者的辛酸。
-    2020年寒假，在家给自己写了一个博客。欢迎访问:
-    [**点击进入**](http://www.leiblog.wang)
-    学习FPGA的朋友们，欢迎关注我的项目：https://github.com/LeiWang1999/FPGA
+至此，我深深体会到了作为一名verilog编程者的辛酸。
+2020年寒假，在家给自己写了一个博客。欢迎访问:
+[**点击进入**](http://www.leiblog.wang)
+学习FPGA的朋友们，欢迎关注我的项目：https://github.com/LeiWang1999/FPGA

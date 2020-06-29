@@ -91,3 +91,11 @@ E-Mail: 2230647190@njtech.edu.cn
 QQ: 2230647190
 
 Telegram: @chprinceling
+
+<h3>Follow Me</h3>
+
+Github: https://github.com/LeiWang1999
+
+Weibo: https://weibo.com/u/6351701682/home
+
+Twitter: https://twitter.com/LeiWang43167309
