@@ -42,9 +42,9 @@ comment: false
 
 2019 年 全国大学生电子设计竞赛全国一等奖（A4 纸张数目检测）[点击查看证明材料](http://leiblog.wang/static/2020-04-08/获奖证书/电子设计国一.jpeg)
 
-2019 年 全国大学生集成电路创新创业大赛华东赛区三等奖（FPGA 硬件算法实现车牌识别）[点击查看证明材料](http://leiblog.wang/technicaldetail/5e39831937a947e1fa89331e)
+2019 年 全国大学生集成电路创新创业大赛华东赛区三等奖（FPGA 硬件算法实现车牌识别）[点击查看证明材料](http://leiblog.wang/FPGA车牌识别/)
 
-2019 年 全国大学生 FPGA 创新创业大赛三等奖(FPGA 与小阵列麦克风实现声源定位，后续还增加了波束生成算法)[点击查看证明材料](http://leiblog.wang/technicaldetail/5e3982db37a947e1fa89331d)http://leiblog.wang/technicaldetail/5e3982db37a947e1fa89331d)
+2019 年 全国大学生 FPGA 创新创业大赛三等奖(FPGA 与小阵列麦克风实现声源定位，后续还增加了波束生成算法)[点击查看证明材料](http://leiblog.wang/ZYNQ声源定位波束形成/)
 
 #### 科研情况及其他：
 
