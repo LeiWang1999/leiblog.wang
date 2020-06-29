@@ -100,4 +100,6 @@ theme: minos
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type: ""
+  type: git
+  repo: Administrator@202.119.245.41:"C:/Users/Administrator/Desktop/blog.git"
+  branch: master
