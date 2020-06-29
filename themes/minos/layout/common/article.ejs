@@ -1,12 +1,15 @@
 <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         <% if (index) { %>
+        <% if (post.top) {%>
+        <font color=7D26CD><a href="<%- url_for(post.link ? post.link : post.path) %>"
+                itemprop="url"><%= post.title %></a>
+        </font>
+        <% } else {%>
         <a href="<%- url_for(post.link ? post.link : post.path) %>" itemprop="url"><%= post.title %></a>
+        <% } %>
         <% } else { %>
         <%= post.title %>
-        <% } %>
-        <% if (post.top) {%>
-        <font color=7D26CD>置顶</font>
         <% } %>
     </h1>
     <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
@@ -28,7 +31,7 @@
             <% let time = duration((words / 150.0) * 60, 'seconds') %>
             <%= `${ time.humanize() } ${ __('article.read')} (${ __('article.about') } ${ words } ${ __('article.words') })` %>
         </span>
-        <% } %>  
+        <% } %>
     </div>
     <div class="article-entry is-size-6-mobile" itemprop="articleBody">
         <% if (post.excerpt && index){ %>
@@ -75,7 +78,7 @@
     <span id="/<%= page.path %>" class="leancloud_visitors" data-flag-title="Your Article Title">
         <em class="post-meta-item-text">read </em>
         <i class="leancloud-visitors-count">1000000</i>
-    </span>  
+    </span>
     <h3 class="title is-4"><%= __('article.comments') %></h3>
     <%- partial('comment/' + get_config('comment.type')) %>
 </div>
