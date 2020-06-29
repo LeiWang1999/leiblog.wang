@@ -1,7 +1,8 @@
 ---
 title: Links
-comment: false
 ---
+
+<h3>Leave a comment to add friendly links！</h3>
 
 <a href="http://old.leiblog.wang">old LeiBlog site</a>
 <a href="http://blog.cjxyzhl.top/">Zhao Blog </a>
