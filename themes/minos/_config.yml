@@ -1,0 +1,75 @@
+# Website's icon url.
+favicon: /favicon.png
+
+# Open Graph metadata (https://hexo.io/docs/helpers.html#open-graph)
+open_graph:
+  twitter_id: LeiWang43167309
+  twitter_site: https://twitter.com/LeiWang43167309
+  google_plus:
+  fb_admins:
+  fb_app_id:
+
+# Website's logo shown on the left of the navigation bar.
+# It can either be an url to an image or a string if the following option is set.
+# logo:
+#   text: <logo string>
+# logo:
+# text: Lei Blog
+
+article:
+  # Show word count and estimated reading time.
+  readtime: true
+  # Code highlight theme, please see https://highlightjs.org/static/demo/
+  highlight: atom-one-light
+
+# Navigation bar menu links.
+menu:
+  Home: /
+  Categories: categories
+  Tags: tags
+  Links: links
+  Material: material
+  Games: games
+  About: about
+
+# Search plugin settings.
+search:
+  type: insight
+
+# Navigation bar toc settings
+toc: true
+
+#   type: addthis
+#   install_url: //s7.addthis.com/js/300/addthis_widget.js#pubid=xxxxxxxx # (required)
+
+# Comment plugin settings.
+comment:
+  type: valine
+  avatar: retro
+  app_id: FHTOdxyP2AlrrX82EnFifVhS-gzGzoHsz # (required) LeanCloud application id
+  app_key: mzP8JPhypnSm8Pg9RkRj8N38 # (required) LeanCloud application key
+  notify: true # (optional) receive email notification
+  verify: false # (optional) show verification code
+  placeholder: "不要发布不友善、负能量或引战的内容!" # (optional) comment box placeholder text
+
+# Other plugins and their settings.
+plugins:
+  mathjax: true
+  katex: false
+  gallery: true
+  clipboard: true
+  google-analytics:
+    tracking_id:
+
+# Additional navigation bar links on the right.
+# Links can either be text or icon. The following link is set to be an icon link whose icon
+# is set to the class name of a FontAwesome 5 icon. The `footer_links` below also gives an
+# example of setting plain text links.
+navbar_links:
+  GitHub:
+    icon: fab fa-github
+    url: https://github.com/LeiWang1999
+
+# Links at the bottom of the page.
+footer_links:
+  GitHub: https://github.com/LeiWang1999
