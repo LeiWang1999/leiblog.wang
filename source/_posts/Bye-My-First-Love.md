@@ -1,6 +1,6 @@
 ---
 top: 1
-title: Bye. My First Love 分手后应该做哪些事
+title: Bye My First Love. 分手后应该做哪些事
 categories:
   - LifeStyle
 tags:
