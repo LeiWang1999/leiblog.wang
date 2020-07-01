@@ -27,6 +27,7 @@
     "hexo-renderer-sass": "^0.4.0",
     "hexo-renderer-stylus": "^1.1.0",
     "hexo-server": "^1.0.0",
+    "hexo-tag-aplayer": "^3.0.4",
     "hexo-tag-asset-img": "^0.2.0",
     "hexo-tag-dplayer": "^0.3.3"
   }
