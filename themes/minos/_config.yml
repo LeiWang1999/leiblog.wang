@@ -73,3 +73,7 @@ navbar_links:
 # Links at the bottom of the page.
 footer_links:
   GitHub: https://github.com/LeiWang1999
+
+share:
+  type: addthis
+  install_url: //s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5f042ecc0064f551 # (required)
