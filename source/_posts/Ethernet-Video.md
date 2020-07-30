@@ -1,5 +1,5 @@
 ---
-top: 8
+top: 2
 title: 千兆以太网视频传输
 categories:
   - Technical
@@ -287,8 +287,41 @@ memset和memcpy这两个函数来自string.h。这是两个经典的C语言中�
 
 剩下的配置请仔细阅读代码与Xilinx的文档！
 
+https://github.com/LeiWang1999/EthernetVideo/tree/master/example/01_udp_sendto_helloworld 的代码里提供了sendto发送数据的方案，相较于使用send函数，不用每次发送的时候都要申请和释放内存。
+
+## 3. Video Transfer Toturial
+
+我们传输的图像从何而来？在Vivado里用VDMA搭建视频传输通道是非常常见的解决方案，关于如何使用Vivado搭建视频传输通道，可以在Xilinx Forums里找到非常详细的教程[4].
+
+我用ZYNQ器件搭建的视频传输通道可以在这里下载到：
+
+https://github.com/LeiWang1999/EthernetVideo/tree/master/video_pynq
+
+![BD](http://leiblog.wang/static/image/2020/7/btjKvY.jpg)
+
+摄像头使用的是ov5640、并且编写了hdmi输出视频的通路，用的也是digilent-library里提供的rgb2dvi的IP。
+
+在vivado里使用tcl命令行，cd到项目目录，然后
+
+```tcl
+source ./ZYNQ_VIDEO.tcl
+```
+
+就可以创建工程了。
+
+由于我使用的软件环境是是vivado2020和vitis，所以这里就不把sdk的tcl放出来了，只放上对应的程序文件。
+
+https://github.com/LeiWang1999/EthernetVideo/tree/master/software
+
+效果如下：
+
+![Performence](http://leiblog.wang/static/image/2020/7/2SX255.jpg)
+
+因为UDP一次最多只能发送65536个字节的数据，而一副640 * 720的RGB图像需要占用900K字节的数据，所以我使用UDP一次发送一行的数据，然后再上位机那边拼起来，但总的来说还有一些小问题，嘛～毕竟做这个是为了兴趣，懒得解决了，如果有有心人可以帮忙解决一下、美化一下界面hh～
+
 ### Reference
 
 1. https://www.zhihu.com/question/358209123
 2. https://zhuanlan.zhihu.com/p/24860273
 3. https://blog.csdn.net/FPGADesigner
+4. https://forums.xilinx.com/t5/Video-and-Audio/Xilinx-Video-Series/td-p/849583
