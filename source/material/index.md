@@ -8,6 +8,8 @@ date: 2020-06-29 17:10:54
 
 | Time       | File                                                         |
 | ---------- | ------------------------------------------------------------ |
+| 2020-08-16 | [Parallels Desktop 14](http://leiblog.wang/static/2020-08-16/Parallels_Desktop_14.1.2-45485_iMac.hk_.dmg)  解压密码：imac.hk |
+| 2020-08-16 | [Kali 2020.2 ISO](http://leiblog.wang/static/2020-08-16/kali-linux-2020.2-installer-amd64.iso) |
 | 2020-03-25 | [Matlab原生基2FFT](http://leiblog.wang/static/2020-03-25/1581239368395基2FFT.zip) |
 | 2020-03-25 | [Matlab对图像IIR、FIR工程](http://leiblog.wang/static/2020-03-25/1581239254083Image.zip) |
 | 2020-03-25 | [Matlab和ModelSim图像处理的工程文件](http://leiblog.wang/static/2020-03-25/1581239133759LPR_01.rar) |
