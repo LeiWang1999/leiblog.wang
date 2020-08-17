@@ -39,63 +39,63 @@ Kali选取的是安装时候的最新版本，2020.2，可以去Kali官网下载
 
 首先在Parallels Desktop里面新建虚拟机：
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171320901-2113732267.png)
+![img](http://leiblog.wang/static/image/2020/8/rxFAiy.jpg)
 
 手动选择，应该是识别不了的，因为kali的版本太新，而Parallels的破解版本旧了。
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171330059-418949337.png)
+![img](http://leiblog.wang/static/image/2020/8/2nOXi4.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171339029-671599935.png)
+![img](http://leiblog.wang/static/image/2020/8/oNjfel.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171347594-1256653510.png)
+![img](http://leiblog.wang/static/image/2020/8/cW2bEh.jpg)
 
 给虚拟机分配硬盘空间，类似Windows里面C盘D盘E盘的大小
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171357425-342661430.png)
+![img](http://leiblog.wang/static/image/2020/8/P6soFB.jpg)
 
 硬盘可以点开高级设置，进去设置大小，这里选择的是默认64GB
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171405803-1298137062.png)
+![img](http://leiblog.wang/static/image/2020/8/LAMdez.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171412580-1567246561.png)
+![img](http://leiblog.wang/static/image/2020/8/OHjE63.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171418923-1241681664.png)
+![img](http://leiblog.wang/static/image/2020/8/TC4fxc.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171428124-1892448208.png)
+![img](http://leiblog.wang/static/image/2020/8/0uq2yz.jpg)
 
 之后等待：
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171436226-1297045846.png)
+![img](http://leiblog.wang/static/image/2020/8/97LDX8.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171444800-1596551660.png)
+![img](http://leiblog.wang/static/image/2020/8/fmpcY9.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171451958-1876715650.png)
+![img](http://leiblog.wang/static/image/2020/8/QU00L8.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171459154-2075389277.png)
+![img](http://leiblog.wang/static/image/2020/8/dgJXJF.jpg)
 
 设置密码，也是开机密码，一定要记住。
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171506589-242016490.png)
+![img](http://leiblog.wang/static/image/2020/8/KfLWFH.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171516464-1100602964.png)
+![img](http://leiblog.wang/static/image/2020/8/z1LcWU.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171525085-713339934.png)
+![img](http://leiblog.wang/static/image/2020/8/icjvcx.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171533255-1613473902.png)
+![img](http://leiblog.wang/static/image/2020/8/zctsSl.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171544169-1999842356.png)
+![img](http://leiblog.wang/static/image/2020/8/k21gBr.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171553391-1853428967.png)
+![img](http://leiblog.wang/static/image/2020/8/jL5WIi.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171600854-1850816467.png)
+![img](http://leiblog.wang/static/image/2020/8/r7nGgS.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171613150-1754523322.png)
+![img](http://leiblog.wang/static/image/2020/8/JteO75.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171622401-255391434.png)
+![img](http://leiblog.wang/static/image/2020/8/Xgvezv.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171631490-155942400.png)
+![img](http://leiblog.wang/static/image/2020/8/OrV3pw.jpg)
 
-![img](https://img2020.cnblogs.com/blog/1994352/202007/1994352-20200704171640260-90378932.png)
+![img](http://leiblog.wang/static/image/2020/8/TJwQOS.jpg)
 
 安装到此结束。
 
