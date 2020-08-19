@@ -127,13 +127,13 @@ OS detection performed. Please report any incorrect results at https://nmap.org/
 Nmap done: 1 IP address (1 host up) scanned in 3.49 seconds
 ```
 
- 3. 禁用主机检测（-Pn），如果主机屏蔽了ping请求，Nmap可能会认为该主机没有开机。这将使得Nmap无法进行进一 步检测，比如端口扫描、服务版本识别和操作系统识别等探测工作。为了克服这一问题，就 需要禁用Nmap的主机检测功能。在指定这个选项之后，Nmap会认为目标主机已经开机并会 进行全套的检测工作
-
+  3. 禁用主机检测（-Pn），如果主机屏蔽了ping请求，Nmap可能会认为该主机没有开机。这将使得Nmap无法进行进一 步检测，比如端口扫描、服务版本识别和操作系统识别等探测工作。为了克服这一问题，就 需要禁用Nmap的主机检测功能。在指定这个选项之后，Nmap会认为目标主机已经开机并会 进行全套的检测工作
  4. 强力检测选项（-A），启用-A选项之后，Nmap将检测目标主机的下述信息
 服务版本识别（-sV）；
 操作系统识别（-O）；
 脚本扫描（-sC）；
 Traceroute（–traceroute）。
+  5. -sP，通过Arp判断主机存活状态。
 
 ### TCP扫描选项
 
