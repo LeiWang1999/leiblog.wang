@@ -58,7 +58,7 @@ highlight:
 # per_page: Posts displayed per page. (0 = disable pagination)
 # order_by: Posts order. (Order by date descending by default)
 topindex_generator:
-  per_page: 6
+  per_page: 8
   order_by: -date
 
 # Category & Tag
