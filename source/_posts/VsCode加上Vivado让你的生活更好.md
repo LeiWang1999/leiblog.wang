@@ -1,12 +1,15 @@
 ---
 categories:
   - Technical
+top: 10
 tags:
   - FPGA
   - VsCode
   - Vivado
 date: 2020-02-03 23:05:12
 ---
+
+![Banner	](http://leiblog.wang/static/image/2020/8/adventurealtitude.jpg)
 
 大二的时候，接触硬件描述语言。Vivado 自带的编辑器实在很难用，为了有更加舒适的体验，我寻找着取而代之的方法。
 网络上的答案大同小异，基本上都是用的 Sublime Text.（我的学长们也都是）

