@@ -87,3 +87,20 @@ uid=0(root) gid=0(root)@x86:/data/system # cd /data/system
 uid=0(root) gid=0(root)@x86:/data/system # rm password.key
 ```
 
+Reboot the box, now we can see there is no PIN, If we go to open an app asks for a pattern.
+
+![](http://leiblog.wang/static/image/2020/8/mxV4cO.png)
+
+Unlock it.
+
+```zsh
+uid=0(root) gid=0(root)@x86:/ # pm list packages | grep lock
+package:com.domobile.applockwatcher
+package:bong.android.androidlock
+package:com.martianmode.applock
+package:com.android.deskclock
+promote at ~ ❯ adb uninstall com.martianmode.applock
+Success
+```
+
+:(((()))) android box is hard to use !!!
