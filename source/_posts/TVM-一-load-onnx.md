@@ -137,8 +137,33 @@ def from_onnx(model,
     return mod, params
 ```
 
-刚开始是对onnx模型的检查，这样类似的检查在relay前端对接Keras模型的代码里也出现了，虽然编写的方式不同，然后将g声明为global，因为g这个变量在from_onnx.py的最开始就定义了，声明为全局变量才可以改变最外面的g，实现文件内的所有函数共享。这个变量为什么要命名为g，也许是应为是GraphProto对象的实例。
+刚开始是对onnx模型的检查，这样类似的检查在relay前端对接Keras模型的代码里也出现了，虽然编写的方式不同(因为这些前端框架的接口都是不同的人写的，所以风格有差别)，然后将g声明为global，因为g这个变量在from_onnx.py的最开始就定义了，声明为全局变量才可以改变最外面的g，实现文件内的所有函数共享。这个变量为什么要命名为g，也许是应为是GraphProto对象的实例。
 
-然后，`g = GraphProto(shape, dtype)`，该函数接受了两个参数，shape和dtype，在本程式中，shape是`shape_dict = {input_name: x.shape}`,也就是`{'1' : (1, 1, 224, 224)}`,这边的GraphProto是onnx的接口，实例化的时候初始化了一些参数。
+关于GraphProto，定义在onnx的repo里，主要有以下结构:
+
+>**nodes**:用make_node生成的节点列表 [类型:NodeProto列表]
+>
+>比如[node1,node2,node3,…]这种的
+>
+>**name**:graph的名字 [类型:字符串]
+>
+>**inputs**:存放graph的输入数据信息 [类型:ValueInfoProto列表]
+>
+>输入数据的信息以ValueInfoProto的形式存储，会用到make_tensor_value_info，来将输入数据的名字、数据类型、形状(维度)给记录下来。
+>
+>**outputs**:存放graph的输出数据信息 [类型:ValueInfoProto列表]
+>
+>与inputs相同。
+>
+>**initializer**:存放超参数 [类型:TensorProto列表]
+
+然后例化GraphProto、并设置opset，至于这个参数有什么用应该要参考onnx的文档，总之该参数默认为1，记录onnx模型里的各种参数的值，包括name、nodes。
 
 
+
+
+
+### Reference
+
+1. Use TVM to compile onnx model: https://tvm.apache.org/docs/tutorials/frontend/from_onnx.html#sphx-glr-tutorials-frontend-from-onnx-py
+2. TVM 代码走读（一）：https://zhuanlan.zhihu.com/p/145676823
