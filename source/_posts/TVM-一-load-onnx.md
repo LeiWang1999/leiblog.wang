@@ -75,6 +75,8 @@ plt.show()
 
 超分辨率技术（Super-Resolution, SR）是指从观测到的低分辨率图像重建出相应的高分辨率图像，使用netron查看模型。
 
+查看模型能让你知道一些关键的信息、比如模型的构成、还有更重要的一点是拿到input_name来塑造我们的shape_dict，就比如用到的SR模型，输入的name是‘1’，那shape_dict就应该是{'1': x.shape}
+
 <div align="center">
 <img src="http://leiblog.wang/static/image/2020/9/super_resolution.png" alt="Model" style="zoom:50%;" />  
 </div>
