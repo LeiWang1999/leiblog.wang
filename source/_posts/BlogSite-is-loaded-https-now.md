@@ -1,5 +1,5 @@
 ---
-title: 'Https Blog site is Loaded! '
+title: 'HTTPS Blog site is Released! '
 top: 10
 categories:
   - Technical
