@@ -20,9 +20,13 @@ CS-143 斯坦福编译原理
 
 https://www.bilibili.com/video/BV1cE411f78c
 
+<!-- more -->
+
 Vivado HLS 图像处理
 
 https://www.bilibili.com/video/BV11b411e7m3
 
-<!-- more -->
+一步步学会用docker部署应用(nodejs版)
+
+https://cnblogs.com/accordion/p/10450952.html
 
