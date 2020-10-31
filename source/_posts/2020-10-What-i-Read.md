@@ -41,3 +41,7 @@ https://www.cnblogs.com/wxwgk/p/13287336.html
 TVM VTA 上手备忘录
 
 https://zhuanlan.zhihu.com/p/145027174
+
+NN编译栈之TVM适配缺陷与源码开发
+
+https://iostream.io/2019/09/09/githubnn%E7%BC%96%E8%AF%91%E6%A0%88%E4%B9%8Btvm%E9%80%82%E9%85%8D%E7%BC%BA%E9%99%B7%E4%B8%8E%E6%BA%90%E7%A0%81%E5%BC%80%E5%8F%91/
