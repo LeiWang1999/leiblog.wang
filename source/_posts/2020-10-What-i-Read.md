@@ -38,3 +38,6 @@ Harbor的搭建和使用
 
 https://www.cnblogs.com/wxwgk/p/13287336.html
 
+TVM VTA 上手备忘录
+
+https://zhuanlan.zhihu.com/p/145027174
