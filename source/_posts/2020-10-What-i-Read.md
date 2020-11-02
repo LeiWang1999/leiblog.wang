@@ -49,3 +49,7 @@ https://iostream.io/2019/09/09/githubnn%E7%BC%96%E8%AF%91%E6%A0%88%E4%B9%8Btvm%E
 Jetson-inference国内下载终极解法
 
 https://blog.csdn.net/qq_34045801/article/details/106697986
+
+Tingshua NN Network Accelerators
+
+https://nicsefc.ee.tsinghua.edu.cn/projects/neural-network-accelerator/
