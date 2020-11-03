@@ -53,3 +53,7 @@ https://blog.csdn.net/qq_34045801/article/details/106697986
 Tingshua NN Network Accelerators
 
 https://nicsefc.ee.tsinghua.edu.cn/projects/neural-network-accelerator/
+
+TVM Compiler中文教程：TVM调度原语（Schedule Primitives）
+
+https://blog.csdn.net/hw5226349/article/details/91370350
