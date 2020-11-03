@@ -1,6 +1,6 @@
 ---
 title: TVM Notes | Reduction Op
-
+top: 10
 categories:
   - Technical
 tags:
