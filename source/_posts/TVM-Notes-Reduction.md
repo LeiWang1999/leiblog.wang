@@ -14,7 +14,7 @@ date: 2020-11-03 14:52:30
 
 举个例子，我们实现一个矩阵乘法（参考自[tvm.d2l.ai](http://tvm.d2l.ai/chapter_common_operators/matmul.html)）：如下图
 
-![Matrix mul](http://tvm.d2l.ai/_images/matmul_default.svg)
+<div align="center"><image src="http://tvm.d2l.ai/_images/matmul_default.svg" /></div>
 
 计算公式如下：
 $$
