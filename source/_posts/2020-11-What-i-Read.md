@@ -18,6 +18,8 @@ https://chhzh123.github.io/blogs/2020-03-21-tvm-gcn/
 
 侯嘉伟 - Graph convolutional neural networks for web-scale recommender systems
 
+https://www.bilibili.com/video/BV127411G7Ac?from=search&seid=3024230751585715457
+
 <iframe src="//player.bilibili.com/player.html?aid=88402984&bvid=BV127411G7Ac&cid=151017710&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
 
 <!-- more -->
