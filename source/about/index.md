@@ -5,7 +5,7 @@ comment: false
 
 ### 王磊 / Lei Wang
 
-University of Chinese Academy of Sciences | Institute of Computing Technology | Github: https://github.com/LeiWang1999
+University of Chinese Academy of Sciences | Institute of Computing Technology |  https://github.com/LeiWang1999
 
 I am currently an undergraduate major in [Electronic Engineering](https://green.njtech.edu.cn), [Nanjing Tech University](http://www.njtech.edu.cn), ranking the 1st out of 59 students in the department with GPA 3.93/4.00. Learn Web/Security/Machine-Learning just because of interests and responsibilities ( i am also a little good at electronics major XD).
 
@@ -14,9 +14,11 @@ I have cracked the encryption algorithm of the school’s IC card (only for lear
 About to become a postgraduate of UCAS (Institute of Computer Technology) by postgraduate recommendation, focus on Intelligent computer development.
 
 <div
-  	style="
- 	padding:13px" 
-    >
+  style="
+  display: flex;
+  align: center;
+  justify-content: center;
+  " >
   <img   style="height: 250px;
   " src="https://leiblog.wang/static/2020-11-03/IMG_6135.jpeg"> </img>
 </div>
