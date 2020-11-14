@@ -31,3 +31,7 @@ https://www.bilibili.com/video/BV127411G7Ac?from=search&seid=3024230751585715457
 为什么人人都该懂点 LLVM
 
 https://toutiao.io/posts/s4ncf/preview
+
+在 Gentoo Linux 安裝 Vivado 2020.1
+
+https://coldnew.github.io/16cb6a8e/
