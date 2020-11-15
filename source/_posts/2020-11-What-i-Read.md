@@ -35,3 +35,7 @@ https://toutiao.io/posts/s4ncf/preview
 在 Gentoo Linux 安裝 Vivado 2020.1
 
 https://coldnew.github.io/16cb6a8e/
+
+如何评价领导要用代码行数衡量每个人的工作量？
+
+https://www.zhihu.com/question/295181406
