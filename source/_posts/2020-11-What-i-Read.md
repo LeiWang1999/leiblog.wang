@@ -39,3 +39,7 @@ https://coldnew.github.io/16cb6a8e/
 如何评价领导要用代码行数衡量每个人的工作量？
 
 https://www.zhihu.com/question/295181406
+
+机器学习科研的十年
+
+https://zhuanlan.zhihu.com/p/74249758
