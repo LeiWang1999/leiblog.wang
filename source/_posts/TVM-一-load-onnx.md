@@ -158,9 +158,74 @@ def from_onnx(model,
 >
 >**initializer**:存放超参数 [类型:TensorProto列表]
 
-然后例化GraphProto、并设置opset，至于这个参数有什么用应该要参考onnx的文档，总之该参数默认为1，记录onnx模型里的各种参数的值，包括name、nodes等，当我们调用其from_onnx方法时
+然后例化GraphProto、并设置opset，至于这个参数有什么用应该要参考onnx的文档，总之该参数默认为1，记录onnx模型里的各种参数的值，包括name、nodes等.
 
+#### g.from_onnx
 
+**第一个loop：**
+
+```python
+        # parse network inputs to relay, aka parameters
+        for init_tensor in graph.initializer:
+            if not init_tensor.name.strip():
+                raise ValueError("Tensor's name is required.")
+            self._params[init_tensor.name] = self._parse_array(init_tensor)
+            self._nodes[init_tensor.name] = new_var(
+                init_tensor.name,
+                shape=self._params[init_tensor.name].shape,
+                dtype=self._params[init_tensor.name].dtype,
+            )
+```
+
+这里将nodes和params的信息都缓存到g实例中，具体是哪些信息呢？比如Conv Node的weight参数，ADD Node的B参数，这些由我们训练出来的参数都是在这个阶段初始化的。`_nodes`里缓存的是节点的name、shape和dtype，而`_params`里缓存的是具体的参数。
+
+**第二个loop:**
+
+```python
+        for i in graph.input:
+            # from onnx v0.2, GraphProto.input has type ValueInfoProto,
+            #  and the name is 'i.name'
+            i_name = self._parse_value_proto(i)
+            d_type = self._parse_dtype(i, "float32")
+            if i_name in self._params:
+                # i is a param instead of input
+                self._num_param += 1
+                self._params[i_name] = self._params.pop(i_name)
+                self._nodes[i_name] = new_var(
+                    i_name, shape=self._params[i_name].shape, dtype=self._params[i_name].dtype
+                )
+            else:
+                self._num_input += 1
+                if i_name in self._shape:
+                    tshape = self._shape[i_name]
+                else:
+                    raise ValueError("Must provide an input shape for `{0}`.".format(i_name))
+                if isinstance(self._dtype, dict):
+                    dtype = self._dtype[i_name] if i_name in self._dtype else d_type
+                else:
+                    dtype = d_type
+                self._nodes[i_name] = new_var(i_name, shape=tshape, dtype=dtype)
+            self._inputs[i_name] = self._nodes[i_name]
+```
+
+遍历所有的input，对于我们整个模型来讲input只有最开始出入的图像，而对于计算图而言余下的input还包括运算的权重信息。
+
+然后就是最核心的`_get_convert_map`函数的实现，实例化了所有的OP，追溯到实例对象的`__call__`方法，调用了函数：get_relay_op，这部分先放下（，毕竟现在还没调用呢不是。
+
+**第三个loop:**
+
+```python
+        for node in graph.node:
+            op_name = node.op_type
+            if (
+                op_name not in convert_map
+                and op_name != "Constant"
+                and op_name not in _identity_list
+            ):
+                unsupported_ops.add(op_name)
+```
+
+在这里，遍历整个计算图的node，查看是否有找不到映射的。
 
 ### Reference
 

@@ -43,3 +43,11 @@ https://www.zhihu.com/question/295181406
 机器学习科研的十年
 
 https://zhuanlan.zhihu.com/p/74249758
+
+简述 __init__、__new__、__call__ 方法
+
+https://foofish.net/magic-method.html
+
+Python Set对象
+
+https://www.runoob.com/python/python-func-set.html
