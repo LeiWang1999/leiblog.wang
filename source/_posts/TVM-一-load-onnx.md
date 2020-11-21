@@ -126,7 +126,6 @@ def from_onnx(model,
                 warnings.warn(str(e))
     except ImportError:
         pass
-    global g
     g = GraphProto(shape, dtype)
     graph = model.graph
     if opset is None:
@@ -139,7 +138,7 @@ def from_onnx(model,
     return mod, params
 ```
 
-刚开始是对onnx模型的检查，这样类似的检查在relay前端对接Keras模型的代码里也出现了，虽然编写的方式不同(因为这些前端框架的接口都是不同的人写的，所以风格有差别)，然后将g声明为global，因为g这个变量在from_onnx.py的最开始就定义了，声明为全局变量才可以改变最外面的g，实现文件内的所有函数共享。这个变量为什么要命名为g，也许是应为是GraphProto对象的实例。
+刚开始是对onnx模型的检查，这样类似的检查在relay前端对接Keras模型的代码里也出现了，虽然编写的方式不同(因为这些前端框架的接口都是不同的开发者写的，所以风格有差别)，生命GraphProto实例g，在模型转化过程中，g实例会存储包括节点、参数等信息。
 
 关于GraphProto，定义在onnx的repo里，主要有以下结构:
 
@@ -159,9 +158,7 @@ def from_onnx(model,
 >
 >**initializer**:存放超参数 [类型:TensorProto列表]
 
-然后例化GraphProto、并设置opset，至于这个参数有什么用应该要参考onnx的文档，总之该参数默认为1，记录onnx模型里的各种参数的值，包括name、nodes。
-
-
+然后例化GraphProto、并设置opset，至于这个参数有什么用应该要参考onnx的文档，总之该参数默认为1，记录onnx模型里的各种参数的值，包括name、nodes等，当我们调用其from_onnx方法时
 
 
 
