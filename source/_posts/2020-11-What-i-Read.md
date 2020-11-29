@@ -51,3 +51,7 @@ https://foofish.net/magic-method.html
 Python Set对象
 
 https://www.runoob.com/python/python-func-set.html
+
+SVD（奇异值分解）小结
+
+https://www.cnblogs.com/endlesscoding/p/10033527.html
