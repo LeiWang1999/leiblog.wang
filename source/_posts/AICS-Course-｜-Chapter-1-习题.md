@@ -1,5 +1,6 @@
 ---
 title: AICS-Course ｜ Chapter 1 习题
+top: 10
 categories:
   - Technical
 tags:
