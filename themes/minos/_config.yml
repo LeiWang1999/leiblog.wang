@@ -55,7 +55,7 @@ comment:
 # Other plugins and their settings.
 plugins:
   mathjax: true
-  katex: false
+  katex: true
   gallery: true
   clipboard: true
   google-analytics:
