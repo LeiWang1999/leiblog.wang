@@ -1,13 +1,7 @@
 <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         <% if (index) { %>
-        <% if (post.top) {%>
-        <font color=7D26CD><a href="<%- url_for(post.link ? post.link : post.path) %>"
-                itemprop="url"><%= post.title %></a>
-        </font>
-        <% } else {%>
         <a href="<%- url_for(post.link ? post.link : post.path) %>" itemprop="url"><%= post.title %></a>
-        <% } %>
         <% } else { %>
         <%= post.title %>
         <% } %>
