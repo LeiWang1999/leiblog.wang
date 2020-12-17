@@ -1,5 +1,5 @@
 ---
-title: AICS-Course ｜ Chapter 1 习题
+title: AI Computing System
 top: 10
 categories:
   - Technical
