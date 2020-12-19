@@ -12,6 +12,8 @@ date: 2020-12-13 10:59:00
 
 Github Page: https://github.com/LeiWang1999/AICS-Course
 
+<!-- more -->
+
 <h2 align='center'>第一章 概述</h2>
 
 ### 1.1 简述强人工智能和弱人工智能的区别
