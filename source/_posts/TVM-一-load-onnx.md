@@ -200,7 +200,7 @@ def from_onnx(model,
                     tshape = self._shape[i_name]
                 else:
                     raise ValueError("Must provide an input shape for `{0}`.".format(i_name))
-                if isinstance(self._dtype, dict):
+                if isinstance(self._dtype, dict):    
                     dtype = self._dtype[i_name] if i_name in self._dtype else d_type
                 else:
                     dtype = d_type
@@ -226,6 +226,8 @@ def from_onnx(model,
 ```
 
 在这里，遍历整个计算图的node，查看是否有找不到映射的。
+
+
 
 ### Reference
 
