@@ -12,7 +12,8 @@ https://www.cnblogs.com/yeluzi/p/7491619.html
 https://www.jiqizhixin.com/articles/2018-05-07-7
 
 需要将声明和定义放在同一个头文件
-
 https://www.cnblogs.com/wuchanming/p/4061659.html
 
+lenet nvdla
+https://medium.com/@anakin1028/run-lenet-on-nvdla-837a6fac6f8b
 <!-- more -->
