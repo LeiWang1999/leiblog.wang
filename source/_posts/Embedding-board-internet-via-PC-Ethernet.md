@@ -81,4 +81,8 @@ nm-connection-editor
 
 在界面里设置以太网->有线连接->IPV4设置
 
+![](http://leiblog.wang/static/image/2021/1/bCUr9q.jpg)
+
 在Method里选择与其他计算机共享，最后在地址栏里增加静态ip，完成。
+
+这里需要注意，如果有能连接上板卡，但是板卡还是没有办法上网的时候，要看看是不是连错以太网口了，像我这个Ubuntu就有两张以太网卡。

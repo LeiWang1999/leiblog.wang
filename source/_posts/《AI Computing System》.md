@@ -327,18 +327,31 @@ $$
 
 ### 2.11 请设计一个多层感知机实现4位全加器的功能，即两个4比特输入得到一个4比特输出以及1比特进位。请自行构建训练集、测试集，完成训练及测试。
 
-**一些说明**
-
 Github Code Link：https://github.com/LeiWang1999/AICS-Course/tree/master/Code/2.11.fulladder.pytorch
 
 框架：Pytorch
 
 网络结构：简单的MLP、两个隐层layer、各20个node、激活函数使用的是Relu。
 
+```python
+class MLP(nn.Module):
+    def __init__(self, input_dim, hidden_1, hidden_2, output_dim):
+        super(MLP,self).__init__()
+        self.layer1 = nn.Sequential(nn.Linear(input_dim, hidden_1), nn.ReLU(True))
+        self.layer2 = nn.Sequential(nn.Linear(hidden_1, hidden_2), nn.ReLU(True))
+        self.layer3 = nn.Sequential(nn.Linear(hidden_2, output_dim))
+
+    def forward(self,x):
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        return x
+```
+
 **数据集构建**：
 
-1. 使用python实现二进制全加器、然后构建数据集
-2. 对数据集做了shuffle，这样提取的特征更准确
+1. 使用python实现二进制全加器(`binary_adder.py`)、然后遍历输出构建数据集
+2. 对数据集做了shuffle，再分出训练集和测试集、这样提取的特征更准确
 
 200个epoch可以达到100%的准确率：
 
@@ -366,3 +379,6 @@ Finished Training
 ```
 
 ### 2.12 在不使用编程框架的前提下，重新实现解决习题2.11的代码。
+
+Github Code Link:https://github.com/LeiWang1999/AICS-Course/tree/master/Code/2.12.fulladder.cpp
+
