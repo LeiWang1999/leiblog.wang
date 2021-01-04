@@ -29,12 +29,13 @@ menu:
   Tags: tags
   Links: links
   Material: material
-  Games: games
+  # Games: games
   About: about
 
 # Search plugin settings.
 search:
   type: insight
+
 
 # Navigation bar toc settings
 toc: true
