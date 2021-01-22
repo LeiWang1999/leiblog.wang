@@ -6,6 +6,7 @@ tags:
   - Digilal Design
 date: 2020-12-14 19:50:45
 ---
+
 神经网络可以实现任意函数的直观解释
 https://www.cnblogs.com/yeluzi/p/7491619.html
 
@@ -17,4 +18,5 @@ https://www.cnblogs.com/wuchanming/p/4061659.html
 
 lenet nvdla
 https://medium.com/@anakin1028/run-lenet-on-nvdla-837a6fac6f8b
+
 <!-- more -->
