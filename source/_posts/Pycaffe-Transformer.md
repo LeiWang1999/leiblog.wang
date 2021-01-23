@@ -7,6 +7,8 @@ tags:
 date: 2021-01-22 13:12:53
 ---
 
+![img](http://leiblog.wang/static/image/2021/1/nFX3H3.jpg)
+
 在使用Caffe训练网络的时候，往往会在train的prototxt里对图像有一些预处理操作、例如做resize、对训练数据减去均值等，在实际推理的时候我们还需把输入图像resize到网络输入的大小，必要的时候还需要做图像通道的transpose。在用PyCaffe进行推理的时候，这些操作需要使用caffe的transformer来实现，本文记述prototxt的预处理键值
 
 <!-- more -->
