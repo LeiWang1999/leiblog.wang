@@ -1,6 +1,6 @@
 ---
 title: Parallels Desktop 安装Kali
-top: 10
+
 categories:
   - Technical
 tags:

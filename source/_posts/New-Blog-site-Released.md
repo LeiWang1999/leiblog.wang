@@ -1,5 +1,4 @@
 ---
-top: 10
 title: New Blog site Released
 categories:
   - LifeStyle

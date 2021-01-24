@@ -1,6 +1,6 @@
 ---
 title: 靶机日记 三 | Investigator
-top: 10
+
 categories:
   - Technical
 tags:
@@ -32,7 +32,7 @@ PORT      STATE SERVICE VERSION
 |_http-open-proxy: Proxy might be redirecting requests
 |_http-title: Welcome To  UnderGround Sector
 22000/tcp open  ssh     Dropbear sshd 2014.66 (protocol 2.0)
-| ssh-hostkey: 
+| ssh-hostkey:
 |   2048 19:e2:9e:6c:c6:8d:af:4e:86:7c:3b:60:91:33:e1:85 (RSA)
 |_  521 46:13:43:49:24:88:06:85:6c:75:93:73:b5:1d:8f:28 (ECDSA)
 MAC Address: 00:0C:29:37:42:7C (VMware)

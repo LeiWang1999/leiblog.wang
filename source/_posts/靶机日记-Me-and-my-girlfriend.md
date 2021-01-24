@@ -1,6 +1,6 @@
 ---
 title: 靶机日记 二 | Me and my girlfriend
-top: 10
+
 categories:
   - Technical
 tags:
@@ -8,7 +8,7 @@ tags:
 date: 2020-08-21 17:09:46
 ---
 
-This vuln target have an interesting  Description: This VM tells us that there are a couple of lovers namely Alice and Bob, where the couple was originally very romantic, but since Alice worked at a private company, "Ceban Corp", something has changed from Alice's attitude towards Bob like something is "hidden", And Bob asks for your help to get what Alice is hiding and get full access to the company!
+This vuln target have an interesting Description: This VM tells us that there are a couple of lovers namely Alice and Bob, where the couple was originally very romantic, but since Alice worked at a private company, "Ceban Corp", something has changed from Alice's attitude towards Bob like something is "hidden", And Bob asks for your help to get what Alice is hiding and get full access to the company!
 
 靶机地址:https://www.vulnhub.com/entry/me-and-my-girlfriend-1,409/
 
@@ -36,17 +36,17 @@ PORT   STATE SERVICE
 80/tcp open  http
 ```
 
-80端口应该是我们的突破点
+80 端口应该是我们的突破点
 
 ![](http://leiblog.wang/static/image/2020/8/aCU1e1.png)
 
-nikto扫描了一下、发现了几个php文件，但没头绪，机智的我打开了网页源代码。
+nikto 扫描了一下、发现了几个 php 文件，但没头绪，机智的我打开了网页源代码。
 
 ```html
 Who are you? Hacker? Sorry This Site Can Only Be Accessed local!<!-- Maybe you can search how to use x-forwarded-for -->
 ```
 
-看来要用`x-forward-for`进行一个本地的代理，我使用的是chrome的插件`x-forward-for`:
+看来要用`x-forward-for`进行一个本地的代理，我使用的是 chrome 的插件`x-forward-for`:
 
 ![](http://leiblog.wang/static/image/2020/8/jaFl0Z.png)
 
@@ -54,23 +54,23 @@ Who are you? Hacker? Sorry This Site Can Only Be Accessed local!<!-- Maybe you c
 
 Done。
 
-尝试使用sql注入、失败。但是他提供了register，那我就先注册了一个用户，再登陆。
+尝试使用 sql 注入、失败。但是他提供了 register，那我就先注册了一个用户，再登陆。
 
-登陆进入之后、尝试了再Name处XSS攻击、失败。。
+登陆进入之后、尝试了再 Name 处 XSS 攻击、失败。。
 
-最后抓包的时候发现其发送了get请求、http://192.168.56.102/index.php?page=profile&user_id=12
+最后抓包的时候发现其发送了 get 请求、http://192.168.56.102/index.php?page=profile&user_id=12
 
-把user_id换成别的
+把 user_id 换成别的
 
 ![](http://leiblog.wang/static/image/2020/8/00p4J4.png)
 
-果然、user_id=5的时候出现了故事的主人公alice！
+果然、user_id=5 的时候出现了故事的主人公 alice！
 
 ![](http://leiblog.wang/static/image/2020/8/mvD472.png)
 
-把input控件的type换成text、就能拿到alice的密码了。
+把 input 控件的 type 换成 text、就能拿到 alice 的密码了。
 
-然后ssh、果然登陆进去了。然而我什么都没发现、home下面都空空如也，~~我还以为有什么出轨的信息呢！~~ 😳，居然在隐藏文件里！
+然后 ssh、果然登陆进去了。然而我什么都没发现、home 下面都空空如也，~~我还以为有什么出轨的信息呢！~~ 😳，居然在隐藏文件里！
 
 ```zsh
 alice@gfriEND:~$ ls -al
@@ -96,9 +96,9 @@ alice@gfriEND:~/.my_secret$ cat my_notes.txt
 Woahhh! I like this company, I hope that here i get a better partner than bob ^_^, hopefully Bob doesn't know my notes
 ```
 
-😂，原来是Alice不要Bob了！！最后一个问题，flag是什么，这需要我们拿到root权限。
+😂，原来是 Alice 不要 Bob 了！！最后一个问题，flag 是什么，这需要我们拿到 root 权限。
 
-首先，去apache的根目录下找到刚才扫描出来的php文件、查看config.php的内容，是连接数据库的、用他提供的root用户密码试了一下，还真进去了。
+首先，去 apache 的根目录下找到刚才扫描出来的 php 文件、查看 config.php 的内容，是连接数据库的、用他提供的 root 用户密码试了一下，还真进去了。
 
 ```zsh
 alice@gfriEND:~/.my_secret$ cd /var/www/html/
@@ -116,7 +116,7 @@ Password:
 root@gfriEND:/var/www/html/config#
 ```
 
-root的home目录下，发现了隐藏的flag2.txt
+root 的 home 目录下，发现了隐藏的 flag2.txt
 
 ```zsh
 root@gfriEND:~# cat flag2.txt
@@ -136,4 +136,3 @@ Instagram: @aldodimas73
 
 Thanks! Flag 2: gfriEND{56fbeef560930e77ff984b644fde66e7}
 ```
-

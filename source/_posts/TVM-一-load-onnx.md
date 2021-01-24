@@ -1,6 +1,6 @@
 ---
 title: TVM Notes｜一、前端导入ONNX模型
-top: 10
+
 categories:
   - Technical
 tags:
@@ -10,11 +10,11 @@ date: 2020-09-15 11:22:02
 
 ![Banner](http://leiblog.wang/static/image/2020/9/Figure_1.png)
 
-对于如何学习tvm源代码，我参考蓝大的在知乎上对有关问题的[回复](https://www.zhihu.com/question/268423574/answer/506008668)，从前端开始阅读，这篇文章记录的是relay层次导入onnx模型的笔记。
+对于如何学习 tvm 源代码，我参考蓝大的在知乎上对有关问题的[回复](https://www.zhihu.com/question/268423574/answer/506008668)，从前端开始阅读，这篇文章记录的是 relay 层次导入 onnx 模型的笔记。
 
 <!-- more -->
 
-下面是我根据tutorial编写的程序，有关说明和运行结果可以在[tvm docs](https://tvm.apache.org/docs/tutorials/frontend/from_onnx.html#sphx-glr-tutorials-frontend-from-onnx-py)里找到，或者复制以下代码运行。
+下面是我根据 tutorial 编写的程序，有关说明和运行结果可以在[tvm docs](https://tvm.apache.org/docs/tutorials/frontend/from_onnx.html#sphx-glr-tutorials-frontend-from-onnx-py)里找到，或者复制以下代码运行。
 
 ```python
 import onnx
@@ -68,20 +68,20 @@ plt.show()
 
 ### super_resolution.onnx
 
-关于ONNX格式的有关介绍，可以参考下面两篇博客：
+关于 ONNX 格式的有关介绍，可以参考下面两篇博客：
 
-- [开源一年多的模型交换格式ONNX，已经一统框架江湖了？](https://flashgene.com/archives/12034.html)
-- [我们来谈谈ONNX的日常](https://flashgene.com/archives/30780.html)
+- [开源一年多的模型交换格式 ONNX，已经一统框架江湖了？](https://flashgene.com/archives/12034.html)
+- [我们来谈谈 ONNX 的日常](https://flashgene.com/archives/30780.html)
 
-超分辨率技术（Super-Resolution, SR）是指从观测到的低分辨率图像重建出相应的高分辨率图像，使用netron查看模型。
+超分辨率技术（Super-Resolution, SR）是指从观测到的低分辨率图像重建出相应的高分辨率图像，使用 netron 查看模型。
 
-查看模型能让你知道一些关键的信息、比如模型的构成、还有更重要的一点是拿到input_name来塑造我们的shape_dict，就比如用到的SR模型，输入的name是‘1’，那shape_dict就应该是{'1': x.shape}
+查看模型能让你知道一些关键的信息、比如模型的构成、还有更重要的一点是拿到 input_name 来塑造我们的 shape_dict，就比如用到的 SR 模型，输入的 name 是‘1’，那 shape_dict 就应该是{'1': x.shape}
 
 <div align="center">
 <img src="http://leiblog.wang/static/image/2020/9/super_resolution.png" alt="Model" style="zoom:50%;" />  
 </div>
 
-接下来看`frontend.fromonnx`,可以看到relay前端提供了很多框架模型的接口
+接下来看`frontend.fromonnx`,可以看到 relay 前端提供了很多框架模型的接口
 
 ```python
 from .mxnet import from_mxnet
@@ -99,13 +99,13 @@ from .caffe import from_caffe
 
 {% colorquote info %}
 
-这里插个题外话，科普一下Python小知识。在框架源代码中经常使用from . import A 或者 from .A import B 的操作是什么意思？
+这里插个题外话，科普一下 Python 小知识。在框架源代码中经常使用 from . import A 或者 from .A import B 的操作是什么意思？
 
 首先，`.`的意思是当前目录，`..`的意思是上级目录。
 
-当碰到from . import A，python回去找当前目录下的 `__init__.py`文件，从里面去找A，如果是..就是上级文件夹。
+当碰到 from . import A，python 回去找当前目录下的 `__init__.py`文件，从里面去找 A，如果是..就是上级文件夹。
 
-如果当前目录下没有`__init__.py`,则需要from .A import B,回到当前目录下的`A.py`里去寻找B，如果是..就是上级文件夹。
+如果当前目录下没有`__init__.py`,则需要 from .A import B,回到当前目录下的`A.py`里去寻找 B，如果是..就是上级文件夹。
 
 {% endcolorquote %}
 
@@ -138,31 +138,31 @@ def from_onnx(model,
     return mod, params
 ```
 
-刚开始是对onnx模型的检查，这样类似的检查在relay前端对接Keras模型的代码里也出现了，虽然编写的方式不同(因为这些前端框架的接口都是不同的开发者写的，所以风格有差别)，生命GraphProto实例g，在模型转化过程中，g实例会存储包括节点、参数等信息。
+刚开始是对 onnx 模型的检查，这样类似的检查在 relay 前端对接 Keras 模型的代码里也出现了，虽然编写的方式不同(因为这些前端框架的接口都是不同的开发者写的，所以风格有差别)，生命 GraphProto 实例 g，在模型转化过程中，g 实例会存储包括节点、参数等信息。
 
-关于GraphProto，定义在onnx的repo里，主要有以下结构:
+关于 GraphProto，定义在 onnx 的 repo 里，主要有以下结构:
 
->**nodes**:用make_node生成的节点列表 [类型:NodeProto列表]
+> **nodes**:用 make_node 生成的节点列表 [类型:NodeProto 列表]
 >
->比如[node1,node2,node3,…]这种的
+> 比如[node1,node2,node3,…]这种的
 >
->**name**:graph的名字 [类型:字符串]
+> **name**:graph 的名字 [类型:字符串]
 >
->**inputs**:存放graph的输入数据信息 [类型:ValueInfoProto列表]
+> **inputs**:存放 graph 的输入数据信息 [类型:ValueInfoProto 列表]
 >
->输入数据的信息以ValueInfoProto的形式存储，会用到make_tensor_value_info，来将输入数据的名字、数据类型、形状(维度)给记录下来。
+> 输入数据的信息以 ValueInfoProto 的形式存储，会用到 make_tensor_value_info，来将输入数据的名字、数据类型、形状(维度)给记录下来。
 >
->**outputs**:存放graph的输出数据信息 [类型:ValueInfoProto列表]
+> **outputs**:存放 graph 的输出数据信息 [类型:ValueInfoProto 列表]
 >
->与inputs相同。
+> 与 inputs 相同。
 >
->**initializer**:存放超参数 [类型:TensorProto列表]
+> **initializer**:存放超参数 [类型:TensorProto 列表]
 
-然后例化GraphProto、并设置opset，至于这个参数有什么用应该要参考onnx的文档，总之该参数默认为1，记录onnx模型里的各种参数的值，包括name、nodes等.
+然后例化 GraphProto、并设置 opset，至于这个参数有什么用应该要参考 onnx 的文档，总之该参数默认为 1，记录 onnx 模型里的各种参数的值，包括 name、nodes 等.
 
 #### g.from_onnx
 
-**第一个loop：**
+**第一个 loop：**
 
 ```python
         # parse network inputs to relay, aka parameters
@@ -177,9 +177,9 @@ def from_onnx(model,
             )
 ```
 
-这里将nodes和params的信息都缓存到g实例中，具体是哪些信息呢？比如Conv Node的weight参数，ADD Node的B参数，这些由我们训练出来的参数都是在这个阶段初始化的。`_nodes`里缓存的是节点的name、shape和dtype，而`_params`里缓存的是具体的参数。
+这里将 nodes 和 params 的信息都缓存到 g 实例中，具体是哪些信息呢？比如 Conv Node 的 weight 参数，ADD Node 的 B 参数，这些由我们训练出来的参数都是在这个阶段初始化的。`_nodes`里缓存的是节点的 name、shape 和 dtype，而`_params`里缓存的是具体的参数。
 
-**第二个loop:**
+**第二个 loop:**
 
 ```python
         for i in graph.input:
@@ -200,7 +200,7 @@ def from_onnx(model,
                     tshape = self._shape[i_name]
                 else:
                     raise ValueError("Must provide an input shape for `{0}`.".format(i_name))
-                if isinstance(self._dtype, dict):    
+                if isinstance(self._dtype, dict):
                     dtype = self._dtype[i_name] if i_name in self._dtype else d_type
                 else:
                     dtype = d_type
@@ -208,11 +208,11 @@ def from_onnx(model,
             self._inputs[i_name] = self._nodes[i_name]
 ```
 
-遍历所有的input，对于我们整个模型来讲input只有最开始出入的图像，而对于计算图而言余下的input还包括运算的权重信息。
+遍历所有的 input，对于我们整个模型来讲 input 只有最开始出入的图像，而对于计算图而言余下的 input 还包括运算的权重信息。
 
-然后就是最核心的`_get_convert_map`函数的实现，实例化了所有的OP，追溯到实例对象的`__call__`方法，调用了函数：get_relay_op，这部分先放下（，毕竟现在还没调用呢不是。
+然后就是最核心的`_get_convert_map`函数的实现，实例化了所有的 OP，追溯到实例对象的`__call__`方法，调用了函数：get_relay_op，这部分先放下（，毕竟现在还没调用呢不是。
 
-**第三个loop:**
+**第三个 loop:**
 
 ```python
         for node in graph.node:
@@ -225,9 +225,7 @@ def from_onnx(model,
                 unsupported_ops.add(op_name)
 ```
 
-在这里，遍历整个计算图的node，查看是否有找不到映射的。
-
-
+在这里，遍历整个计算图的 node，查看是否有找不到映射的。
 
 ### Reference
 

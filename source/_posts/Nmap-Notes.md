@@ -1,6 +1,6 @@
 ---
 title: Nmap Notes
-top: 10
+
 categories:
   - Technical
 tags:

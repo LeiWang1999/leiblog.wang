@@ -1,5 +1,4 @@
 ---
-top: 10
 title: 千兆以太网视频传输
 categories:
   - Technical

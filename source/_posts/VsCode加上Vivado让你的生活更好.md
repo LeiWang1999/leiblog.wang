@@ -1,7 +1,7 @@
 ---
 categories:
   - Technical
-top: 10
+
 tags:
   - FPGA
   - VsCode

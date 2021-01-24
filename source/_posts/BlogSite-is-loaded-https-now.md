@@ -1,6 +1,6 @@
 ---
-title: 'HTTPS Blog site Released! '
-top: 10
+title: "HTTPS Blog site Released! "
+
 categories:
   - Technical
 tags:
@@ -14,4 +14,3 @@ Hi, there!
 Now My blog site is loaded with SSL certificate , which use [Let's Encrypy](https://letsencrypt.org/#) free service.
 
 <!-- more -->
-

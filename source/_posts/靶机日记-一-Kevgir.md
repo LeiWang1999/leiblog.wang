@@ -1,6 +1,6 @@
 ---
 title: 靶机日记 一 | Kevgir
-top: 10
+
 categories:
   - Technical
 tags:

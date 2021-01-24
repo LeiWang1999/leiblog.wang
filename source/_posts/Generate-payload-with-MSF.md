@@ -1,6 +1,6 @@
 ---
 title: Generate payload with MSF
-top: 10
+
 categories:
   - Technical
 tags:
@@ -127,4 +127,3 @@ exploit -j -z
 ```
 
 Once the required values are completed the following command will execute your handler – ‘msfconsole -L -r ‘
-

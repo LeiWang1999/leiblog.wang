@@ -1,6 +1,6 @@
 ---
 title: 2020.11 What i Read
-top: 10
+
 categories:
   - Technical
 tags:
@@ -16,7 +16,7 @@ TVM - GCN
 
 https://chhzh123.github.io/blogs/2020-03-21-tvm-gcn/
 
-Relay传递基础架构
+Relay 传递基础架构
 
 https://blog.csdn.net/weixin_42164269/article/details/104291538
 
@@ -44,11 +44,11 @@ https://www.zhihu.com/question/295181406
 
 https://zhuanlan.zhihu.com/p/74249758
 
-简述 __init__、__new__、__call__ 方法
+简述 **init**、**new**、**call** 方法
 
 https://foofish.net/magic-method.html
 
-Python Set对象
+Python Set 对象
 
 https://www.runoob.com/python/python-func-set.html
 
