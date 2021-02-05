@@ -43,34 +43,48 @@ docker pull nvcr.io/nvidia/tensorrt:20.12-py3
 
 最新版的TensorRT做int8的量化是支持Python API的，我们可以在`/opt/tensorrt/samples/python/int8_caffe_mnist`里找到官方的量化方法，当然与之对应的还有C++版本。我更推荐Python、可读性更好、重写起来更方便，而且C++其实也是调用的.so的库。
 
-如果我们想要重构一份自己的网络量化方法，核心的部分是要自己定义一个Class、继承`trt.IInt8EntropyCalibrator2`，具体内容可以阅读MNIST量化的`calibrator.py`文件，我们需要提供自己训练的时候使用的数据集，deploy.prototxt，caffemodel这三个文件，然后自己编写解析的方法，例如我自己的CIFAR10，就写成这样：
+如果我们想要重构一份自己的网络量化方法，核心的部分是要自己定义一个Class、继承`trt.IInt8EntropyCalibrator2`，具体内容可以阅读MNIST量化的`calibrator.py`文件，我们需要提供自己训练的时候使用的数据集，deploy.prototxt，caffemodel这三个文件，然后自己编写解析的方法，例如本文对针对ImageNet的resnet18网络做量化，就写成这样：
 
 ```python
-# Returns a numpy buffer of shape (num_images, 1, 32, 32)
-def load_cifar10_data(filepath, scale=False):
-    with open(filepath, "rb") as f:
-        dic = pickle.load(f, encoding='bytes')
-        test_images = np.array(dic[b"data"].reshape([-1, 3, 32, 32])).astype(np.uint8)
-        # test_labels = np.array(dic[b"labels"])
+# Returns a numpy buffer of shape (num_images, 1, 28, 28)
+def load_data(filepath):
+    test_imgs = []
+    global fileList
+    fileList = os.listdir(filepath)
+    mean = np.ones([3, 224, 224], dtype=np.float)
+    mean[0,:,:] = 104
+    mean[1,:,:] = 117
+    mean[2,:,:] = 123
+    for img_path in fileList:
+        img_path = filepath +'/'+ img_path
+        img = cv.imread(img_path)
+        img = crop_img(img, [224, 224])
+        img = img.transpose((2, 0, 1))
+        img = img - mean
+        test_imgs.append(img)
     # Need to scale all values to the range of [0, 1]
-    if scale:
-        return np.ascontiguousarray((test_images / 255.0).astype(np.float32))
-    else:
-        return np.ascontiguousarray(test_images).astype(np.float32)
+    return np.ascontiguousarray(test_imgs).astype(np.float32)
+
 # Returns a numpy buffer of shape (num_images)
-def load_cifar10_labels(filepath):
-    with open(filepath, "rb") as f:
-        dic = pickle.load(f, encoding='bytes')
-        test_labels = np.array(dic[b"labels"])
-    # Make sure the magic number is what we expect
-    return test_labels
+def load_labels(filepath):
+    global fileList
+    test_labels = []
+    labels_mapping = {}
+    with open(filepath, 'r') as f:
+        lines = f.readlines()
+        for each in lines:
+            imageName, labels = each.strip('\n').split(' ')
+            labels_mapping[imageName] = int(labels)
+    for each in fileList:
+        test_labels.append(labels_mapping[each])
+    return np.ascontiguousarray(test_labels)
 ```
 
 而自己定义的`EntropyCalibrator`如下：
 
 ```python
-class Cifar10EntropyCalibrator(trt.IInt8EntropyCalibrator2):
-    def __init__(self, training_data, cache_file, batch_size=32):
+class CustomEntropyCalibrator(trt.IInt8EntropyCalibrator2):
+    def __init__(self, training_data, cache_file, batch_size=64):
         # Whenever you specify a custom constructor for a TensorRT class,
         # you MUST call the constructor of the parent explicitly.
         trt.IInt8EntropyCalibrator2.__init__(self)
@@ -78,7 +92,7 @@ class Cifar10EntropyCalibrator(trt.IInt8EntropyCalibrator2):
         self.cache_file = cache_file
 
         # Every time get_batch is called, the next batch of size batch_size will be copied to the device and returned.
-        self.data = load_cifar10_data(training_data, scale=False)
+        self.data = load_data(training_data)
         self.batch_size = batch_size
         self.current_index = 0
 
@@ -122,162 +136,111 @@ class Cifar10EntropyCalibrator(trt.IInt8EntropyCalibrator2):
 
 ```zsh
 root@ea6ecad42f26:/opt/tensorrt# python samples/python/int8_caffe_cifar10/sample.py 
-Calibrating batch 0, containing 32 images
-Calibrating batch 10, containing 32 images
-Calibrating batch 20, containing 32 images
-Calibrating batch 30, containing 32 images
-Calibrating batch 40, containing 32 images
-Calibrating batch 50, containing 32 images
-Calibrating batch 60, containing 32 images
-Calibrating batch 70, containing 32 images
-Calibrating batch 80, containing 32 images
-Calibrating batch 90, containing 32 images
-Calibrating batch 100, containing 32 images
-Calibrating batch 110, containing 32 images
-Calibrating batch 120, containing 32 images
-Calibrating batch 130, containing 32 images
-Calibrating batch 140, containing 32 images
-Calibrating batch 150, containing 32 images
-Calibrating batch 160, containing 32 images
-Calibrating batch 170, containing 32 images
-Calibrating batch 180, containing 32 images
-Calibrating batch 190, containing 32 images
-Calibrating batch 200, containing 32 images
-Calibrating batch 210, containing 32 images
-Calibrating batch 220, containing 32 images
-Calibrating batch 230, containing 32 images
-Calibrating batch 240, containing 32 images
-Calibrating batch 250, containing 32 images
-Calibrating batch 260, containing 32 images
-Calibrating batch 270, containing 32 images
-Calibrating batch 280, containing 32 images
-Calibrating batch 290, containing 32 images
-Calibrating batch 300, containing 32 images
-Calibrating batch 310, containing 32 images
+Calibrating batch 0, containing 64 images
+Calibrating batch 10, containing 64 images
 Validating batch 10
 Validating batch 20
 Validating batch 30
-Validating batch 40
-Validating batch 50
-Validating batch 60
-Validating batch 70
-Validating batch 80
-Validating batch 90
-Validating batch 100
-Validating batch 110
-Validating batch 120
-Validating batch 130
-Validating batch 140
-Validating batch 150
-Validating batch 160
-Validating batch 170
-Validating batch 180
-Validating batch 190
-Validating batch 200
-Validating batch 210
-Validating batch 220
-Validating batch 230
-Validating batch 240
-Validating batch 250
-Validating batch 260
-Validating batch 270
-Validating batch 280
-Validating batch 290
-Validating batch 300
-Validating batch 310
-Total Accuracy: 88.37%
+Total Accuracy: 58.54145854145854%
 ```
 
 而在运行目录下生成的：cache文件就是calibration table了：
 
 ```zsh
 TRT-7202-EntropyCalibration2
-data: 4000890a
-(Unnamed Layer* 0) [Convolution]_output: 411e6870
-(Unnamed Layer* 1) [Scale]_output: 3daa12ee
-(Unnamed Layer* 2) [Scale]_output: 3d8400aa
-first_conv: 3d7e1308
-(Unnamed Layer* 4) [Convolution]_output: 3e229280
-(Unnamed Layer* 5) [Scale]_output: 3d9d69c8
-(Unnamed Layer* 6) [Scale]_output: 3d6d057b
-group0_block0_conv0: 3d49be67
-(Unnamed Layer* 8) [Convolution]_output: 3de9d077
-(Unnamed Layer* 9) [Scale]_output: 3d7fbd36
-group0_block0_conv1: 3d6d6b9e
-(Unnamed Layer* 11) [ElementWise]_output: 3d9d08d7
-group0_block0_sum: 3d9d08d7
-(Unnamed Layer* 13) [Convolution]_output: 3e838a54
-(Unnamed Layer* 14) [Scale]_output: 3d693378
-(Unnamed Layer* 15) [Scale]_output: 3d65b956
-group0_block1_conv0: 3d38eaf7
-(Unnamed Layer* 17) [Convolution]_output: 3da93e34
-(Unnamed Layer* 18) [Scale]_output: 3d851a08
-group0_block1_conv1: 3d6d458c
-(Unnamed Layer* 20) [ElementWise]_output: 3db0ccce
-group0_block1_sum: 3daffc1b
-(Unnamed Layer* 22) [Convolution]_output: 3e6dcba7
-(Unnamed Layer* 23) [Scale]_output: 3d4fc028
-(Unnamed Layer* 24) [Scale]_output: 3d3d5aa8
-group0_block2_conv0: 3cfbae80
-(Unnamed Layer* 26) [Convolution]_output: 3d21c535
-(Unnamed Layer* 27) [Scale]_output: 3d4dbefc
-group0_block2_conv1: 3d1467d6
-(Unnamed Layer* 29) [ElementWise]_output: 3dad9307
-group0_block2_sum: 3dae4e9d
-(Unnamed Layer* 31) [Convolution]_output: 3e82246b
-(Unnamed Layer* 32) [Scale]_output: 3d5e11ea
-(Unnamed Layer* 33) [Scale]_output: 3d31c955
-group1_block0_conv0: 3d2c5625
-(Unnamed Layer* 35) [Convolution]_output: 3dd0a5ed
-(Unnamed Layer* 36) [Scale]_output: 3d45d5dc
-group1_block0_conv1: 3d36f71d
-(Unnamed Layer* 38) [Convolution]_output: 3dbba076
-(Unnamed Layer* 39) [Scale]_output: 3d4dd5ae
-group1_block0_proj: 3d09cfd0
-(Unnamed Layer* 41) [ElementWise]_output: 3d6cefd9
-group1_block0_sum: 3d6cefd9
-(Unnamed Layer* 43) [Convolution]_output: 3e1b7a5a
-(Unnamed Layer* 44) [Scale]_output: 3d3666e5
-(Unnamed Layer* 45) [Scale]_output: 3d1df171
-group1_block1_conv0: 3ce1b3e8
-(Unnamed Layer* 47) [Convolution]_output: 3d0db714
-(Unnamed Layer* 48) [Scale]_output: 3d2a1f7b
-group1_block1_conv1: 3cfafb12
-(Unnamed Layer* 50) [ElementWise]_output: 3d7a722e
-group1_block1_sum: 3d83067b
-(Unnamed Layer* 52) [Convolution]_output: 3e1e4ee2
-(Unnamed Layer* 53) [Scale]_output: 3d324c5b
-(Unnamed Layer* 54) [Scale]_output: 3d16b2ca
-group1_block2_conv0: 3cfc9c36
-(Unnamed Layer* 56) [Convolution]_output: 3d11f6e1
-(Unnamed Layer* 57) [Scale]_output: 3d63d99f
-group1_block2_conv1: 3d14e1c6
-(Unnamed Layer* 59) [ElementWise]_output: 3d82154b
-group1_block2_sum: 3d8acc00
-(Unnamed Layer* 61) [Convolution]_output: 3e2b9d99
-(Unnamed Layer* 62) [Scale]_output: 3d461d92
-(Unnamed Layer* 63) [Scale]_output: 3d0753a3
-group2_block0_conv0: 3d088b96
-(Unnamed Layer* 65) [Convolution]_output: 3d8f6929
-(Unnamed Layer* 66) [Scale]_output: 3d46f2cf
-group2_block0_conv1: 3d401129
-(Unnamed Layer* 68) [Convolution]_output: 3d3b470d
-(Unnamed Layer* 69) [Scale]_output: 3d337907
-group2_block0_proj: 3c8b7185
-(Unnamed Layer* 71) [ElementWise]_output: 3d4aa35f
-group2_block0_sum: 3d4c01a2
-(Unnamed Layer* 73) [Convolution]_output: 3da85a1e
-(Unnamed Layer* 74) [Scale]_output: 3d506b89
-(Unnamed Layer* 75) [Scale]_output: 3d2390a0
-group2_block1_conv0: 3d14723b
-(Unnamed Layer* 77) [Convolution]_output: 3d10246f
-(Unnamed Layer* 78) [Scale]_output: 3d8dd919
-group2_block1_conv1: 3df2ed9d
-(Unnamed Layer* 80) [ElementWise]_output: 3e01c7af
-group2_block1_sum: 3e12079c
-global_avg_pool: 3e12079c
-fc: 3ea9f0fa
-softmax: 3c010a14
+data: 3f9839e4
+(Unnamed Layer* 0) [Convolution]_output: 404efcc8
+(Unnamed Layer* 1) [Scale]_output: 3dad1056
+(Unnamed Layer* 2) [Scale]_output: 3c612a39
+conv1: 3c35ea42
+pool1: 3c35ea42
+(Unnamed Layer* 5) [Convolution]_output: 3c44ec17
+(Unnamed Layer* 6) [Scale]_output: 3d79ddee
+res2a_branch1: 3c71cc22
+(Unnamed Layer* 8) [Convolution]_output: 3cbea256
+(Unnamed Layer* 9) [Scale]_output: 3db5bbfc
+(Unnamed Layer* 10) [Scale]_output: 3c893a25
+res2a_branch2a: 3bfa7ac1
+(Unnamed Layer* 12) [Convolution]_output: 3bb2c9bf
+(Unnamed Layer* 13) [Scale]_output: 3d7d559f
+res2a_branch2b: 3c431934
+(Unnamed Layer* 15) [ElementWise]_output: 3caeb939
+res2a: 3c53f5bb
+(Unnamed Layer* 17) [Convolution]_output: 3c10df08
+(Unnamed Layer* 18) [Scale]_output: 3d87d76c
+(Unnamed Layer* 19) [Scale]_output: 3c5511f5
+res2b_branch2a: 3c2a88bb
+(Unnamed Layer* 21) [Convolution]_output: 3bb6625d
+(Unnamed Layer* 22) [Scale]_output: 3d88ba43
+res2b_branch2b: 3c6ad191
+(Unnamed Layer* 24) [ElementWise]_output: 3c996872
+res2b: 3c90d5e3
+(Unnamed Layer* 26) [Convolution]_output: 3b7d9a5e
+(Unnamed Layer* 27) [Scale]_output: 3d74307d
+res3a_branch1: 3bfdfab7
+(Unnamed Layer* 29) [Convolution]_output: 3c2fe025
+(Unnamed Layer* 30) [Scale]_output: 3d7def72
+(Unnamed Layer* 31) [Scale]_output: 3c31f779
+res3a_branch2a: 3c2c8afe
+(Unnamed Layer* 33) [Convolution]_output: 3bbf4a3a
+(Unnamed Layer* 34) [Scale]_output: 3d83d04d
+res3a_branch2b: 3c572369
+(Unnamed Layer* 36) [ElementWise]_output: 3c69c835
+res3a: 3c8064f2
+(Unnamed Layer* 38) [Convolution]_output: 3c14239e
+(Unnamed Layer* 39) [Scale]_output: 3d8554e6
+(Unnamed Layer* 40) [Scale]_output: 3c31028f
+res3b_branch2a: 3c169d63
+(Unnamed Layer* 42) [Convolution]_output: 3b8624f8
+(Unnamed Layer* 43) [Scale]_output: 3d9474e5
+res3b_branch2b: 3c3b2d4d
+(Unnamed Layer* 45) [ElementWise]_output: 3c62c909
+res3b: 3c3576b1
+(Unnamed Layer* 47) [Convolution]_output: 3b206632
+(Unnamed Layer* 48) [Scale]_output: 3d814cf0
+res4a_branch1: 3b9986ae
+(Unnamed Layer* 50) [Convolution]_output: 3c17f128
+(Unnamed Layer* 51) [Scale]_output: 3d827168
+(Unnamed Layer* 52) [Scale]_output: 3c2b6742
+res4a_branch2a: 3c1b4ed9
+(Unnamed Layer* 54) [Convolution]_output: 3bab8f82
+(Unnamed Layer* 55) [Scale]_output: 3d885e72
+res4a_branch2b: 3c3ce0a1
+(Unnamed Layer* 57) [ElementWise]_output: 3c4deb0b
+res4a: 3c63cff2
+(Unnamed Layer* 59) [Convolution]_output: 3bdc2dea
+(Unnamed Layer* 60) [Scale]_output: 3d6cc90a
+(Unnamed Layer* 61) [Scale]_output: 3c2cbe15
+res4b_branch2a: 3c05ab17
+(Unnamed Layer* 63) [Convolution]_output: 3b636e4c
+(Unnamed Layer* 64) [Scale]_output: 3d857fd8
+res4b_branch2b: 3c5bd401
+(Unnamed Layer* 66) [ElementWise]_output: 3c6a9868
+res4b: 3c5cbc54
+(Unnamed Layer* 68) [Convolution]_output: 3ad16737
+(Unnamed Layer* 69) [Scale]_output: 3d662897
+res5a_branch1: 3bab30a7
+(Unnamed Layer* 71) [Convolution]_output: 3bbe5321
+(Unnamed Layer* 72) [Scale]_output: 3d82074f
+(Unnamed Layer* 73) [Scale]_output: 3c2da30b
+res5a_branch2a: 3c0fe297
+(Unnamed Layer* 75) [Convolution]_output: 3b4dae0e
+(Unnamed Layer* 76) [Scale]_output: 3d7a5e58
+res5a_branch2b: 3c59f7ca
+(Unnamed Layer* 78) [ElementWise]_output: 3c7a4a3e
+res5a: 3c69fa84
+(Unnamed Layer* 80) [Convolution]_output: 3bea45a4
+(Unnamed Layer* 81) [Scale]_output: 3d891fa0
+(Unnamed Layer* 82) [Scale]_output: 3c4d88a0
+res5b_branch2a: 3bc901ec
+(Unnamed Layer* 84) [Convolution]_output: 3af65712
+(Unnamed Layer* 85) [Scale]_output: 3ddd4245
+res5b_branch2b: 3e07db30
+(Unnamed Layer* 87) [ElementWise]_output: 3e04055e
+res5b: 3e1b53d4
+pool5: 3e1b53d4
+fc1000: 3e1f8999
+prob: 3acc1705
 ```
 
 里面有很多的Unnamed Layer :blonde_woman: 我们之后再解决。
@@ -301,7 +264,7 @@ Layer，会导致有很多层找不到自己的scale是多少的错误，这个b
 
 ![](http://leiblog.wang/static/image/2021/2/CpUrAm.png)
 
-原来官方曾经也有这样的问题。。。。。但他这个解决方法也没公布，我发现其其实就是把scale的name换成了每个网络节点的name，于是自己写了一份python脚本解决:
+原来官方曾经也有这样的问题。但他这个解决方法也没公布，我发现其其实就是把scale的name换成了每个网络节点的name，于是自己写了一份python脚本解决（本来想在原先的项目上提个pr，但方便解析prototxt需要安装额外的库所以就放下了:
 
 ```zsh
 import json
@@ -341,7 +304,53 @@ with open('resnet18-cifar10-int8-fixed.json', 'w') as f:
     json.dump(_new, f)
 ```
 
-如这段脚本，生成的文件是 resnet18-cifar10-int8-fixed.json ，注意运行这段脚本需要caffe环境，并且编译出了pycaffe接口。
+如这段脚本，生成的文件是imagenet_resnet18_calibration.cache ，注意运行这段脚本需要caffe环境，并且编译出了pycaffe接口。
 
 ### Compile and Runtime
+
+针对fp16的compile：
+
+```zsh
+./nvdla_compiler --prototxt resnet18-imagenet-caffe/deploy.prototxt --caffemodel resnet18-imagenet-caffe/resnet-18.caffemodel --profile imagenet-fp16
+```
+
+针对fp16的runtime：
+
+```zsh
+./nvdla_runtime --loadable imagenet-fp16.nvdla --image resnet18-imagenet-caffe/resized/0_tench.jpg   --mean 104,117,123  --rawdump
+```
+
+```zsh
+# cat output.dimg 
+0.97998 0.00159931 1.13845e-05 3.57628e-05 8.67844e-05 0.000154614 2.14577e-05 2.20537e-06 1.3113e-06 1.78814e-07 5.90086e-06 1.03116e-05 3.03984e-06 1.37091e-06 1.49012e-06 9.23872e-06 3.57628e-06 1.72853e-06 1.07288e-06 9.53674e-07 1.07288e-06 1.03712e-05 2.38419e-06 1.37091e-06 2.26498e-06 1.2517e-06 9.59635e-06 9.47714e-06 2.14577e-06 6.77109e-05 7.85589e-05 2.77758e-05 2.7895e-05 3.89218e-05 1.26958e-05 1.68681e-05 3.0458e-05 4.05312e-06 7.62939e-06 9.11951e-06 1.01924e-05 1.2517e-06 1.78814e-06 4.47035e-06 9.53674e-07 2.38419e-07 4.17233e-06 3.016e-05 7.7486e-07 1.60933e-06 3.39746e-06 2.56896e-05 1.3113e-06 1.01328e-06 4.76837e-07 1.96695e-06 5.36442e-07 2.98023e-07 2.26498e-06 1.66893e-06 1.84774e-06 1.3113e-06 1.90735e-06 2.44379e-06 8.16584e-06 3.8743e-06 1.78814e-06 4.76837e-07 9.53674e-07 1.96695e-06 6.55651e-07 1.43051e-06 1.13249e-06 2.86102e-06 8.34465e-07 1.60933e-06 1.13249e-06 2.98023e-07 1.43051e-06 4.17233e-07 2.20537e-06 5.36442e-07 1.84774e-06 3.8743e-06 1.2517e-06 7.15256e-07 4.29153e-06 5.30481e-06 1.68681e-05 9.89437e-06 1.60336e-05 4.05312e-06 1.90735e-05 8.64267e-06 1.10269e-05 9.53674e-06 1.2517e-05 8.9407e-06 2.47359e-05 6.79493e-06 1.78814e-06 1.3113e-06 2.86102e-06 0.000196218 8.34465e-07 2.20537e-06 2.5034e-06 6.4373e-06 9.59635e-06 3.15905e-06 3.21865e-06 1.54972e-06 1.35899e-05 5.26309e-05 3.09944e-05 5.1856e-06 5.60284e-06 8.34465e-06 1.92523e-05 4.41074e-06 3.69549e-06 1.03712e-05 1.64509e-05 3.57628e-06 2.43783e-05 2.14577e-06 7.62939e-06 5.96046e-07 2.02656e-06 4.23193e-06 3.8743e-06 1.13249e-06 2.6226e-06 1.70469e-05 3.8147e-06 1.60933e-06 3.21865e-06 1.07288e-06 8.9407e-07 4.76837e-07 1.37091e-06 1.78814e-06 1.43051e-06 1.07288e-06 8.22544e-06 1.01924e-05 1.78814e-06 3.39746e-06 3.03984e-06 3.9041e-05 1.36495e-05 6.31809e-06 8.34465e-07 5.96046e-07 2.80142e-06 5.36442e-07 1.13249e-06 2.32458e-06 4.11272e-06 1.49012e-06 1.01328e-06 2.86102e-06 2.98023e-06 9.53674e-06 1.01328e-06 2.08616e-06 2.38419e-06 2.14577e-06 4.29153e-06 7.15256e-07 4.76837e-07 1.96695e-06 1.07288e-06 1.66893e-06 1.13249e-06 3.63588e-06 1.37091e-06 2.98023e-07 9.53674e-07 2.14577e-06 3.27826e-06 4.76837e-07 2.32458e-06 8.34465e-07 2.02656e-06 2.26498e-06 3.33786e-06 5.1856e-06 1.19209e-06 1.54972e-06 6.55651e-07 2.74181e-06 1.37091e-06 5.24521e-06 2.02656e-06 1.84774e-06 3.57628e-07 2.38419e-07 8.9407e-07 8.9407e-07 9.53674e-07 1.72853e-06 1.2517e-06 5.96046e-07 1.01328e-06 7.7486e-07 9.53674e-07 5.84126e-06 3.27826e-06 2.6226e-06 1.01328e-06 4.11272e-06 1.07288e-06 1.13249e-06 1.13249e-06 1.37091e-06 2.02656e-06 2.38419e-07 1.84774e-06 5.96046e-07 2.86102e-06 6.55651e-07 7.7486e-07 4.23193e-06 1.54972e-06 8.16584e-06 1.96695e-06 2.26498e-06 7.7486e-07 2.98023e-07 1.72853e-06 1.84774e-06 5.96046e-07 4.76837e-07 2.86102e-06 1.12653e-05 1.07288e-06 7.689e-06 1.72853e-06 1.13249e-06 2.38419e-06 2.08616e-06 2.20537e-06 3.27826e-06 1.13249e-06 3.45707e-06 1.13249e-06 1.84774e-06 7.7486e-07 1.3113e-06 1.2517e-06 6.55651e-07 8.9407e-07 5.66244e-06 2.26498e-06 4.76837e-06 1.01328e-06 7.15256e-07 4.17233e-07 4.58956e-06 2.98023e-06 5.36442e-07 1.43647e-05 1.18613e-05 2.44379e-06 1.84774e-06 6.55651e-07 2.38419e-07 2.74181e-06 4.17233e-07 3.57628e-07 2.92063e-06 1.2517e-06 2.92063e-06 2.98023e-06 4.76837e-07 4.76837e-07 1.03116e-05 1.60933e-06 5.36442e-07 7.21216e-06 4.64916e-06 2.08616e-06 8.9407e-07 1.54972e-06 1.60933e-06 2.98023e-06 8.34465e-07 1.2517e-06 2.38419e-07 7.7486e-07 1.72853e-06 4.47035e-06 6.55651e-07 8.9407e-07 7.15256e-07 1.01328e-06 2.98023e-07 1.07288e-05 5.96046e-07 9.53674e-07 1.43051e-06 1.37091e-06 2.44379e-06 2.44379e-06 6.55651e-07 2.86102e-06 6.55651e-07 6.55651e-07 5.72205e-06 8.34465e-07 2.92063e-06 5.126e-06 1.2517e-06 2.86102e-06 2.44379e-06 9.53674e-07 2.563e-06 1.07288e-06 1.01328e-06 8.34465e-07 4.76837e-07 5.57899e-05 7.7486e-07 1.66893e-06 1.51992e-05 9.53674e-07 3.27826e-06 2.80142e-06 7.27177e-06 5.66244e-06 4.94719e-06 1.84774e-06 2.26498e-06 3.75509e-06 1.40071e-05 8.34465e-07 6.49691e-06 6.4373e-05 9.53674e-07 1.19209e-06 1.50204e-05 6.31809e-06 2.44379e-06 8.76188e-06 1.49012e-06 2.86102e-06 7.15256e-07 2.38419e-07 5.96046e-07 8.34465e-07 3.51667e-06 4.94719e-06 1.2517e-06 3.57628e-07 5.36442e-07 9.65595e-06 3.75509e-06 2.21133e-05 1.26362e-05 2.14577e-06 6.3777e-06 2.20537e-06 1.49608e-05 6.4373e-06 2.68221e-06 1.19209e-07 1.01328e-06 1.2517e-06 7.7486e-07 4.41074e-06 2.32458e-06 8.34465e-07 1.43051e-06 1.19209e-06 8.9407e-07 9.65595e-06 8.76188e-06 3.8147e-06 1.19805e-05 7.7486e-06 5.30481e-06 2.45571e-05 3.57628e-07 5.1856e-06 2.80142e-06 8.9407e-07 2.20537e-06 5.36442e-07 0.00881195 0.000128746 0.00135708 0.000327349 2.03252e-05 7.79033e-05 0.000499249 3.8147e-06 7.236e-05 4.17233e-07 1.3113e-06 1.01328e-06 5.36442e-07 5.36442e-07 7.7486e-07 5.36442e-07 5.96046e-07 2.98023e-07 7.15256e-07 1.3113e-06 1.72853e-06 2.92063e-06 4.17233e-07 5.36442e-07 2.80142e-06 5.96046e-07 1.3113e-06 1.2517e-06 2.20537e-06 5.36442e-07 2.55108e-05 7.7486e-07 4.17233e-07 2.80142e-06 8.34465e-07 5.36442e-07 4.76837e-07 1.3113e-06 2.14577e-06 1.43051e-06 1.72853e-06 7.7486e-07 9.53674e-07 7.15256e-07 2.38419e-06 1.96695e-06 2.02656e-06 7.15256e-07 1.37091e-06 1.43051e-06 1.37091e-06 7.15256e-07 1.43051e-06 8.34465e-07 1.66893e-06 1.01328e-06 8.34465e-07 9.53674e-07 2.02656e-06 1.07288e-06 2.74181e-06 8.9407e-07 2.20537e-06 1.96695e-06 1.3113e-06 4.76837e-07 3.57628e-07 5.60284e-06 1.37091e-06 3.57628e-07 1.07288e-06 4.17233e-07 2.20537e-06 4.11272e-06 2.38419e-06 5.1856e-06 3.51667e-06 6.55651e-07 3.45707e-06 6.55651e-07 2.98023e-06 1.90735e-06 1.13249e-06 2.08616e-06 8.70228e-06 4.76837e-06 1.60933e-06 3.45707e-06 1.37091e-06 7.15256e-07 8.34465e-07 5.96046e-07 4.35114e-06 6.61612e-06 9.53674e-07 1.01328e-06 1.96695e-06 6.55651e-07 2.5034e-06 1.49012e-06 9.53674e-07 1.72853e-06 5.72205e-06 6.55651e-07 5.96046e-07 2.563e-06 4.17233e-07 6.55651e-07 4.76837e-07 5.36442e-07 4.35114e-06 2.38419e-07 1.96695e-06 6.3777e-06 1.54972e-06 1.19209e-06 1.37091e-06 2.02656e-06 1.60933e-06 1.54972e-06 4.17233e-07 1.07288e-06 1.13249e-06 8.9407e-07 8.34465e-07 5.00679e-06 4.76837e-06 6.55651e-07 8.9407e-07 6.73532e-06 5.96046e-07 2.38419e-07 1.60933e-06 3.8147e-06 1.01328e-06 2.563e-06 1.54972e-06 4.76837e-07 1.01328e-06 1.96695e-06 2.74181e-06 1.07288e-06 1.43051e-06 3.57628e-07 8.34465e-07 8.9407e-07 3.39746e-05 1.19209e-06 5.96046e-07 5.36442e-07 5.54323e-06 1.72853e-06 1.78814e-06 1.37091e-06 2.98023e-06 1.43051e-06 2.32458e-06 8.9407e-07 5.96046e-07 3.57628e-07 7.15256e-07 1.2517e-06 2.74181e-06 1.84774e-06 5.36442e-07 1.37091e-06 4.17233e-07 6.55651e-07 1.37091e-06 5.36442e-07 1.66893e-06 1.19209e-06 3.57628e-07 1.3113e-06 8.34465e-07 2.38419e-07 5.36442e-07 3.75509e-06 4.23193e-06 7.15256e-07 7.7486e-07 3.33786e-06 8.34465e-07 1.84774e-06 4.76837e-07 2.26498e-06 1.3113e-06 1.49012e-06 6.67572e-06 4.17233e-07 1.78814e-07 2.32458e-06 6.55651e-07 9.53674e-07 8.34465e-07 1.39475e-05 5.96046e-07 3.57628e-07 1.54972e-06 1.78814e-06 2.26498e-06 4.11272e-06 1.60933e-06 2.92063e-06 3.57628e-07 2.98023e-07 6.55651e-07 2.80142e-06 5.66244e-06 4.17233e-07 2.26498e-06 5.30481e-06 7.15256e-07 2.6226e-06 2.38419e-07 1.19209e-06 1.54972e-06 2.26498e-06 3.45707e-06 2.86102e-06 5.36442e-07 5.54323e-06 1.60933e-06 8.9407e-07 3.03984e-06 1.72853e-06 2.23517e-05 1.13249e-06 2.68221e-06 1.2517e-06 7.7486e-07 6.55651e-07 2.20537e-06 8.9407e-07 1.2517e-06 5.36442e-07 9.53674e-07 6.55651e-07 4.17233e-07 5.96046e-07 8.34465e-07 2.563e-06 1.54972e-06 9.95398e-06 3.45707e-06 7.15256e-07 3.09944e-06 1.3113e-06 5.36442e-07 4.35114e-06 1.60933e-06 5.96046e-07 7.7486e-06 8.34465e-07 5.24521e-06 7.15256e-07 7.7486e-07 1.01328e-06 1.54972e-06 7.7486e-07 8.34465e-07 1.54972e-06 2.14577e-06 1.90735e-06 3.75509e-06 1.49012e-06 1.19209e-06 9.53674e-07 8.9407e-07 6.31809e-06 1.13249e-06 5.96046e-07 4.76837e-07 2.98023e-07 3.57628e-07 5.36442e-07 1.78814e-06 1.07288e-06 2.20537e-06 4.76837e-07 5.96046e-07 4.64916e-06 2.08616e-06 2.26498e-06 1.54972e-06 1.055e-05 7.15256e-07 8.16584e-06 9.53674e-07 3.39746e-06 5.96046e-07 4.82202e-05 4.76837e-07 2.98023e-07 3.57628e-07 1.39475e-05 1.37091e-06 3.75509e-06 2.98023e-07 4.17233e-07 8.34465e-07 1.49012e-06 5.66244e-06 3.03984e-06 5.24521e-06 1.2517e-06 2.26498e-06 1.78814e-05 2.68221e-06 4.76837e-07 1.13249e-06 3.15905e-06 3.21865e-06 1.49012e-06 7.15256e-07 7.15256e-07 2.98023e-07 4.17233e-07 5.96046e-07 6.55651e-07 8.9407e-07 6.4373e-06 6.55651e-07 5.06639e-06 1.37091e-06 5.42402e-06 5.06639e-06 1.01328e-06 4.76837e-07 1.19209e-06 8.07047e-05 2.74181e-06 1.13249e-06 3.63588e-06 3.57628e-06 1.90735e-06 1.78814e-06 1.5378e-05 1.37091e-06 6.19888e-06 1.60933e-06 7.7486e-07 1.96695e-06 1.2517e-06 6.55651e-06 2.98023e-07 1.64509e-05 8.9407e-07 6.55651e-07 2.14577e-06 5.60284e-06 2.08616e-06 9.53674e-07 2.26498e-06 5.96046e-07 1.84774e-06 8.9407e-07 7.7486e-07 4.76837e-07 1.2517e-06 8.04663e-06 1.13249e-06 7.7486e-07 1.96695e-06 1.3113e-06 7.7486e-07 5.96046e-07 4.76837e-07 6.55651e-07 0.00323105 2.68221e-06 5.96046e-07 1.78814e-06 7.7486e-07 4.35114e-06 1.96695e-06 1.3113e-06 8.04663e-06 2.02656e-06 1.54972e-06 5.96046e-07 1.07288e-06 1.2517e-06 2.02656e-06 1.72853e-06 1.90735e-06 3.75509e-06 4.76837e-07 6.07967e-06 3.57628e-07 2.98023e-07 4.41074e-06 2.98023e-07 8.34465e-07 1.37091e-06 2.32458e-06 8.40425e-06 8.9407e-07 2.44379e-06 1.01328e-06 1.19209e-06 6.55651e-07 4.76837e-07 2.68221e-06 2.68221e-06 1.60933e-06 3.45707e-06 5.06639e-06 3.03984e-06 1.19209e-06 5.96046e-07 5.96046e-07 1.18017e-05 1.49012e-06 4.17233e-07 4.47035e-06 2.20537e-06 1.66893e-06 2.08616e-06 5.00679e-06 1.19209e-06 5.96046e-07 3.57628e-06 1.2517e-06 2.08616e-06 2.02656e-06 1.2517e-06 7.689e-06 1.13249e-06 3.99351e-06 1.49012e-06 3.57628e-07 8.34465e-07 2.5034e-06 2.38419e-06 4.88758e-06 8.34465e-07 1.37091e-06 1.3113e-06 1.19209e-06 5.36442e-07 1.13249e-06 4.17233e-07 1.01328e-06 1.19209e-06 3.63588e-06 6.55651e-07 3.99351e-06 2.44379e-06 2.5034e-06 8.34465e-07 1.19209e-06 6.55651e-06 2.5034e-06 4.47035e-06 5.78165e-06 1.13249e-06 7.7486e-07 9.53674e-07 4.29153e-06 2.86102e-06 2.92063e-06 6.55651e-07 1.03116e-05 2.38419e-06 1.54972e-06 3.8147e-06 1.84774e-06 8.9407e-07 1.01328e-06 3.75509e-06 1.13249e-06 2.74181e-06 1.37091e-06 8.9407e-07 4.76837e-07 3.27826e-06 7.7486e-07 8.34465e-07 1.01328e-06 1.54972e-06 2.02656e-06 5.54323e-06 6.55651e-07 2.98023e-07 4.76837e-07 6.55651e-07 1.37091e-06 4.17233e-07 8.34465e-07 8.9407e-07 1.43051e-06 4.17233e-07 9.53674e-07 3.33786e-06 8.34465e-07 5.36442e-06 7.15256e-07 1.13249e-06 5.96046e-07 2.44379e-06 5.96046e-07 1.43051e-06 5.96046e-07 1.37091e-06 1.43051e-06 2.98023e-06 5.36442e-07 1.07288e-06 2.32458e-06 2.98023e-06 2.98023e-07 1.3113e-06 7.98702e-06 3.21865e-06 2.5034e-06 7.7486e-07 4.76837e-06 1.43051e-06 4.76837e-07 1.66893e-06 3.03984e-06 1.13845e-05 2.68221e-06 1.78814e-06 3.09944e-06 4.17233e-07 1.3113e-06 4.35114e-06 8.9407e-07 5.36442e-07 9.53674e-07 2.68221e-06 2.98023e-07 6.25849e-06 1.72853e-06 3.33786e-06 4.11272e-06 5.96046e-07 4.76837e-07 3.21865e-06 6.49691e-06 1.3113e-06 1.54972e-06 1.49012e-06 2.20537e-06 5.36442e-07 1.33514e-05 4.41074e-06 8.9407e-07 9.71556e-06 3.75509e-06 1.96695e-06 3.51667e-06 4.11272e-06 2.74181e-05 1.37091e-06 7.92742e-06 5.60284e-06 6.3777e-06 1.60933e-06 1.66893e-06 4.23193e-06 1.13249e-06 1.96695e-06 2.20537e-06 2.58684e-05 1.90735e-06 1.3113e-06 1.72853e-06 8.9407e-07 1.43051e-06 7.7486e-07 1.3113e-06 1.01328e-06 2.08616e-06 1.96695e-06 1.13249e-06 7.15256e-07 1.3113e-06 1.13249e-06 1.2517e-06 2.32458e-06 1.96695e-06 3.69549e-05 2.98023e-07 1.69277e-05 1.66893e-06 1.90735e-06 2.563e-06 7.56979e-06 2.38419e-06 1.84774e-06 3.57628e-07 1.50204e-05 1.78814e-06 1.96695e-06 1.54376e-05 7.45058e-06 2.5034e-06 8.34465e-07 1.96695e-06 2.38419e-06 1.54972e-06 9.53674e-07 3.33786e-06 9.23872e-06 8.10623e-06 4.35114e-05 1.38283e-05 5.96046e-07
+```
+
+看的太累，可以直接看top5:
+
+```zsh
+ cat output.dimg | sed "s#\ #\n#g" | cat -n | sort -gr -k2,2 | head -5 
+     1  0.97998
+   390  0.00881195
+   759  0.00323105
+     2  0.00159931
+   392  0.00135708
+```
+
+int8的编译
+
+```zsh
+# compile per-kernel
+./nvdla_compiler --prototxt resnet18-imagenet-caffe/deploy.prototxt --caffemodel resnet18-imagenet-caffe/resnet-18.caffemodel --profile imagenet-int8.kernel --cprecision int8 --calibtable resnet18-imagenet-caffe/resnet18.imagenet.fixed.int8.json 
+# compile per-filter 主要是对比一下了两者有没有不同
+./nvdla_compiler --prototxt resnet18-imagenet-caffe/deploy.prototxt --caffemodel resnet18-imagenet-caffe/resnet-18.caffemodel --profile imagenet-int8.filter --cprecision int8 --calibtable resnet18-imagenet-caffe/resnet18.imagenet.fixed.int8.json --quantizationMode per-filter
+
+./nvdla_runtime --loadable imagenet-int8.filter.nvdla      --image resnet18-im
+agenet-caffe/resized/0_tench.jpg   --rawdump
+```
+
+int8的runtime
+
+```zsh
+127 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+```
 
