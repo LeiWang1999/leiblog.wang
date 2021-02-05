@@ -16,9 +16,9 @@ date: 2021-02-02 16:50:26
 
 ## Caffe 预训练的网路模型
 
-1. https://leiblog.wang/static/2020-12-29/caffe_lenet_mnist.zip
-2. https://leiblog.wang/static/2021-01-23/resnet18-cifar10-caffe.zip
-3. https://leiblog.wang/static/2021-01-23/resnet18-imagenet-caffe.zip
+1. [caffe_lenet_mnis](https://leiblog.wang/static/2020-12-29/caffe_lenet_mnist.zip)
+2. [resnet18-cifar10-caffe](https://leiblog.wang/static/2021-01-23/resnet18-cifar10-caffe.zip)
+3. [resnet18-imagenet-caffe](https://leiblog.wang/static/2021-01-23/resnet18-imagenet-caffe.zip)
 
 ## NVDLA量化
 
