@@ -12,4 +12,13 @@ date: 2021-02-01 18:04:57
 
 https://www.cnblogs.com/nanmi/p/13607515.html
 
+Kali Linux信息收集之enum4linux
+
+https://www.ctolib.com/topics-82798.html
+
+Linux提权(持续更新)
+
+https://blog.csdn.net/anan2175/article/details/102122134
+
 <!-- more -->
+
