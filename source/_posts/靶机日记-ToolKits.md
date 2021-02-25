@@ -31,6 +31,12 @@ If we got it ，we can go to [GTFobins](https://gtfobins.github.io) to check out
 find / -type f -group bugtracker 2>/dev/null
 ```
 
+3. Find file
+
+```bash
+find / -name "user.txt"
+```
+
 <!-- more -->
 
 ### 3. smb
@@ -48,3 +54,21 @@ smbclient  \\\\10.10.10.27\\backup/
 get filename
 ```
 
+### 4. Upgrade Shell to tty
+
+```bash
+SHELL=/bin/bash script -q /dev/null
+python3 -c "import pty;pty.spawn('/bin/bash')"
+```
+
+### 5. Sudo
+
+view the special permissions of current role:
+
+```bash
+sudo -l
+```
+
+When a command can be executed with sudo , we can use this command to open a new bash shell to get root privilege .
+
+For example,  `! /bim/bash` in Vim.
