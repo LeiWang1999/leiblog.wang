@@ -60,6 +60,12 @@ smbclient  \\\\10.10.10.27\\backup/
 get filename
 ```
 
+When we got the username and password, to get a shell
+
+```zsh
+python3 psexec.py adminstrator@10.10.10.27
+```
+
 ### 4. Upgrade Shell to tty
 
 ```bash

@@ -3,6 +3,19 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20200228
+
+1. 过去的几周没有周报需要，我在刷一些题目，codewars打到了4kyu、巩固了C++的基础，还打了一会儿hackthebox。
+
+![](https://www.codewars.com/users/LeiWang1999/badges/large?logo=true)
+
+2. 买了一本《LLVM编译器实战教程》回来看，学习了一些LLVM和CLang的知识。
+
+1. 今天返回校园，下周需要完成的目标
+   - 完成cifar10-resnet-int8的量化
+   - 帮助肖航师兄找到一个运用负数输出的激活函数的CNN网络
+   - 学习一下NVDLA HW部分。
+
 ## 20210202
 
 量化之前在cifar10上的预训练的resnet-18网络失败，在Tensorrt端验证量化后的准确率接近90%，但是网络在./nvdla_compiler中指定int8量化，会报error:https://github.com/nvdla/sw/issues/211
