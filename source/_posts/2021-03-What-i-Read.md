@@ -12,4 +12,8 @@ CMake 入门实战
 
 https://www.hahack.com/codes/cmake/
 
+Lex与YACC详解
+
+https://www.ibm.com/developerworks/cn/linux/sdk/lex/index.html
+
 <!-- more -->
