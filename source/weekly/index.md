@@ -5,33 +5,60 @@ date: 2021-02-06 13:56:27
 
 ## 20200321
 
-1. 根据上周所说的，我找到了riscv+nvlarge的项目：https://github.com/sifive/freedom 这个项目里有一些riscv的chisel项目，其中一个是使用rocketchip+nvlarge的项目，我按照教程生成了相关的rtl，但我发现large版本的nvdla的lut消耗有四十多万个，板卡不够。其次，zynq板卡上的qspi等都是固定在ps端的，没办法约束到pl去，（这个方案可能可以在amazon的FPGA云上实践，但这个方案我一直没有实践，一方面是因为需要购买amazon的账户，使用服务器应该也需要付费，另一方面不利于本科生毕业设计的实现（需要作出一定的效果））。
+1. 根据上周所说的，我找到了riscv+nvlarge的项目：https://github.com/sifive/freedom 这个项目里有一些riscv的chisel项目，其中一个是使用rocketchip+nvlarge的项目，我按照教程生成了相关的rtl，但我发现large版本的nvdla的lut消耗有四十多万个，板卡不够。其次，zynq板卡上的qspi等都是固定在ps端的，riscv的qspi没办法约束到pl去，（这个方案可能可以在amazon的FPGA云上实践，但这个方案我一直没有实践，一方面是因为需要购买amazon的账户，使用服务器应该也需要付费，另一方面不利于本科生毕业设计的实现（需要作出一定的效果））。
 
-2. 本周意外的发现，TVM前几次的commit把USE_LLVM的开关默认设置成ON了，这导致在runtime only build，比如编译VTA(我在水群的时候发现有人按照官方的教程不编译，帮忙看了一下)的时候因此失败，因此给TVM水了一个PR（https://github.com/apache/tvm/pull/7657），还和陈天奇大大简单互动了一下。
+2. 本周意外的发现TVM前几次的commit把USE_LLVM的开关默认设置成ON了，这导致在`runtime only build比如编译VTA(我在水群的时候发现有人按照官方的教程不编译，帮忙看了一下)的时候失败，因此给TVM水了一个PR（https://github.com/apache/tvm/pull/7657），还和陈天奇大大简单互动了一下。
 
-3. 经过这两三周的探索，我觉得我主要输在板卡上，导致没有一个能跑起来的demo。期间我还调研了一些项目，例如DAC SDC 2019的亚军，西安交大用的PYNQ实现的类似NVDLA的设计(https://github.com/venturezhao/XJTU-Tripler)，并且做了RSIC的指令集，结果我发现2019换了板卡，用的是Xilinx的Ultra96系列，处理器是A53，与上周移植petalinux有相同的困难，并且它核心的运算部件mpu和vpu是网表文件，没有开源成rtl。
+3. 经过这两三周的探索，我觉得我主要输在板卡上，导致没有一个能跑起来的demo。期间我还调研了一些项目，例如DAC SDC 2019的亚军，西安交大用的PYNQ实现的类似NVDLA的设计(https://github.com/venturezhao/XJTU-Tripler)，并且做了RSIC的指令集，结果我发现2019换了板卡，用的是Xilinx的Ultra96系列，处理器是64位的A53，与上周移植petalinux有相同的困难，并且它核心的运算部件mpu和vpu是网表文件，没有开源成rtl。
 
-4. 本周还尝试使用nvsmall直接读写寄存器，我把sw/kmd也就是用户和系统内核的接口那部分的代码移植到了Arm处理器上，里面对寄存器的定义非常清晰，但我在阅读源码的过程中越发感觉到hw的master分支是写到一半突然不写的感觉，不明白sw对应的到底是hw的哪个版本。
+4. 本周还尝试使用nvsmall直接读写寄存器，我把sw/kmd也就是用户和系统内核的接口那部分的代码移植到了Arm处理器上，也就是用`Vivado SDK`开发。里面对寄存器的定义非常清晰，但我在阅读源码的过程中越发感觉到hw的master分支是写到一半突然不写的感觉，不明白sw对应的到底是hw的哪个版本。
 
-   1. 例如我使用官方给出的sw的寄存器地址头文件(他给了两个头文件，`opendla_initial.h`、`opendla_small.h`，按理来说应该使用nvsmall的时候需要使用opendla_small.h这个头文件)，测试`NV_HW_VERSION`这个寄存器，使用small的头文件读出来的地址是不对的，而使用initial的结果是正确的。
+   1. 例如我使用官方给出的sw的寄存器地址头文件(他给了两个头文件，`opendla_initial.h`、`opendla_small.h`，按理来说应该使用nvsmall的时候需要使用opendla_small.h这个头文件)，测试读取`NV_HW_VERSION`这个寄存器，使用small的头文件读出来的内容是不对的，而使用initial的结果是正确的。
 
-   2. 在master分支我发现，官方自从某个commit开始，生成的rtl就只能支持int8，不支持fp16的rtl生成，并且阅读issue(这里忘了是哪个issue了，是[redpanda3](https://github.com/redpanda3)提的)之后发现，其实官方给出了那么多spec的定义文件，能够正常work的只有nvlarge和nvsmall的版本，其他的都要修改部分，然后这个大佬还自己写了一份chisel版本的nvdla，也开源了。
+   2. 在master分支发现，官方自从某个commit开始，生成的rtl就只能支持int8，不支持fp16的rtl生成，并且阅读issue(这里忘了是哪个issue了，是[redpanda3](https://github.com/redpanda3)提的)之后发现，其实官方给出了那么多spec的定义文件，能够正常work的只有nvlarge和nvsmall的版本，其他的都要修改部分，然后这个大佬还自己写了一份chisel版本的nvdla，也开源了。
 
    3. 我问师兄师姐们要来了lenet_nvfull版本的log，对照着代码基本理解了其思想，umd（runtime部分，）接受的nvdla loadable文件和img等共同生成了一个`engine context`,这里面有几个关键的结构体：
 
       - engine->network,里面定义了网络的基本信息，例如网络对应的几个OP(六个processor对应了BDMA、CONV、SDP、PDP、CDP、RUBIK)这些操作出现的位置，例如lenet的只有conv、pooling、relu，第一层layer是conv、第二层relu、然后pooling，那么network的结构如下：
 
       ```c++
-      
+      // Custom Config
+      int
+network_config_lenet(struct dla_network_desc * network){
+      	network->operation_desc_index = 6;
+      	network->surface_desc_index = 6;
+   	network->dependency_graph_index = 5;
+      	network->lut_data_index = 8;
+   	network->roi_array_index = -1;
+      	network->surface_index = -1;
+   	network->stat_list_index = -1;
+      	// network->reserved1 = [ -1 , 0 , 1 , 2 , -1 , -1 ];
+      	network->op_head[DLA_OP_BDMA] = -1;
+      	network->op_head[DLA_OP_CONV] = 0;
+      	network->op_head[DLA_OP_SDP]  = 1;
+      	network->op_head[DLA_OP_PDP]  = 2;
+      	network->op_head[DLA_OP_CDP] = -1;
+      	network->op_head[DLA_OP_RUBIK] = -1;
+      	
+      	network->num_rois = 1;
+      	network->num_operations = 10;
+      	network->num_luts = 0;
+      	network->num_addresses = 10;
+      	network->input_layer = 0;
+      	network->dynamic_roi = 0;
+      	network->reserved0 = 0;
+      	
+      	return 0;
+      }
       ```
-
+      
       - 此外还有三个比较重要的结构体、consumer、surface、operation，分别代表每个index(指网络需要的操作数，conv+relu+pooling算三个index)的时候网络的配置信息，比如卷集核大小之类的，还有网络的存储位置，**每一个index需要配置的参数可能有将近50个！！！**
-      - 这些参数根据原代码的逻辑原本应该是由DMA从内存中自动搬运，因为img和loadable（里面应该包括了权重等信息）已经由runtime搬运到内存里去了，于是我自己把这个逻辑重写了一下，变成每次index取我自己定义的结构体数组，并且每个结构体的成员的参数应该如何设置，一方面可以根据自己的理解，例如已经清楚的卷积核大小等已知的网络信息，另一方面可以对照着debug模式跑出来的log也可以确定，其实在确定这些参数的时候，我发现了一个好玩的项目https://github.com/flw-1996/flw 它可以模拟runtime，然后把这些结构体都生成，我是对着这它跑出来的log简单配置了网络，但是工作量巨大，我简单实现了一层conv，寄存器的配置顺序与log是一致的。这还有一个问题，就是weight和img的数据应该如何读取，我设想在SD卡里放置caffemodel，然后再运行一个Parser，但感觉这个步骤太复杂了，如果可以在板卡上构建一个**PYNQ**。
-
-   综合以上，我发觉又有数不清的东西需要去学习，例如Chisel，NVDLA/HW的工程我觉得太乱了，想custom需要安装过多的软件包，例如java、perl......过于复杂。前文中有提到了一个chisel实现的nvdla，我觉得这才是正解，只需要掌握chisel就可以了。
-
+      - 这些参数根据原代码的逻辑原本应该是由DMA从内存中自动搬运，因为img和loadable（里面应该包括了权重等信息）已经由runtime搬运到内存里去了，于是我自己把这个逻辑重写了一下，变成每次index取我自己定义的结构体数组。每个结构体的成员的参数应该如何设置？一方面可以根据自己的理解，例如已经清楚的卷积核大小等已知的网络信息，另一方面可以对照着debug模式跑出来的log也可以确定，其实在确定这些参数的时候，我发现了一个好玩的项目https://github.com/flw-1996/flw `nvdla_depicter` 它可以模拟runtime，然后把这些结构体都输出，我是对着这它跑出来的log简单配置了网络，但是工作量巨大，我只简单实现了一层conv，寄存器的配置顺序与log是一致的。这还有一个问题，就是weight和img的数据应该如何读取？我设想在SD卡里放置caffemodel，然后再运行一个Parser，但感觉这个步骤太复杂了，如果可以在板卡上构建一个**PYNQ**是再好不过的。
+   
+   综合以上，我发觉又有数不清的东西需要去学习，例如Chisel，NVDLA/HW的工程我觉得太乱了，想custom需要安装过多的软件包，如java、perl...过于复杂。前文中有提到了一个chisel实现的nvdla，我觉得这才是正解，只需要掌握chisel就可以了。
+   
    下周先暂停瞎折腾NVDLA，做两件事：
-
+   
    1. 学习Scala、Chisel
    2. 尝试移植一下PYNQ
 
