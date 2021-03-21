@@ -3,6 +3,56 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20200321
+
+1. 根据上周所说的，我找到了riscv+nvlarge的项目：https://github.com/sifive/freedom 这个项目里有一些riscv的chisel项目，其中一个是使用rocketchip+nvlarge的项目，我按照教程生成了相关的rtl，但我发现large版本的nvdla的lut消耗有四十多万个，板卡不够。其次，zynq板卡上的qspi等都是固定在ps端的，没办法约束到pl去，（这个方案可能可以在amazon的FPGA云上实践，但这个方案我一直没有实践，一方面是因为需要购买amazon的账户，使用服务器应该也需要付费，另一方面不利于本科生毕业设计的实现（需要作出一定的效果））。
+
+2. 本周意外的发现，TVM前几次的commit把USE_LLVM的开关默认设置成ON了，这导致在runtime only build，比如编译VTA(我在水群的时候发现有人按照官方的教程不编译，帮忙看了一下)的时候因此失败，因此给TVM水了一个PR（https://github.com/apache/tvm/pull/7657），还和陈天奇大大简单互动了一下。
+
+3. 经过这两三周的探索，我觉得我主要输在板卡上，导致没有一个能跑起来的demo。期间我还调研了一些项目，例如DAC SDC 2019的亚军，西安交大用的PYNQ实现的类似NVDLA的设计(https://github.com/venturezhao/XJTU-Tripler)，并且做了RSIC的指令集，结果我发现2019换了板卡，用的是Xilinx的Ultra96系列，处理器是A53，与上周移植petalinux有相同的困难，并且它核心的运算部件mpu和vpu是网表文件，没有开源成rtl。
+
+4. 本周还尝试使用nvsmall直接读写寄存器，我把sw/kmd也就是用户和系统内核的接口那部分的代码移植到了Arm处理器上，里面对寄存器的定义非常清晰，但我在阅读源码的过程中越发感觉到hw的master分支是写到一半突然不写的感觉，不明白sw对应的到底是hw的哪个版本。
+
+   1. 例如我使用官方给出的sw的寄存器地址头文件(他给了两个头文件，`opendla_initial.h`、`opendla_small.h`，按理来说应该使用nvsmall的时候需要使用opendla_small.h这个头文件)，测试`NV_HW_VERSION`这个寄存器，使用small的头文件读出来的地址是不对的，而使用initial的结果是正确的。
+
+   2. 在master分支我发现，官方自从某个commit开始，生成的rtl就只能支持int8，不支持fp16的rtl生成，并且阅读issue(这里忘了是哪个issue了，是[redpanda3](https://github.com/redpanda3)提的)之后发现，其实官方给出了那么多spec的定义文件，能够正常work的只有nvlarge和nvsmall的版本，其他的都要修改部分，然后这个大佬还自己写了一份chisel版本的nvdla，也开源了。
+
+   3. 我问师兄师姐们要来了lenet_nvfull版本的log，对照着代码基本理解了其思想，umd（runtime部分，）接受的nvdla loadable文件和img等共同生成了一个`engine context`,这里面有几个关键的结构体：
+
+      - engine->network,里面定义了网络的基本信息，例如网络对应的几个OP(六个processor对应了BDMA、CONV、SDP、PDP、CDP、RUBIK)这些操作出现的位置，例如lenet的只有conv、pooling、relu，第一层layer是conv、第二层relu、然后pooling，那么network的结构如下：
+
+      ```c++
+      
+      ```
+
+      - 此外还有三个比较重要的结构体、consumer、surface、operation，分别代表每个index(指网络需要的操作数，conv+relu+pooling算三个index)的时候网络的配置信息，比如卷集核大小之类的，还有网络的存储位置，**每一个index需要配置的参数可能有将近50个！！！**
+      - 这些参数根据原代码的逻辑原本应该是由DMA从内存中自动搬运，因为img和loadable（里面应该包括了权重等信息）已经由runtime搬运到内存里去了，于是我自己把这个逻辑重写了一下，变成每次index取我自己定义的结构体数组，并且每个结构体的成员的参数应该如何设置，一方面可以根据自己的理解，例如已经清楚的卷积核大小等已知的网络信息，另一方面可以对照着debug模式跑出来的log也可以确定，其实在确定这些参数的时候，我发现了一个好玩的项目https://github.com/flw-1996/flw 它可以模拟runtime，然后把这些结构体都生成，我是对着这它跑出来的log简单配置了网络，但是工作量巨大，我简单实现了一层conv，寄存器的配置顺序与log是一致的。这还有一个问题，就是weight和img的数据应该如何读取，我设想在SD卡里放置caffemodel，然后再运行一个Parser，但感觉这个步骤太复杂了，如果可以在板卡上构建一个**PYNQ**。
+
+   综合以上，我发觉又有数不清的东西需要去学习，例如Chisel，NVDLA/HW的工程我觉得太乱了，想custom需要安装过多的软件包，例如java、perl......过于复杂。前文中有提到了一个chisel实现的nvdla，我觉得这才是正解，只需要掌握chisel就可以了。
+
+   下周先暂停瞎折腾NVDLA，做两件事：
+
+   1. 学习Scala、Chisel
+   2. 尝试移植一下PYNQ
+
+## 20200311
+
+本周根据网上找到的一篇文章 https://vvviy.github.io/2018/09/17/nv_small-FPGA-Mapping-Workflow-II/ 根据这篇文章我尝试在上周的工程上看看能不能在petalinux上把sw里的内容运行起来。
+
+在petalinux安装过程中就碰到了一些问题，我使用的是vivado2020.1,但是vivado2019.2之后export到sdk的文件就从原本的hdf变成了新的xsa，虽然用起来感觉更规范一些，但是很遗憾不能被2019.2以前的petalinux版本支持，为了保证和教程中的步骤走（因为不同版本的petalinux支持的linux内核版本不同，也就造成了sw那个仓库里有些函数(sw的kernel版本是4.13)在对应的内核版本已经废弃或更改，但我对linux内核编程也不熟，所以为了避免踩坑，我把vivado也换成了2018版本。）
+
+然后成功生成了镜像，但是在`insmod opendla.ko`的时候,出现了下面的error：
+
+![](http://leiblog.wang/static/image/2021/3/A7EB3EEB28E45AE3A72B0BF6BE37DBF9.png)
+
+我搜了一下，是指32位处理器使用64位除法的时候回报这个错。这时候我才明白为什么走这条路线的教程都是用的`zynq +UltraScale MPSoC`，和我使用的ZYNQ7045的不同在于其处理器是64位的A53，而ZYNQ7000系列的处理器是32位的，这也就带来了很多问题。。
+
+我发现kmd的代码中只有一行代码是用到64位除法的，及获取时间戳，再除个1000获得纳秒的数量级，在debug模式用来输出运行时间用的，解决方案自己用32位的数据类型写一个64位的除法，我直接把这个除1000删掉了。
+
+这样，insmod果然能够正常工作，进入umd的目录下面，开始make runtime，出现了浩博师兄之前跟我说的，有的代码是调用的连接库，比如我就失败在了libprotobuf.a这个库上，他是给的64位的已经编译好的库，也许我在linux上重新编一个能够解决，但我预感到之后还会有很多坑，于是放弃了对petalinux上的测试。
+
+但好在，虽然ZYNQ7045的处理器有点拉垮，但是LUT的资源很多，下周开始尝试浩博师兄说的，把RISC-V也烧进去的解决方案！
+
 ## 20200307
 
 1. 本周首先在实现了cifar10-resnet18网络的量化，该网络的量化假期在家里的时候一直没成功，回学校之后发现可能是因为量化时候给的校准集和训练用的数据集不一样的锅，把校准数据集改成从训练集里sample了若干张图片后，网络work了。**但过程中发现如果使用per-kernel编译结果会失真，表现为无论给什么输入，输出都不变，但使用per-filter编译就能很好的work，但之前训练的针对MNIST和IMAGENET的两个模型在这两种编译模式下结果给相同输入则输出是相同的，这一点有点迷惑，还没了解这部分编译的机制。**
