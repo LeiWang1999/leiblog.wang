@@ -3,7 +3,22 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
-## 20200321
+## 20210328
+
+本周的主要的时间花在scala上，基本掌握了其语法和一些性质，并且刷了一些codewars上的题目，我觉得已经具备学习chisel的基础了，下周学习chisel。
+
+上周提到在`ZYNQ 7045`上的ARM处理器上使用裸机读写NVDLA寄存器的方式来做的尝试，问题在于需要配置的参数过多，而怎么生成这些参数，以及需要疏通权重和图像等数据在内存中的存放是这个方案的两个痛点，而关于第一个问题，上周的周报里有提到一个github项目：https://github.com/flw-1996/flw 内有解析loadable的方法，这周我把这个项目跑了起来。
+
+理解了一些loadable文件是如何组织的，可以通过nvdla/sw仓库下提供的和loadable有关的头文件来从文件中读取loadable对象，并且通过阅读他的代码学习到loadable的组织方式其实是Google的flatbuffers，这是一种类似protobuf的数据序列化工具，所以在C++侧可以使用这个工具来解析，主要数据都存储在loadable->blob里，例如blob的第一块数据内存放的就是上周我给出的`engine->network`结构体的内容。
+
+此外，上周说要自己制作pynq镜像、失败了。我原先的petalinux为了不影响本机环境安装在docker里，因为本机是ubuntu20.04，安装老版本的petalinux坑有点多，而官方手册给出的构建pynq镜像的方法在环境上不仅需要petalinux还需要vivado全家桶，再执行它的脚本生成，于是我直接把ubuntu20.04格式化换成18.04了（但考虑到后续可能会有新板卡，这个坑就先不踩了
+
+下周计划：
+
+1. 学习flatbuffers的使用方法
+2. 学习Chisel
+
+## 20210321
 
 1. 根据上周所说的，我找到了riscv+nvlarge的项目：https://github.com/sifive/freedom 这个项目里有一些riscv的chisel项目，其中一个是使用rocketchip+nvlarge的项目，我按照教程生成了相关的rtl，但我发现large版本的nvdla的lut消耗有四十多万个，板卡不够。其次，zynq板卡上的qspi等都是固定在ps端的，riscv的qspi没办法约束到pl去，（这个方案可能可以在amazon的FPGA云上实践，但这个方案我一直没有实践，一方面是因为需要购买amazon的账户，使用服务器应该也需要付费，另一方面不利于本科生毕业设计的实现（需要作出一定的效果））。
 
@@ -62,7 +77,7 @@ network_config_lenet(struct dla_network_desc * network){
    1. 学习Scala、Chisel
    2. 尝试移植一下PYNQ
 
-## 20200311
+## 20210311
 
 本周根据网上找到的一篇文章 https://vvviy.github.io/2018/09/17/nv_small-FPGA-Mapping-Workflow-II/ 根据这篇文章我尝试在上周的工程上看看能不能在petalinux上把sw里的内容运行起来。
 
@@ -90,7 +105,7 @@ network_config_lenet(struct dla_network_desc * network){
 
 1. 在ZYNQ上建PetaLinux，看看能不能编译出nvdla_runtime
 
-## 20200228
+## 20210228
 
 1. 过去的几周没有周报需要，我在刷一些题目，codewars打到了4kyu、巩固了C++的基础，还打了一会儿hackthebox。
 
