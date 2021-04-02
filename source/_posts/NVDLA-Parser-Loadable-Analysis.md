@@ -8,15 +8,36 @@ tags:
 date: 2021-03-30 09:32:15
 ---
 
-## 0x 前言
+## 前言
 
-我们知道，NVDLA的软件栈主要分为两个部分即`Compiler`与`Runtime`，由于`Compiler`与硬件无关，所以可以在我们自己的开发机器上编译运行调试，理解起来也较为方便；而`Runtime`与硬件有关，调试非常困难，官方提供的预构建的文件又都是针对64位的操作系统，这对我们在仅搭载了32位处理器的ZYNQ7000系列的开发板上编译Runtime带来了不小的挑战。Loadable文件是两者之间通信的媒介，本文记述一下Loadable文件的组织结构和解析方法，既然不能吃官方给的饭，那么可以试一试自己在SOC上做一份调度的算法，解读Loadable文件就是第一步。
+NVDLA的软件栈主要分为两个部分:`Compiler`与`Runtime`，由于`Compiler`与硬件无关，所以可以在我们自己的开发机器上编译运行调试，理解起来也较为方便；而`Runtime`与硬件有关，调试非常困难，官方提供的预构建的文件又都是针对64位ARM/RISC的操作系统，这对没有合适的板卡，即仅搭载了32位处理器的ZYNQ 7000系列的开发板上编译Runtime带来了很多难以解决的问题。
 
-Github Repo：https://github.com/LeiWang1999/nvdla-depicter
+Loadable文件是两者之间通信的媒介，本文记述一下Loadable文件的组织结构和解析方法，既然不能吃官方给的饭，那么可以试一试自己在SOC上做一份调度的算法，解读Loadable文件就是第一步。
+
+Github Repo：https://github.com/LeiWang1999/nvdla-parser
 
 <!-- more -->
 
-在官方给出的NVDLA的使用说明里，我们需要将预训练的caffe模型以及其他一系列可选参数作为输入，由Compiler编译后产生Loadable文件，期间可以进行一些硬件无关的优化，例如算子融合、内存重用，这些设置可以在[Profile.cpp](https://github1s.com/nvdla/sw/blob/HEAD/umd/core/src/compiler/Profile.cpp)里找到。
+首先，我们使用`nvdla_compiler`编译生成一个loadable文件，你可以在[这个连接](https://leiblog.wang/static/2021-03-29/lenet-mnist-caffe.zip)下载到预先编译好的文件，里面已经包含了生成的fast-math.loadable：
+
+```zsh
+root@96c1b26765d1:/usr/local/nvdla# ./nvdla_compiler --prototxt lenet-mnist-caffe/lenet/lenet.prototxt --caffemodel lenet-mnist-caffe/lenet/lenet.caffemodel --cprecision int8 --calibtable lenet-mnist-caffe/lenet.int8.json --configtarget nv_small
+creating new wisdom context...
+opening wisdom context...
+parsing caffe network...
+libnvdla<3> mark prob
+Marking total 1 outputs
+parsing calibration table...
+attaching parsed network to the wisdom...
+compiling profile "fast-math"... config "nv_small"...
+closing wisdom context...
+```
+
+简单介绍使用到的参数：
+
+1. fast-math是什么? 
+
+   在编译期间可以做一些硬件无关的优化，例如算子融合、内存重用，这些设置可以在[Profile.cpp](https://github1s.com/nvdla/sw/blob/HEAD/umd/core/src/compiler/Profile.cpp)里找到。
 
 ```C++
 void Profile::setBasicProfile()
@@ -31,7 +52,7 @@ void Profile::setBasicProfile()
 }
 ```
 
-例如最常使用的，也是官方给的默认参数`fast-math`指令编译：
+最常使用的，也是官方给的默认参数-`fast-math`指令编译的配置如下：
 
 ```C++
 void Profile::setFastMathProfile()
@@ -42,13 +63,17 @@ void Profile::setFastMathProfile()
 }
 ```
 
-在aarch64的模拟器里运行runtime、fast-math和default，即全都设置为false两种模式速度差异非常明显。
+在aarch64的模拟器里运行runtime、fast-math和default的速度差异是非常明显的，
+
+2. 为什么要指定int8模式?
+
+   因为nvsmall的配置是不支持16位运算的，此外，有关NVDLA的INT8量化，可以看这篇[post](https://leiblog.wang/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/)。
 
 关于Compiler还做了哪些事情，我们在以后的文章里讨论，这里我们只需要关心的是Compiler最后生成的目标文件，即Loadable。
 
-在sw的仓库里，我们可以发现[loadable.fbs](https://github.com/nvdla/sw/blob/master/umd/core/src/common/loadable.fbs)文件，这将是这篇博客的开始，关于FlatBuffers的介绍。
+在sw的仓库里，我们可以找到[loadable.fbs](https://github.com/nvdla/sw/blob/master/umd/core/src/common/loadable.fbs)文件，说明loadable是使用FlatBuffers做位压缩手段，这将是这篇博客的开始。
 
-## 1x FlatBuffers 简介
+## 1. FlatBuffers 简介
 
 > FlatBuffers是一个开源的、跨平台的、高效的、提供了C++/Java接口的序列化工具库。它是Google专门为游戏开发或其他性能敏感的应用程序需求而创建。尤其更适用于移动平台，这些平台上内存大小及带宽相比桌面系统都是受限的，而应用程序比如游戏又有更高的性能要求。它将序列化数据存储在缓存中，这些数据既可以存储在文件中，又可以通过网络原样传输，而不需要任何解析开销。
 
@@ -63,7 +88,7 @@ void Profile::setFastMathProfile()
 3. 如果一个字段是一个对象，那么它在vtable中的偏移量会指向子对象的中心点。比如，John的vtable中第三个槽指向Mary的中心点。
 4. 要表明某个字段现在没有数据，可以在vtable对应的槽中使用偏移量0来标注。
 
-[loadable.fbs](https://github.com/nvdla/sw/blob/master/umd/core/src/common/loadable.fbs)是由Schema语言组织的，我们不需要添加定义，只需要考虑理解和读取。
+[loadable.fbs](https://github.com/nvdla/sw/blob/master/umd/core/src/common/loadable.fbs)由Schema语言组织，我们不需要添加定义，只需要考虑理解和读取。
 
 ### 1.1x 安装FlatBuffers
 
@@ -84,13 +109,13 @@ flatc version 1.6.0 (Mar 30 2021)
 
 在笔者写这篇博客的时候，flatc的版本已经是v1.12.0了，在官方仓库里的`flatbuffers.h`文件里可以发现，其使用的flatbuffers的版本是`1.6.0`：
 
-```bash
+```c++
 #define FLATBUFFERS_VERSION_MAJOR 1
 #define FLATBUFFERS_VERSION_MINOR 6
 #define FLATBUFFERS_VERSION_REVISION 0
 ```
 
-虽然flatterbuffers声称其有非常好的前后兼容性，但是v1.12.0的程式与官方的代码有些对不上号，为了方便起见，这里把版本回退到v1.6.0.
+虽然flatterbuffers声称其有非常好的前后兼容性，但是v1.12.0的程式与官方的代码有些对不上号，为了方便起见，这里在安装的时候把版本回退到v1.6.0.
 
 生成[loadable_generated.h](https://github.com/nvdla/sw/blob/master/umd/core/src/common/include/priv/loadable_generated.h)，在我们的项目里引入这个头文件就可以读取loadable了。
 
@@ -98,7 +123,7 @@ flatc version 1.6.0 (Mar 30 2021)
 flatc -c loadable.fbs
 ```
 
-FlatBuffers是轻依赖的，生成的头文件也只需要依赖`flatbuffers.h`,在我的项目目录下，这样组织文件，flatbuffers文件夹直接拷贝flatbuffers/include目录下的flatbuffers文件夹，但其实只需要`flatbuffers.h`就可以了：
+FlatBuffers是轻依赖的，生成的头文件也只需要依赖`flatbuffers.h`,在我的项目目录下，这样组织文件，flatbuffers文件夹直接拷贝flatbuffers/include目录下的flatbuffers文件夹，但其实只需要拷贝`flatbuffers.h`就可以：
 
 ```bash
 promote at ~/nvdla-depicter/external ±(master) ✗ ❯ tree
@@ -119,9 +144,43 @@ promote at ~/nvdla-depicter/external ±(master) ✗ ❯ tree
 └── loadable_generated.h
 ```
 
-## 2x 解析loadble
+## 2. 解析loadble
 
-在这个小节，我们开始正片，讲解
+看examples/0.loadable.read.cpp文件，读取了loadable文件的root_type，然后打印出其各个成员的size，测试我们是否是真的读取了loadable。
+
+本章节的2.1-2.19分别对应examples文件夹下的9个文件的输出，即loadable.fbs里定义的root的组织结构的具体内容：
+
+```yaml
+table Loadable {
+        version      : Version ( required );
+        task_list    : [TaskListEntry];
+        memory_list  : [MemoryListEntry];
+        address_list : [AddressListEntry];
+        event_list   : [EventListEntry];
+        blobs        : [Blob];
+        tensor_desc_list : [TensorDescListEntry];
+        reloc_list   : [RelocListEntry];
+        submit_list  : [SubmitListEntry];
+}
+
+root_type Loadable;
+```
+
+version不明白是用来做什么的，这里代表的不是使用的flatbuffers的版本，估计是compiler开发的版本?。
+
+task_list是任务列表，就两个任务，第一个是DLA、第二个是EMU，应该分别代表硬件加速核和仿真器，tasklisk的address_list代表了每个task访问地址的列表。
+
+memory_list是内存列表，我们可以通过task_list->address_list拿到addres_list的index，然后通过address_list->memory_id找到读取哪一块内存。
+
+address_list是地址列表
+
+event_list在runtime里似乎没有用到
+
+blobs是存储数据的地方，分析blob的每个字段都有name，对应了memory里的name。
+
+tensor_desc_list定义了输入层和输出层的tensor描述。
+
+reloc_list\submit_list也不知道干嘛的
 
 ### 2.1x version
 
@@ -779,7 +838,143 @@ task_id size is 1 :
 1 
 ```
 
-### 2.10x Read Net_desc
+## 3 读取blobs里的数据
+
+### 3.1x 读取网络描述信息
+
+演示一下如何读取网络的定义，首先拿到task访问的第一个地址，再根据这个地址拿到name。
+
+```c++
+auto address_idx = TaskListEntry->address_list()->Get(0);
+std::cout << address_idx  << " : ";
+auto memory_idx = root_address_list->Get(address_idx)->mem_id();
+std::string contents_name;
+if(root_memory_list->Get(memory_idx)->contents()->size())
+      contents_name = root_memory_list->Get(memory_idx)->contents()->Get(0)->c_str();
+```
+
+通过比对name，得到blob_index,拿到对应的blob数据。
+
+```c++
+int blob_idx = 0;
+for (auto b : *blobs){
+  if(!strcmp(b->name()->c_str(), contents_name.c_str())) break;
+  blob_idx++;
+}
+std::cout << "Blob index : " << blob_idx << std::endl;
+
+auto blob = blobs->Get(blob_idx);
+```
+
+接着，我从kmd的仓库里把`dla_interface.h`文件拷贝了过来，之前不懂为什么nvdla在定义这些结构体的时候它都要对齐，想来都是为这个准备的。
+
+```c++
+/**
+ * Network descriptor
+ *
+ * Contains all information to execute a network
+ *
+ * @op_head: Index of first operation of each type in operations list
+ * @num_rois: Number of ROIs
+ * @num_operations: Number of operations in one list
+ * @num_luts: Number of LUTs
+ */
+struct dla_network_desc {
+	int16_t operation_desc_index;
+	int16_t surface_desc_index;
+
+	int16_t dependency_graph_index;
+	int16_t lut_data_index;
+
+	int16_t roi_array_index;
+	int16_t surface_index;
+
+	int16_t stat_list_index;
+	int16_t reserved1;
+
+	int16_t op_head[DLA_OP_NUM];
+
+	uint16_t num_rois;
+	uint16_t num_operations;
+
+	uint16_t num_luts;
+	uint16_t num_addresses;
+
+	int16_t input_layer;
+	uint8_t dynamic_roi;
+	uint8_t reserved0;
+} __attribute__((packed, aligned(4)));
+```
+
+然后直接把blob的指针强制转化：
+
+```c++
+struct dla_network_desc * net_desc = (struct dla_network_desc *) blob->data()->data();
+```
+
+读取出来数据，经过验证数据都是正确的。
 
 ![Debug_net_desc](http://leiblog.wang/static/image/2021/4/QAmSUM.png)
+
+\* desc_index代表的数据是task访问内存的下标，我们可以根据这些数据一次访问到其他所有的结构体。
+
+### 3.2x 封装Parser
+
+最后，封装了一个Parser对象，直接给loadable对象即可把几个关键的结构体都读取出来：
+
+```c++
+using namespace std;
+int main(int argc, char * argv[]) {
+
+    Test_app_args test_app_args = Test_app_args();
+    //Load loadable file.
+    auto loadable = get_loadable(test_app_args.inputName);
+    if(!loadable) {
+        printf("Error! Cannot open loadable file.\n");
+        return 0;
+    }
+    Parser lenet_mnist_parser(loadable);
+
+    return 0;
+}
+```
+
+Debug信息：
+
+```c++
+lenet_mnist_parser = {Parser} 
+ network_desc = {dla_network_desc * | 0x7fe1e9760178} 0x7fe1e9760178
+ common_op_desc = {dla_common_op_desc * | 0x7fe1e975ffc4} 0x7fe1e975ffc4
+ surface_desc = {dla_surface_container * | 0x7fe1e975de94} 0x7fe1e975de94
+  bdma_surface = {dla_bdma_surface_desc} 
+  conv_surface = {dla_conv_surface_desc} 
+   weight_data = {dla_data_cube} 
+    type = {uint16_t} 0
+    address = {int16_t} 1
+    offset = {uint32_t} 0
+    size = {uint32_t} 504
+    width = {uint16_t} 5
+    height = {uint16_t} 5
+    channel = {uint16_t} 1
+    reserved0 = {uint16_t} 0
+    line_stride = {uint32_t} 0
+    surf_stride = {uint32_t} 0
+    plane_stride = {uint32_t} 0
+   wmb_data = {dla_data_cube} 
+   wgs_data = {dla_data_cube} 
+   src_data = {dla_data_cube} 
+   dst_data = {dla_data_cube} 
+   offset_u = {int64_t} 0
+   in_line_uv_stride = {uint32_t} 0
+  sdp_surface = {dla_sdp_surface_desc} 
+  pdp_surface = {dla_pdp_surface_desc} 
+  cdp_surface = {dla_cdp_surface_desc} 
+  rubik_surface = {dla_rubik_surface_desc} 
+ operation_desc = {dla_operation_container * | 0x7fe1e975f804} 0x7fe1e975f804
+ loadable = {const nvdla::loadable::Loadable * | 0x7fe1e96f4034} 0x7fe1e96f4034
+ address_list = {Addr_list} 
+ memory_list = {Mem_list} 
+```
+
+
 
