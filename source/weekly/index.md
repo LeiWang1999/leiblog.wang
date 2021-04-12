@@ -3,6 +3,32 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20210411
+
+1. 本周看完了《The Chisel Book》，把上面的项目基本实现了一半，感觉chisel和verilog建模电路比起来区别还是挺大的。
+   1. 首先网上有一些chisel的教程，但是他们的chisel版本是不一样的，这居然会导致教程里的很多语法（尤其是在写scalatest的时候）完全不一样了。所以有时候运行别人的项目，需要安装对应的chisel版本以及对应的scala版本，索性使用idea能够自动cover这个问题，但这样会造成机器上安装了好几个版本的chisel和scala，我觉得这是一个小缺陷，兼容性不太好。
+   2. 再记录一点学习chisel的感觉，我原本以为chisel是和hls一样的东西，但实际用过发现完全不一样。之前不久xilinx把hls开源，是基于的llvm实现的，hls和chisel的关系应该是可以使用hls增加生成chisel的feature，和verilog是同一等级的。chisel开发起来效率会高很多，但学习曲线有点陡峭，首先要理解特质、隐式转换等scala的特性才能把chisel玩的很溜，而且比verilog要抽象很多，有时候不知道自己写的是个什么东西，暂时不像verilog那样有建模的感觉，总之我的chisel用的还是一点都不熟练，还需要多做项目提升一下。
+2. 本周还买了一本《手把手教你设计CPU——RISC-V处理器篇》，在读。
+3. 进一步了解了rocket-chip，它在官方的仓库里，有给rocc的接口那边挂载nvdla的加速器的代码，但我很惊讶google不到多少条有关的信息。
+
+## 20210405
+
+1. 把上学期用PYNQ做的那个手写数字识别的项目写了个简单的文档，然后在Github上Public了：https://github.com/LeiWang1999/Pynq-Accelerator
+
+2. 本周主要写了一个项目：https://github.com/LeiWang1999/nvdla-parser ，对应的更新了一篇博客：https://leiblog.wang/NVDLA-Parser-Loadable-Analysis/ 
+
+   上周提到nvdla的loadable文件利用flatbuffers来将对象进行序列化和反序列化，这篇博客记述的是我使用Flatbuffers的C++接口读取了由compiler编译而成的loadable文件进行的分析，把前面提到的几个比较重要的结构体都提取出来了，然后封装成了一个Parser对象。
+
+这样，我觉得就可以在32位的机器上实现一个简单的工作流程：首先通过Parser读取loadable里的网络的配置信息，然后通过上上周修改的kmd的代码接受Parser里的配置信息，就可以正确的读写寄存器，剩下的就是要把输入图像塞到正确的位置。
+
+但是，这个方案做起来有两个问题：
+
+First. loadable文件放在哪里？例如我用compiler生成了针对nvsmall的fast-math.loadable，但是在sdk上，因为arm的裸机没有文件系统是不能读取本机的文件的。这里据我所知有两种解决方案，都需要使用到SD卡，一种是利用SD卡做文件系统，把fast-math.loadable文件放在SD卡上，另一种是在SD卡上构建Linux（Ubuntu）。
+
+Second. 上述的工作流程，Parser部分的代码是C++实现，移植kmd的代码是C语言实现，在sdk上尝试使用extern "C" 等各种来解决，碰到了很多问题，Parser的程序我也想过使用C语言写一份，但是flatbuffers没有提供友好的C语言接口。
+
+综上所述我认为下周需要研究一下上一个操作系统。
+
 ## 20210328
 
 本周的主要的时间花在scala上，基本掌握了其语法和一些性质，并且刷了一些codewars上的题目，我觉得已经具备学习chisel的基础了，下周学习chisel。

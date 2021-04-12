@@ -8,4 +8,10 @@ tags:
 date: 2021-04-03 14:15:20
 ---
 
+GitHub Actions 入门教程
+http://www.ruanyifeng.com/blog/2019/09/getting-started-with-github-actions.html
+
+那些年我们定制PYNQ需要避免的坑
+https://zhuanlan.zhihu.com/p/256365015
+
 <!-- more -->
