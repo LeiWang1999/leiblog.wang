@@ -14,6 +14,8 @@ http://www.ruanyifeng.com/blog/2019/09/getting-started-with-github-actions.html
 那些年我们定制PYNQ需要避免的坑
 https://zhuanlan.zhihu.com/p/256365015
 
+Petalinux 注册中断
+http://www.zynqnotes.com/linux-irq-mapping
 <!-- more -->
 
 
