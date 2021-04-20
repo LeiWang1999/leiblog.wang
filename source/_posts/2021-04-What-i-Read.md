@@ -21,3 +21,6 @@ http://www.zynqnotes.com/linux-irq-mapping
 
 sbt使用详解
 https://www.cnblogs.com/yjd_hycf_space/p/7661982.html
+
+Linux编译libjpeg
+https://blog.csdn.net/quantum7/article/details/82459960
