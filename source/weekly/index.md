@@ -3,6 +3,40 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20210418
+
+#### 本周的工作
+
+1. 在253上制作了一个chipyard的docker镜像，chipyard是伯克利的一个项目，集合了riscv-tools/rocketchip等等等等的工具包，可以在上面运行rocketchip的方针，很方便。学习了一下chipyard如何仿真，如何编译出rtl，想调研这个项目是考虑存在烧写 rocketchip + nvsmall 的可行性，之所以在253上编译，是因为其仿真很吃内存。和zynq器件一样，在这个环境下读写寄存器是可行的。但是runtime需要在rocketchip上运行riscv-linux，这需要生成SD卡接口来存放BOOT和Image文件，很明显ZYNQ器件的开发板没有直接约束在PL端的SD卡接口，所以这个项目放弃了。
+
+2. 认识了两位使用NVDLA作为毕业设计的同学：同学A是基于我上述的chipyard仿真来的，他也只打算跑仿真不打算上板，但是他对NVDLA的寄存器配置，数据在内存中的排布理解的比较透彻，并且其在本周实现了lenet的寄存器配置，仿真时间是几分钟左右。同学A对FPGA不是很熟悉，预计下周交换一下成果，我帮助他在开发板上测试一下速度怎么样。**同学A和我一样认为使用寄存器硬配置整个网络有两个主要缺点：a. 需要配置的寄存器数量太多 b. 要手动把二进制存储的的权重数据塞到内存里 **同学B是做异构计算的，用OpenRISC 1200做主控，NVDLA似乎只是拿来用一下，还在调试，没有什么成果。
+
+3. 本周阅读了一下这篇Paper：["Research of Scalability on FPGA-based Neural Network Accelerator"](https://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CMFD&dbname=CMFDTEMP&filename=1019228234.nh&uid=WEEvREcwSlJHSldRa1FhdXNXaEhoOGhUTzA5T0tESzdFZ2pyR1NJR1ZBaz0=$9A4hF_YAuvQ5obgVAqNKPCYcEjKensW4IQMovwHtwkF4VYPoHbKxJw!!&v=MjE5NTN5dmdXN3JBVkYyNkY3RzZGdFBQcTVFYlBJUjhlWDFMdXhZUzdEaDFUM3FUcldNMUZyQ1VSTE9lWnVkdUY=)
+
+   使用HLS实现了一个加速器，能跑yolov2，对应的项目也开源了：https://github.com/dhm2013724/yolov2_xilinx_fpga
+
+   我在zynq7045板卡上将其复现。之所以调研这个项目，是想学习怎么在嵌入式操作系统中控制PL的设备，答**案是MMIO(Memory-mapped I/O)，使用这个技术可以使系统设备访问起来和内存一样。** 
+
+4. 知道了MMIO技术，我开始动手实践上上周周报里的想法，即自己动手解析loadable，然后利用这些结构体模拟runtime，自动配置寄存器。首先在板卡上烧了一个petalinux，但是其没有包管理工具很不方便，于是学习了一下怎么制作ubuntu，解决方案是更换文件系统，这样就可以在板卡上运行ssh/apt等工具了。
+
+   然后是长达几天时间的移植，把原先在SDK上跑的C语言代码移植成C++的，然后和上上周写的Parser对接，在这个过程中还分析了一下kmd的运行流程，如下的思维导图：
+
+   ![execute task](http://leiblog.wang/static/image/2021/4/execute_task.png)
+
+   在我的努力下，在SOC上已经可以配置整个workflow的2/3的工作了：
+
+   ![a](https://leiblog.wang/static/image/2021/4/CBCA2D625B18949F0213B08DB1A4DE85.jpg)
+
+   剩下的1/3主要是还有两个问题没有解决：
+
+   1. nvdla_parser这个项目还没有从loadable里拿出weight的数据
+   2. 上了操作系统之后，原本NVDLA会产生的硬件中断被操作系统屏蔽了。。。。这里有两个想法，一个是用寄存器查询来代替，一个是调研一下能不能拿到这个中断。
+
+#### 下周计划：
+
+1. 从loadable里解析出权重数据
+2. 解决一下中断的问题
+
 ## 20210411
 
 1. 本周看完了《The Chisel Book》，把上面的项目基本实现了一半，感觉chisel和verilog建模电路比起来区别还是挺大的。
