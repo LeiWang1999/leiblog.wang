@@ -343,7 +343,7 @@ NVDLA是面向ASIC设计，内部的RAM默认有`clock gating`用来降低功耗
 
 ## 2. 软件系统设计概述
 
-NVDLA的软件栈分为两个部分，一个是Compiler，Compiler在自己的主机上编译一个是与硬件无关的，而Runtime则需要调用KMD程序调度加速器，只能在板卡上运行。在这小节我们的目标是在ARM处理器上编译出Runtime，打通软件栈。
+NVDLA的软件栈分为两个部分，一个是Compiler，Compiler在自己的主机上编译，是与硬件无关的；而Runtime则需要调用KMD程序调度加速器，只能在板卡上运行。在这小节我们的目标是在ARM处理器上编译出Runtime，打通软件栈。
 
 笔者在这个过程中踩了很多坑：
 
