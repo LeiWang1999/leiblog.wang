@@ -12,7 +12,9 @@ NVDLA 是英伟达于2017年开源出来的深度学习加速器框架。可惜�
 
 笔者本科的毕业设计为了与实验室研究的方向贴合，把NVDLA的RTL映射到了 Xilinx FPGA 上，并且上板编译了 Runtime 。映射成功后，很多伙伴对上板的过程很感兴趣，而这个步骤亦不是使用聊天软件说两句就可以概述的。于是写下这篇文章，记述Mapping 到 FPGA 过程中踩过的一些坑。
 
-开发板：Zynq 7000+ / Zynq MPSOC
+本设计的Github Repo地址：https://github.com/LeiWang1999/ZYNQ-NVDLA
+
+开发器件：Zynq 7000+ / Zynq MPSoc
 
 软件环境：
 
@@ -72,19 +74,21 @@ root@1d0954a2d18b:/usr/local/nvdla/nvdla_hw# ./tools/bin/tmake -build vmod
 [TMAKE]: nv_small: PASS
 ```
 
-输出的RTL文件会在 `out\nv_small\vmod`里，但是如果直接在Vivado里引入vmod文件夹会导致LUT资源占用提高十倍左右，因为其内部的ram是行为级描述，我们需要替换成Bram，一个思路是把BRAM都替换成Vivado内部的BramController，但是RAM得我数量实在太多了。替换成BRAM其实有个简单的方式，就是使用`rams\fpga`这个文件夹里面的文件，为了图方便，我们将`rams\synth`删除，之后再把vmod文件夹全部添加到Vivado工程内部即可。
+输出的RTL文件会在 `out\nv_small\vmod`里，但是如果直接在Vivado里引入vmod文件夹会导致LUT资源占用提高十倍左右，因为其内部的RAM 是行为级描述，我们需要替换成Bram，一个思路是把BRAM都替换成Vivado内部的BramController，但是RAM得我数量实在太多了。替换成BRAM其实有个简单的方式，就是使用`rams\fpga`这个文件夹里面的文件，为了图方便，我们将`rams\synth`删除，之后再把vmod文件夹全部添加到Vivado工程内部即可。
 
 ### IP Package
 
-在 Vivado 内部把删除过行为级描述的ram的vmod文件夹添加进来，`NV_nvdla`是NVDLA的Top文件，但是在项目里我们不着急把它设置为TOP，为了上板还要再做一层包装。
+在 Vivado 内部把删除过行为级描述的RAM的vmod文件夹添加进来，`NV_nvdla`是NVDLA的Top文件，但是在项目里我们不着急把它设置为TOP，为了上板还要再做一层包装。
 
 #### csb2apb
 
-虽说NVDLA的总线协议是CSB，但是学习CSB协议有些麻烦，甚至在读写的时候需要做地址偏移压缩指令空间。在vmod里面官方给了一个电路，csb2apb。可以把csb总线换转为apb总线，这样在Vivado中设计会更加方便。于是，我们应该新建一个wrapper文件，其包含两者：
+虽说NVDLA的总线协议是CSB，但是学习CSB协议有些麻烦，甚至在读写的时候需要做地址偏移压缩指令空间。在vmod里面官方给了一个电路，csb2apb。可以把csb总线换转为apb总线，这样在Vivado中设计会更加方便。
 
-![](wrapper)
+我们应该新建一个wrapper文件，其例化两者：
 
-内容如下：
+![](http://leiblog.wang/static/image/2021/4/ZmqhIE.png)
+
+Top层的RTL代码内容如下：
 
 ```verilog
 module NV_nvdla_wrapper(
@@ -251,7 +255,7 @@ endmodule
 
 ```
 
-这里多加了一些总线的协议线是为了和AXI总线协议对齐，这里你可以和我一样把这些信号添加进去，但其实不写也没关系，因为等会儿Package IP的时候需要隐射成AXI接口。
+封装好的RTL程序我也放在了仓库里的RTL目录下了，这里多加了一些总线的协议线是为了和AXI总线协议对齐，你可以和我一样把这些信号添加进去，但其实不写也没关系。等会儿Package IP的时候需要隐射成AXI接口。
 
 #### 关闭 Clock Gating
 
@@ -263,40 +267,46 @@ NVDLA是面向ASIC设计，内部的ram默认有`clock gating`用来降低功耗
 - FPGA
 - SYNTHESIS
 
-我们可以先综合一下，看看LUT消耗多少，对于small大概消耗了八万个LUT：
+我们可以先综合一下，看看资源消耗情况。对于small配置，大概消耗了八万个LUT：
 
-![](lut)
+![](http://leiblog.wang/static/image/2021/4/LUT.png)
 
 #### IP Package
 
 接下来打开Package IP，进入`Tools|Create and Package New IP|Package your current project`在Ports and Inference页面，把APB、AXI4两个总线协议包装一下，这里可以让Vivado自动推导。
 
-![](PROTS)
+![](http://leiblog.wang/static/image/2021/4/Ports.png)
 
 之后还要做Memory Map，APB的memory block要自行添加，不像AXI会自己分配。如果我们不添加memory block，则在Block Design里没办法给APB自动分配地址，在`Addressing and Memory`里，选择我们刚刚包装好的APB总线，右击选择`Add Address Block`，默认添加一个块就行了。 
 
-![](Memory Map)
+![](http://leiblog.wang/static/image/2021/4/memorymap.png)
 
 最后打包出来的IP如下图：
 
-![](wrapper)
+<img src="http://leiblog.wang/static/image/2021/4/dla_wrapper.jpg" alt="dla_wrapper" style="zoom:48%;" />
 
 ### Block Design
 
 在Vivado里面新建Block Design，这样连线：
 
-![nvsmall]()
+![nvsmall](http://leiblog.wang/static/image/2021/4/nvsmall.jpg)
 
 `AXI APB Bridge `可以把APB总线协议转化为AXI总线协议，这样方便我们使用Vivado内部的Connect IP自动做内存映射。
 
 `Axi Smart Connect`的作用是用来自动配置AXI设备的内存映射，与`Axi InterConnect`的作用是一样的，但是Smart更紧密的嵌入到了Vivado内部，不需要用户太多的干涉。在本设计中用到了两个SmartConnect、其中一个是将ZYNQ的`AXI Master`接入了NVDLA的控制总线，这样可以通过内存映射机制读写NVDLA的寄存器，另一个SmartConnect将DLA的主内存接口接入了ZYNQ的`AXI Slave`，这样就可以NVDLA就可以访问挂在在ARM侧的DDR存储，与处理器共用内存，这样处理器可以通过硬件DMA搬移数据，加快访存速度。
 
-有关ZYNQ的配置，我打开的资源有：
+有关ZYNQ的配置，我分配到的资源有：
 
 1. 以太网，用来远程开发调试。
 2. SD卡，用来存放BOOT、文件系统
 3. UART，用来实现串口终端
-4. FCLK_CLK0，我给了默认的100Mhz，用来给csb时钟，控制总线占用的时间不长不需要太快的速度。根据信工所王兴宾博士所述，core时钟在ASIC仿真下可以运行到1Ghz，在FPGA设计里，我给了500Mhz作为输入。
+4. FCLK_CLK0，我给了默认的100Mhz，用来给csb时钟，控制总线占用的时间不长不需要太快的速度。根据信工所王兴宾博士所述，core时钟在ASIC仿真下可以运行到1Ghz，在FPGA设计里，我给了100Mhz作为输入，之前尝试过给500Mhz，会在寄存器读写的时候卡住，FPGA能上200MHz就不错了（。
+
+最后给大家看一下我的 Address Editor：
+
+![Address](http://leiblog.wang/static/image/2021/4/fIXSzZ.jpg)
+
+这样，我们在SDK里通过xil内存读写函数就能通过内存映射操作NVDLA的寄存器，例如读取NVDLA位于0x0000的寄存器值，我们只需要读入0x40000000上的数据即可，关于寄存器的地址与功能，详见官方提供的KMD代码中的
 
 ### Generate Bit HDF
 
@@ -308,13 +318,13 @@ NVDLA是面向ASIC设计，内部的ram默认有`clock gating`用来降低功耗
 
 在SDK打开`Xilinx|Dump/Restore Memory`，把测试案例和Golden数据放到对应的位置：
 
-![](copy source)
+![](http://leiblog.wang/static/image/2021/4/restore_source.png)
 
-![](copy golden)
+![](http://leiblog.wang/static/image/2021/4/restore_golden.png)
 
 然后上板跑一下，在串口处观察是否work了：
 
-![](copy result)
+![](http://leiblog.wang/static/image/2021/4/dlacopy_result.png)
 
 {% colorquote info %}
 
@@ -604,3 +614,4 @@ where options include:
 跑个Lenet试试：
 
 ![]()
+

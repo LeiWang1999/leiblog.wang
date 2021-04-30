@@ -9,10 +9,10 @@ date: 2021-02-06 13:56:27
 
 1. `compatible`属性不对应，这里网上所有的教程都是老版本的，现在NVDLA主分支的`compatible`值与以前不同了，如果不改`insmod`的时候就没什么效果。
 2. `reversed memory`，这里 ZYNQ 7000 和 ZYNQ MPSoc 也不一样，参考了 Xilinx Wiki，把这里也改对了。
-3. 我用的kernel版本比官方的驱动程序要老，里面有个初始化dma的函数，返回的值两个kernel居然是相反的。。。这会导致初始化失败，还好翻issue翻到了累死的问题。
+3. 我用的kernel版本比官方的驱动程序要老，里面有个初始化dma的函数，返回的值两个kernel居然是相反的。。。这会导致初始化失败，还好翻issue翻到了类似的问题。
 4. 以前说过的32位处理器的内核程序里不能进行64位的除法问题也需要解决一下。
 
-然后就能把nvsmall的kmd程序挂到处理器上了，之后需要进一步编译runtime，runtime需要的链接库只有libjpeg.a一个，幸好之前移植了Ubuntu操作系统，有包管理工具特别方便，于是我自己吧libjpeg编译了，他用的是libjpeg6。
+然后就能把nvsmall的kmd程序挂到处理器上了，之后需要进一步编译runtime，runtime需要的链接库只有libjpeg.a一个，幸好之前移植了Ubuntu操作系统，有包管理工具特别方便，于是我自己把libjpeg编译了，他用的是libjpeg6。
 
 于是，能够用nvdla_runtime自动推理了：
 
