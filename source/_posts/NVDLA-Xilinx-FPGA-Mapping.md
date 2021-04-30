@@ -350,7 +350,7 @@ NVDLA的软件栈分为两个部分，一个是Compiler，Compiler在自己的�
 1. 我们需要修改官方提供的KMD程序适配我们的内核版本与处理器。
 2. 需要修改`device tree`，覆盖NVDLA的compatible属性以适配加速器的驱动程序，并为加速器保留一段内存。
 3. 官方提供的SW项目不知道为什么只提供了libjpeg的链接库，明明这个源码是开源的，所以需要我们自己编译一下，而Patalinux本身没有包管理工具带来了种种不便，于是在这一章节，我将根文件系统替换为了Ubuntu 16.04。
-4. small仅支持INT8推理，所以读取的loadable是需要结合TensorRT进行量化的，有关如何量化，参考我之前的博客：[NVDLA量化笔记](http://localhost:4000/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/)。
+4. small仅支持INT8推理，所以读取的loadable是需要结合TensorRT进行量化的，有关如何量化，参考我之前的博客：[NVDLA量化笔记](http://leiblog.wang/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/)。
 
 ### 2.1 Petalinux
 
@@ -609,7 +609,7 @@ sudo su
 passwd
 ```
 
-使用apt来安装一些常用的包，比如ssh、make、curl什么的，如果不会用嵌入式板卡通过以太网来桥接上网，可以参考我以前的[Blog](http://localhost:4000/Embedding-board-internet-via-PC-Ethernet/)。
+使用apt来安装一些常用的包，比如ssh、make、curl什么的，如果不会用嵌入式板卡通过以太网来桥接上网，可以参考我以前的[Blog](http://leiblog.wang/Embedding-board-internet-via-PC-Ethernet/)。
 
 你可以使用官方的sw仓库里的umd文件夹，当然也可以是使用我的Repo里的[UMD](https://github.com/LeiWang1999/ZYNQ-NVDLA/tree/master/umd)，我自己改了几个地方：
 
@@ -722,8 +722,8 @@ Failed to allocate handle err=-1 errno=12
 
 1. https://vvviy.github.io/2018/09/12/nv_small-FPGA-Mapping-Workflow-I/
 2. https://vvviy.github.io/2018/09/17/nv_small-FPGA-Mapping-Workflow-II/
-3. http://localhost:4000/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/
-4. http://localhost:4000/NVDLA-Parser-Loadable-Analysis/
+3. http://leiblog.wang/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/
+4. http://leiblog.wang/NVDLA-Parser-Loadable-Analysis/
 5. http://nvdla.org/primer.html
-6. http://localhost:4000/Embedding-board-internet-via-PC-Ethernet/
+6. http://leiblog.wang/Embedding-board-internet-via-PC-Ethernet/
 7. https://github.com/SameLight/ITRI-OpenDLA
