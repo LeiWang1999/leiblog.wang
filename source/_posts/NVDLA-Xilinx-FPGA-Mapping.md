@@ -17,7 +17,6 @@ NVDLA 是英伟达于2017年开源出来的深度学习加速器框架。可惜�
 软件环境：
 
 - Ubuntu 18.04
-
 - Vivado 2019.1
 - Petalinux 2019.1
 
@@ -72,11 +71,11 @@ root@1d0954a2d18b:/usr/local/nvdla/nvdla_hw# ./tools/bin/tmake -build vmod
 [TMAKE]: nv_small: PASS
 ```
 
-输出的RTL文件会在 `out\nv_small\vmod`里，但是如果直接在Vivado里引入vmod文件夹会导致LUT资源占用提高十倍左右，因为其内部的ram是行为级描述，我们需要替换成Bram，一个思路是把BRAM都替换成Vivado内部的BramController，但是RAM得我数量实在太多了。替换成BRAM其实有个简单的方式，就是使用`rams\fpga`这个文件夹里面的文件，为了图方便，我们将`rams\synth`删除，之后再把vmod文件夹全部添加到Vivado工程内部即可。
+输出的RTL文件会在 `out\nv_small\vmod`里，但是如果直接在Vivado里引入vmod文件夹会导致LUT资源占用提高十倍左右，因为其内部的RAM是行为级描述，我们需要替换成BRAM，一个思路是把BRAM都替换成Vivado内部的Bram Controller，但是RAM得我数量实在太多了。替换成BRAM其实有个简单的方式，就是使用`rams\fpga`这个文件夹里面的文件，为了图方便，我们将`rams\synth`删除，之后再把vmod文件夹全部添加到Vivado工程内部即可。
 
 ### IP Package
 
-在 Vivado 内部把删除过行为级描述的ram的vmod文件夹添加进来，`NV_nvdla`是NVDLA的Top文件，但是在项目里我们不着急把它设置为TOP，为了上板还要再做一层包装。
+在 Vivado 内部把删除过行为级描述的`rams\synth`文件夹之后的的vmod文件夹添加进来，`NV_nvdla.v`是NVDLA的Top文件，但是在项目里我们不着急把它设置为TOP，为了上板还要再做一层包装。
 
 #### csb2apb
 
@@ -234,7 +233,7 @@ assign nvdla_core2dbb_ar_arsize = 3'b011;
 assign m_axi_awburst = 2'b01;
 assign m_axi_awlock  = 1'b0;
 assign m_axi_awcache = 4'b0010;
-assign m_axi_awprot  = 3'h0;
+assign m_axi_awprot  = 3'h0;多半是
 assign m_axi_awqos   = 4'h0;
 assign m_axi_awuser  = 'b1;
 assign m_axi_wuser   = 'b0;
@@ -251,7 +250,7 @@ endmodule
 
 ```
 
-这里多加了一些总线的协议线是为了和AXI总线协议对齐，这里你可以和我一样把这些信号添加进去，但其实不写也没关系，因为等会儿Package IP的时候需要隐射成AXI接口。
+这里多加了一些总线的协议线是为了和AXI总线协议对齐，这里你可以和我一样把这些信号添加进去，但其实不写也没关系，因为等会儿Package IP的时候需要映射成AXI接口与APB接口。
 
 #### 关闭 Clock Gating
 
@@ -273,7 +272,7 @@ NVDLA是面向ASIC设计，内部的ram默认有`clock gating`用来降低功耗
 
 ![](PROTS)
 
-之后还要做Memory Map，APB的memory block要自行添加，不像AXI会自己分配。如果我们不添加memory block，则在Block Design里没办法给APB自动分配地址，在`Addressing and Memory`里，选择我们刚刚包装好的APB总线，右击选择`Add Address Block`，默认添加一个块就行了。 
+多半是之后还要做Memory Map，APB的memory block要自行添加，不像AXI会自己分配。如果我们不添加memory block，则在Block Design里没办法给APB自动分配地址，在`Addressing and Memory`里，选择我们刚刚包装好的APB总线，右击选择`Add Address Block`，默认添加一个块就行了。 
 
 ![](Memory Map)
 
@@ -296,7 +295,7 @@ NVDLA是面向ASIC设计，内部的ram默认有`clock gating`用来降低功耗
 1. 以太网，用来远程开发调试。
 2. SD卡，用来存放BOOT、文件系统
 3. UART，用来实现串口终端
-4. FCLK_CLK0，我给了默认的100Mhz，用来给csb时钟，控制总线占用的时间不长不需要太快的速度。根据信工所王兴宾博士所述，core时钟在ASIC仿真下可以运行到1Ghz，在FPGA设计里，我给了500Mhz作为输入。
+4. FCLK_CLK0，我给了默认的100Mhz，用来给csb时钟，控制总线占用的时间不长不需要太快的速度。根据信工所王兴宾博士所述，core时钟在ASIC仿真下可以运行到1Ghz，但是在FPGA设计里，我给了100Mhz作为输入（能给200Mhz就不错了，笔者试过给500Mhz，会导致寄存器读写失败）。
 
 ### Generate Bit HDF
 
@@ -369,7 +368,7 @@ petalinux-config -c kernel
 
 `General setup`，取消`Initial RAM filesystem and RAM disk support`，退出，保存配置。这样系统就可以正常从SD卡就能启动了。
 
-在这里可以先Build一下，因为这样能够使我们看到工具自动生成的设备树，方便我们更改。
+在这里可以先Build一下，因为这样能够使我们看到工具自动生成的设备树，方便我们找到NVDLA的label，因为在之后我们需要覆盖掉其compatible属性，以及给他分配内存。
 
 ```bash
 petalinux-build
@@ -391,21 +390,18 @@ INFO: oldconfig rootfs
 INFO: opendla has been enabled 
 ```
 
-然后把opendla_32文件夹下的所有内容copy到` project-spec/meta-user/recipes-modules/opendla/`下，删除原有的opendla.c，然后把opendla.bb覆盖原来的opendla.bb。
+删除原有的opendla下的所有文件，然后把`zynq 7000`文件夹下的所有内容copy到` project-spec/meta-user/recipes-modules/opendla/`下。
 
 ```bash
-(petalinux) lei@lei-HP-EliteDesk-880-G1-TWR:~/petalinux-project/smalldla$ cp ~/OpenDLA/kmd/opendla_32/* project-spec/meta-user/recipes-modules/opendla/files/
-COPYING    Makefile   opendla.c  
-(petalinux) lei@lei-HP-EliteDesk-880-G1-TWR:~/petalinux-project/smalldla$ cp ~/OpenDLA/kmd/opendla_32/* project-spec/meta-user/recipes-modules/opendla/files/
-(petalinux) lei@lei-HP-EliteDesk-880-G1-TWR:~/petalinux-project/smalldla$ mv project-spec/meta-user/recipes-modules/opendla/files/opendla.bb project-spec/meta-user/recipes-modules/opendla/
-(petalinux) lei@lei-HP-EliteDesk-880-G1-TWR:~/petalinux-project/smalldla$ rm project-spec/meta-user/recipes-modules/opendla/files/opendla.c
+(petalinux) lei@lei-HP-EliteDesk-880-G1-TWR:~/petalinux-project/smalldla$ rm -rf project-spec/meta-user/recipes-modules/opendla/*
+(petalinux) lei@lei-HP-EliteDesk-880-G1-TWR:~/petalinux-project/smalldla$ cp ~/OpenDLA/kmd/Zynq7000/* project-spec/meta-user/recipes-modules/opendla/
 ```
 
-如果是用的64位的处理器，即MPSOC的伙伴，使用opendla_64版本的，因为这里我没有实践，你们可以参考王兴宾大佬的博客，在Reference的第一条，如果有意愿的话，可以给项目提一个PR。
+如果是用的64位的处理器，即MPSOC的伙伴，使用ZynqMPSoc文件夹，因为这里我没有实践所以代码没有改。你们可以参考王兴宾大佬的博客，在Reference的第一条，如果有意愿的话，可以给项目提一个PR。
 
-我提供的自己改过的文件夹具体改了哪些地方？
+我提供的自己的文件夹具体改了哪些地方？
 
-1. 在`nvdla_gem.c`里面，修改了`dma_declare_coherent_memory`这个函数的内容，首先ZYNQ 7045的片上存储有限，根据issue，这里只需要分配256Mb的空间即可，第一个0x30000000是物理地址、第二个0x30000000是虚拟地址，第三个0x10000000是大小。另外，在Petalinux2019.1的Kernel版本中，DMA_MEMORY_MAP这个标志已经被废弃了，不使用：
+1. 在`nvdla_gem.c`里面，修改了`dma_declare_coherent_memory`这个函数的内容，首先ZYNQ 7045的片上存储有限，根据issue，这里只需要分配256MB的空间即可，第一个0x30000000是物理地址、第二个0x30000000是虚拟地址，第三个0x10000000指的是大小，如果你使用的是ZYNQ MPSoc，可以自行把这三个值替换为：0x40000000，0x40000000，0x40000000。另外，在Petalinux2019.1的Kernel版本中，DMA_MEMORY_MAP这个标志已经被废弃了，删除即可：
 
 ```c
 	dma = dma_declare_coherent_memory(drm->dev, 0xC0000000, 0xC0000000,
@@ -439,6 +435,9 @@ COPYING    Makefile   opendla.c
 #endif
 ```
 
+3. 在Makefile里，要把所有的文件生成的链接库加上，这里可以在Petalinux UserGuide里找到，其实有一份中文手册，可以参考我的[FPGA](https://github.com/LeiWang1999/FPGA)这个项目。
+4. 修改opendla.bb，增加源文件。
+
 ### Device Tree
 
 有关Linux设备树的详细内容，请参考[这篇博客](https://vvviy.github.io/2018/10/02/Device-Tree-Survey-and-Summary/)。
@@ -467,7 +466,7 @@ COPYING    Makefile   opendla.c
 };
 ```
 
-- 有关reserved memory，需要参考Xilinx Wiki，这里对应的是上文中用DMA分配的大小。对于MPSOC，这里是64位，一个地址要用两个cell，略有不同。
+- 有关reserved memory如何使用，需要参考Xilinx Wiki，这里对应的是上文中用DMA分配的大小。对于MPSOC，这里是64位，一个地址要用两个cell，略有不同。
 
 - NV_nvdla_wrapper_0，是在`components/plnx_workspace/device-tree/device-tree/pl.dtsi`里可以查看的label，这样可以完成属性的覆盖。
 
@@ -495,13 +494,15 @@ petalinux-package --boot --fsbl images/linux/zynq_fsbl.elf --fpga --u-boot --for
 
 ### Ubuntu 16.04 根文件系统替换
 
-前文提到了，Petalinux的使用体验极差，这里我们把根文件系统替换成Ubuntu 16.04
+前文提到了，Petalinux的使用体验极差，这里我们把根文件系统替换成Ubuntu 16.04。
+
+笔者这里不详细阐述Why，但是会教你怎么做，在[FPGA](https://github.com/LeiWang1999/FPGA)这个项目里，下载我准备好的ubuntu-16.04.2-minimal-armhf-2017-06-18根文件系统镜像，解压并且覆盖到SD卡里即可。
 
 ```bash
 sudo tar xfvp armhf-rootfs-ubuntu-xenial.tar -C /media/lei/rootfs
 ```
 
-但是，这样替换了rootfs之后，我们编译出来的opendla的modules并没有添加进来，打开petalinux文件夹下的`\images\linux\rootfs.tar.gz`,把里面的`..\lib\modules`解压出来，新增到ubuntu的`\lib`内部。
+但是，这样替换了rootfs之后，我们编译出来的opendla的modules并没有添加进来，打开petalinux文件夹下的`\images\linux\rootfs.tar.gz`,把里面的`.\lib\modules`解压出来，新增到ubuntu的`\lib`内部。
 
 然后，把SD卡插到开发板上运行，测试一下insmod之后是否会多出中断信号和驱动。
 
@@ -556,13 +557,14 @@ sudo su
 passwd
 ```
 
-然后可以使用apt来安装一些常用的包，比如ssh、make、curl什么的，如果不会用嵌入式板卡通过以太网来桥接上网，可以参考我以前的Blog。
+可以使用apt来安装一些常用的包，比如ssh、make、curl什么的，如果不会用嵌入式板卡通过以太网来桥接上网，可以参考我以前的[Blog](http://localhost:4000/Embedding-board-internet-via-PC-Ethernet/)。
 
 可以使用官方的sw仓库里的umd文件夹，当然也可以是使用我的Repo里的[UMD](https://github.com/LeiWang1999/ZYNQ-NVDLA/tree/master/umd)，我自己改了几个地方：
 
 1. 在编译umd的时候，需要注意的是其有一个静态链接库libjpeg.a，需要我们自行编译，在编译的时候他会检测版本，原来官方用的版本是libjpeg6，我自行编译了libjpeg9，因为6的编译有点繁琐，并且改成9之后需要改一下头文件`external\include\jconfig.h`里的定义，将`JPEG_LIB_VERSION`的Value替换成90。
-2. 原本的umd，跑runtime读取jpeg图像的时候会有个RGB2BGR转换的操作，这会导致运行过程中的一个error，我给注释掉了。
+2. 原本的umd，跑runtime读取jpeg图像的时候会有个RGB2BGR转换的操作，这会导致运行过程中libjpeg库会出现一个error，我给注释掉了，测试了N张图对结果的影响不大（我大概测试了几张图，结果的概率分布都没有影响，可能都量化到INT8就不在乎这点误差了）。
 3. 原本的umd程序的计算时间统计有问题。
+4. 原本的umd程序在接受int8配置的Loadable的时候，会把输入的图像数据由原来的[0-255]这个区间，压缩到[0-127]这个区间，这一步操作我觉得很迷惑，我把这一个压缩的操做替换成了保留原来的范围，经过测试结果是没有变化的。
 
 然后，编译UMD：
 
@@ -601,6 +603,70 @@ where options include:
 
 ### Runtime Test
 
+这里，我们上板测试一下Runtime能否正常Work，首先，我们需要针对small配置利用Compiler得出Loadable。而由于small只支持int8，需要结合TensorRT做量化，这一个步骤有一万个坑，详细可以看我的前一篇博客：[NVDLA INT8 量化笔记](https://leiblog.wang/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/)。
+
+在这里，笔者已经提供了三个测试网络与已经量化好的Loadable文件，详见这个Repo：
+
+https://github.com/LeiWang1999/nvdla_loadables
+
+在实际上板测试之前，可以先在vp的仿真环境下模拟Runtime，得到Golden数据作为对比。
+
 跑个Lenet试试：
 
-![]()
+```bash
+root@arm:~/OpenDLA/umd/out/apps/runtime/nvdla_runtime# ./nvdla_runtime --loadable ~/lenet-mnist-caffe/fast-math.nvdla --image ~/lenet-mnist-caffe/mnist_image/0_7.jpg --rawdump
+creating new runtime context...
+Emulator starting
+dlaimg height: 28 x 28 x 1: LS: 224 SS: 0 Size: 6272
+submitting tasks...
+Work Found!
+Work Done
+execution time = 298671.000000 us
+Shutdown signal received, exiting
+Test pass
+root@arm:~/OpenDLA/umd/out/apps/runtime/nvdla_runtime# cat output.dimg 
+0 0 0 0 0 0 0 120 0 0 root@arm:~/OpenDLA/umd/out/apps/runtime/nvdla_runtime# 
+```
+
+跑个resnet18试试：
+
+```bash
+root@arm:~/OpenDLA/umd/out/apps/runtime/nvdla_runtime# ./nvdla_runtime --loadable ~/resnet18-cifar10-caffe/loadables/fast-math.nvdla --image ~/resnet18-cifar10-caffe/Image/cat_32.jpg --rawdump
+creating new runtime context...
+Emulator starting
+dlaimg height: 32 x 32 x 3: LS: 256 SS: 0 Size: 8192
+submitting tasks...
+Work Found!
+Work Done
+execution time = 295854.000000 us
+Shutdown signal received, exiting
+Test pass
+root@arm:~/OpenDLA/umd/out/apps/runtime/nvdla_runtime# cat output.dimg 
+0 0 0 99 26 0 0 0 0 0 root@arm:~/OpenDLA/umd/out/apps/runtime/nvdla_runtime# 
+```
+
+结果都非常正确，话说Resnet18比Lenet5复杂N倍，两个运行起来速度居然是一样的。
+
+但如果运行一个针对Imagenet的Resnet网络，会发现：
+
+```bash
+root@arm:~/OpenDLA/umd/out/apps/runtime/nvdla_runtime# ./nvdla_runtime --loadable ~/nvdla_loadables/resnet18-imagenet-caffe/loadables/fast-math.nvdla --image ~/resnet18-imagenet-caffe/raw/hare.jpg --rawdump
+creating new runtime context...
+Failed to allocate handle err=-1 errno=12
+(DLA_RUNTIME) Error 0xfffffff4: (propagating from Runtime.cpp, function loadMemory(), line 794)
+(DLA_RUNTIME) Error 0xfffffff4: (propagating from Runtime.cpp, function load(), line 325)
+(DLA_TEST) Error 0x00000004: runtime->load failed (in RuntimeTest.cpp, function loadLoadable(), line 353)
+(DLA_TEST) Error 0x00000004: (propagating from RuntimeTest.cpp, function run(), line 443)
+(DLA_TEST) Error 0x00000004: (propagating from main.cpp, function launchTest(), line 87)
+```
+
+因为片上的内存不够失败了，因为PS侧的DDR只有1GB的空间，其中四分之一已经经保留给了NVDLA，仅剩700MB的空间。
+
+## Reference
+
+1. https://vvviy.github.io/2018/09/12/nv_small-FPGA-Mapping-Workflow-I/
+2. https://vvviy.github.io/2018/09/17/nv_small-FPGA-Mapping-Workflow-II/
+3. http://localhost:4000/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/
+4. http://localhost:4000/NVDLA-Parser-Loadable-Analysis/
+5. http://nvdla.org/primer.html
+6. http://localhost:4000/Embedding-board-internet-via-PC-Ethernet/
