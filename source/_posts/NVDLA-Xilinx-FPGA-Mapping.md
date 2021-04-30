@@ -75,7 +75,9 @@ root@1d0954a2d18b:/usr/local/nvdla/nvdla_hw# ./tools/bin/tmake -build vmod
 [TMAKE]: nv_small: PASS
 ```
 
-输出的RTL文件会在 `out\nv_small\vmod`里，但是如果直接在Vivado里引入vmod文件夹会导致LUT资源占用提高十倍左右，因为其内部的RAM是行为级描述，我们需要替换成BRAM，一个思路是把BRAM都替换成Vivado内部的Bram Controller，但是RAM得我数量实在太多了。替换成BRAM其实有个简单的方式，就是使用`rams\fpga`这个文件夹里面的文件，为了图方便，我们将`rams\synth`删除，之后再把vmod文件夹全部添加到Vivado工程内部即可。
+输出的RTL文件会在 `out\nv_small\vmod`里，但是如果直接在Vivado里引入vmod文件夹会导致LUT资源占用提高十倍左右，因为其内部的RAM是行为级描述，我们需要替换成BRAM。
+
+一个思路是把BRAM都替换成Vivado内部的Bram Controller，但是RAM文件的数量实在太多了。替换成BRAM其实有个简单的方式，就是使用`rams\fpga`这个文件夹里面的文件，为了图方便，我们将`rams\synth`删除，之后再把vmod文件夹全部添加到Vivado工程内部即可。
 
 ### 1.2 IP Package
 
@@ -83,7 +85,7 @@ root@1d0954a2d18b:/usr/local/nvdla/nvdla_hw# ./tools/bin/tmake -build vmod
 
 #### 1.2.1 csb2apb
 
-虽说NVDLA的总线协议是CSB，但是学习CSB协议有些麻烦，甚至在读写的时候需要做地址偏移压缩指令空间。在vmod里面官方给了一个电路，csb2apb。可以把csb总线换转为apb总线，这样在Vivado中设计会更加方便。
+虽说NVDLA的控制总线协议是CSB，但是学习CSB协议有些麻烦，甚至在读写的时候需要做地址偏移压缩指令空间。在vmod里面官方给了一个电路，csb2apb。可以把csb总线换转为apb总线，这样在Vivado中设计会更加方便。
 
 我们应该新建一个wrapper文件，其例化两者：
 
