@@ -313,7 +313,7 @@ NVDLA是面向ASIC设计，内部的RAM默认有`clock gating`用来降低功耗
 
 ![Address](http://leiblog.wang/static/image/2021/4/fIXSzZ.jpg)
 
-这样，我们在SDK里通过内存读写就能通过内存映射操作NVDLA的寄存器，例如读取NVDLA位于0x0000的寄存器值，我们只需要读入0x40000000上的数据即可，关于寄存器的地址与功能，详见官方提供的KMD代码中的
+这样，我们在SDK里通过内存读写就能通过内存映射操作NVDLA的寄存器，例如读取NVDLA位于0x0000的寄存器值，我们只需要读入0x40000000上的数据即可，关于寄存器的地址与功能，详见官方提供的KMD代码中的opendla.h文件。
 
 ### 1.4 Generate Bit HDF
 
