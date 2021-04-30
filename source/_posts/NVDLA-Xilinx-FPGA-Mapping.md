@@ -28,7 +28,7 @@ NVDLA 是英伟达于2017年开源出来的深度学习加速器框架。可惜�
 
 ## 1. 硬件系统设计概述
 
-本文采用的硬件版本是[hw仓库](https://github.com/nvdla/sw)的master分支，v1的spec文件仅提供了full版本，应该没有FPGA能够塞得下。master 分支提供了 small 和 large 两个版本的spec 文件，我们使用 small 的配置，当然这个过程对 large 也是适用的，接下来首先讲一下如何生成rtl。
+本文采用的硬件版本是[hw仓库](https://github.com/nvdla/hw)的master分支，v1的spec文件仅提供了full版本，应该没有FPGA能够塞得下。master 分支提供了 small 和 large 两个版本的spec 文件，我们使用 small 的配置，当然这个过程对 large 也是适用的，接下来首先讲一下如何生成rtl。
 
 ### 1.1 RTL 生成
 
@@ -241,7 +241,7 @@ assign nvdla_core2dbb_ar_arsize = 3'b011;
 assign m_axi_awburst = 2'b01;
 assign m_axi_awlock  = 1'b0;
 assign m_axi_awcache = 4'b0010;
-assign m_axi_awprot  = 3'h0;多半是
+assign m_axi_awprot  = 3'h0;
 assign m_axi_awqos   = 4'h0;
 assign m_axi_awuser  = 'b1;
 assign m_axi_wuser   = 'b0;
@@ -282,7 +282,7 @@ NVDLA是面向ASIC设计，内部的RAM默认有`clock gating`用来降低功耗
 
 ![](http://leiblog.wang/static/image/2021/4/Ports.png)
 
-多半是之后还要做Memory Map，APB的memory block要自行添加，不像AXI会自己分配。如果我们不添加memory block，则在Block Design里没办法给APB自动分配地址，在`Addressing and Memory`里，选择我们刚刚包装好的APB总线，右击选择`Add Address Block`，默认添加一个块就行了。 
+之后还要做Memory Map，APB的memory block要自行添加，不像AXI会自己分配。如果我们不添加memory block，则在Block Design里没办法给APB自动分配地址，在`Addressing and Memory`里，选择我们刚刚包装好的APB总线，右击选择`Add Address Block`，默认添加一个块就行了。 
 
 ![](http://leiblog.wang/static/image/2021/4/memorymap.png)
 
@@ -343,7 +343,7 @@ NVDLA是面向ASIC设计，内部的RAM默认有`clock gating`用来降低功耗
 
 ## 2. 软件系统设计概述
 
-NVDLA的软件栈分为两个部分，一个是Compiler，Compiler在自己的主机上编译一个是与硬件无关的，而Runtime则需要调用KMD程序调度加速器，只能在板卡上运行。在这小节我们的目标是在ARM处理器上编译出Runtime，打通软件栈。
+NVDLA的软件栈分为两个部分，一个是Compiler，Compiler在自己的主机上编译是与硬件无关的，而Runtime则需要调用KMD程序调度加速器，只能在板卡上运行。在这小节我们的目标是在ARM处理器上编译出Runtime，打通软件栈。
 
 笔者在这个过程中踩了很多坑：
 
