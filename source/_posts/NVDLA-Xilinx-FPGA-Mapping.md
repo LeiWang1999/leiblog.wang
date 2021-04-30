@@ -14,6 +14,8 @@ NVDLA 是英伟达于2017年开源出来的深度学习加速器框架。可惜�
 
 本设计的Github Repo地址：https://github.com/LeiWang1999/ZYNQ-NVDLA
 
+<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=100% height=86 src="//music.163.com/outchain/player?type=2&id=28267674&auto=1&height=66"></iframe>
+
 开发器件：Zynq 7000+ / Zynq MPSoc
 
 软件环境：
