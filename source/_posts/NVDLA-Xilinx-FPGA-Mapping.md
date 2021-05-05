@@ -28,7 +28,7 @@ NVDLA 是英伟达于2017年开源出来的深度学习加速器框架。可惜�
 
 ## 1. 硬件系统设计概述
 
-本文采用的硬件版本是[hw仓库](https://github.com/nvdla/sw)的master分支，v1的spec文件仅提供了full版本，应该没有FPGA能够塞得下。master 分支提供了 small 和 large 两个版本的spec 文件，我们使用 small 的配置，当然这个过程对 large 也是适用的，接下来首先讲一下如何生成rtl。
+本文采用的硬件版本是[hw仓库](https://github.com/nvdla/hw)的master分支，v1的spec文件仅提供了full版本，应该没有FPGA能够塞得下。master 分支提供了 small 和 large 两个版本的spec 文件，我们使用 small 的配置，当然这个过程对 large 也是适用的，接下来首先讲一下如何生成rtl。
 
 ### 1.1 RTL 生成
 
@@ -241,7 +241,7 @@ assign nvdla_core2dbb_ar_arsize = 3'b011;
 assign m_axi_awburst = 2'b01;
 assign m_axi_awlock  = 1'b0;
 assign m_axi_awcache = 4'b0010;
-assign m_axi_awprot  = 3'h0;多半是
+assign m_axi_awprot  = 3'h0;
 assign m_axi_awqos   = 4'h0;
 assign m_axi_awuser  = 'b1;
 assign m_axi_wuser   = 'b0;
@@ -282,7 +282,7 @@ NVDLA是面向ASIC设计，内部的RAM默认有`clock gating`用来降低功耗
 
 ![](http://leiblog.wang/static/image/2021/4/Ports.png)
 
-多半是之后还要做Memory Map，APB的memory block要自行添加，不像AXI会自己分配。如果我们不添加memory block，则在Block Design里没办法给APB自动分配地址，在`Addressing and Memory`里，选择我们刚刚包装好的APB总线，右击选择`Add Address Block`，默认添加一个块就行了。 
+之后还要做Memory Map，APB的memory block要自行添加，不像AXI会自己分配。如果我们不添加memory block，则在Block Design里没办法给APB自动分配地址，在`Addressing and Memory`里，选择我们刚刚包装好的APB总线，右击选择`Add Address Block`，默认添加一个块就行了。 
 
 ![](http://leiblog.wang/static/image/2021/4/memorymap.png)
 
@@ -313,7 +313,7 @@ NVDLA是面向ASIC设计，内部的RAM默认有`clock gating`用来降低功耗
 
 ![Address](http://leiblog.wang/static/image/2021/4/fIXSzZ.jpg)
 
-这样，我们在SDK里通过内存读写就能通过内存映射操作NVDLA的寄存器，例如读取NVDLA位于0x0000的寄存器值，我们只需要读入0x40000000上的数据即可，关于寄存器的地址与功能，详见官方提供的KMD代码中的
+这样，我们在SDK里通过内存读写就能通过内存映射操作NVDLA的寄存器，例如读取NVDLA位于0x0000的寄存器值，我们只需要读入0x40000000上的数据即可，关于寄存器的地址与功能，详见官方提供的KMD代码中的opendla.h文件。
 
 ### 1.4 Generate Bit HDF
 
@@ -343,14 +343,18 @@ NVDLA是面向ASIC设计，内部的RAM默认有`clock gating`用来降低功耗
 
 ## 2. 软件系统设计概述
 
+<<<<<<< HEAD
 NVDLA的软件栈分为两个部分，一个是Compiler，Compiler在自己的主机上编译，是与硬件无关的；而Runtime则需要调用KMD程序调度加速器，只能在板卡上运行。在这小节我们的目标是在ARM处理器上编译出Runtime，打通软件栈。
+=======
+NVDLA的软件栈分为两个部分，一个是Compiler，Compiler在自己的主机上编译是与硬件无关的，而Runtime则需要调用KMD程序调度加速器，只能在板卡上运行。在这小节我们的目标是在ARM处理器上编译出Runtime，打通软件栈。
+>>>>>>> 5d40517d21b6fb6eb31da2a5ac033923d1de6cf0
 
 笔者在这个过程中踩了很多坑：
 
 1. 我们需要修改官方提供的KMD程序适配我们的内核版本与处理器。
 2. 需要修改`device tree`，覆盖NVDLA的compatible属性以适配加速器的驱动程序，并为加速器保留一段内存。
 3. 官方提供的SW项目不知道为什么只提供了libjpeg的链接库，明明这个源码是开源的，所以需要我们自己编译一下，而Patalinux本身没有包管理工具带来了种种不便，于是在这一章节，我将根文件系统替换为了Ubuntu 16.04。
-4. small仅支持INT8推理，所以读取的loadable是需要结合TensorRT进行量化的，有关如何量化，参考我之前的博客：[NVDLA量化笔记](http://localhost:4000/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/)。
+4. small仅支持INT8推理，所以读取的loadable是需要结合TensorRT进行量化的，有关如何量化，参考我之前的博客：[NVDLA量化笔记](http://leiblog.wang/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/)。
 
 ### 2.1 Petalinux
 
@@ -609,7 +613,7 @@ sudo su
 passwd
 ```
 
-使用apt来安装一些常用的包，比如ssh、make、curl什么的，如果不会用嵌入式板卡通过以太网来桥接上网，可以参考我以前的[Blog](http://localhost:4000/Embedding-board-internet-via-PC-Ethernet/)。
+使用apt来安装一些常用的包，比如ssh、make、curl什么的，如果不会用嵌入式板卡通过以太网来桥接上网，可以参考我以前的[Blog](http://leiblog.wang/Embedding-board-internet-via-PC-Ethernet/)。
 
 你可以使用官方的sw仓库里的umd文件夹，当然也可以是使用我的Repo里的[UMD](https://github.com/LeiWang1999/ZYNQ-NVDLA/tree/master/umd)，我自己改了几个地方：
 
@@ -722,8 +726,8 @@ Failed to allocate handle err=-1 errno=12
 
 1. https://vvviy.github.io/2018/09/12/nv_small-FPGA-Mapping-Workflow-I/
 2. https://vvviy.github.io/2018/09/17/nv_small-FPGA-Mapping-Workflow-II/
-3. http://localhost:4000/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/
-4. http://localhost:4000/NVDLA-Parser-Loadable-Analysis/
+3. http://leiblog.wang/NVDLA-int8-%E9%87%8F%E5%8C%96%E7%AC%94%E8%AE%B0/
+4. http://leiblog.wang/NVDLA-Parser-Loadable-Analysis/
 5. http://nvdla.org/primer.html
-6. http://localhost:4000/Embedding-board-internet-via-PC-Ethernet/
+6. http://leiblog.wang/Embedding-board-internet-via-PC-Ethernet/
 7. https://github.com/SameLight/ITRI-OpenDLA

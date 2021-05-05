@@ -3,6 +3,33 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20210505
+
+**本周的工作：**
+
+1. 首先上星期说到编译出来的runtime接受jpeg文件会失败的问题，我经过调试发现它内部读取图像的时候会做一个 RGB 转 BGR 的操作，根据注释是因为Caffe内部调用的是Opencv，存取图像是以BGR的格式：
+
+   ```c++
+   info.out_color_space = JCS_EXT_BGR;                    // FIXME: currently extracting as BGR (since caffe ref model assumes BGR)
+   output->m_meta.surfaceFormat = NvDlaImage::T_B8G8R8;
+   output->m_meta.channel = 3;
+   ```
+
+   这就会造成一个libjpeg库的一个Error。但由于libjpeg是连接库，看不到里面的代码，不知道这样会造成啥问题，所以我就把这句话注释掉了，这样就能接受jpeg的图片作为输入，对精度的影响不大，测了几张图也都是对的。
+
+2. 本周还尝试提高 NVDLA 的工作频率，NVDLA有两个输入时钟，一个是给 CSB 的 csb_clk，一个是工作的 core_clk, csb的时钟给比较低也没问题，core时钟就不清楚了，我添加了信工所的王兴宾博士的联系方式、他们流片过了。他说在 ASIC 仿真里，core_clk 能给很高，可以到1Ghz，我就在 FPGA 里给了 500Mhz，结果是读写某些寄存器的时候都会卡住，系统会挂。**然后我学习到了原来即使 ASIC 仿真里能给很高的时钟，不意味着在 FPGA 验证上也能给一样的时钟**，对于 NVDLA，我发现我上周能正常工作的 100Mhz，Timing报告已经不是很好了。
+
+3. 把 NVDLA 在 FPGA 上 Map 的一些技术点整理了一篇博客。
+
+4. 写毕业设计的论文
+
+**下周的工作：**
+
+1. 改 Runtime 的代码，使其运行的时候能够推理多张图片再看看耗时。
+2. 继续写论文。
+
+
+
 ## 20210425
 
 本周，延续上周的计划，学习了如何把 NVDLA 的中断映射到已经移植到开发板上的Ubuntu系统上。在这个过程中我学会了使用 petalinux 工具从头新建一个内核驱动程序，并且发现了以前把NVDLA的KMD程序挂载到开发板上的一系列问题：
@@ -25,7 +52,7 @@ date: 2021-02-06 13:56:27
 
 ## 20210418
 
-#### 本周的工作
+**本周的工作**
 
 1. 在253上制作了一个chipyard的docker镜像，chipyard是伯克利的一个项目，集合了riscv-tools/rocketchip等等等等的工具包，可以在上面运行rocketchip的方针，很方便。学习了一下chipyard如何仿真，如何编译出rtl，想调研这个项目是考虑存在烧写 rocketchip + nvsmall 的可行性，之所以在253上编译，是因为其仿真很吃内存。和zynq器件一样，在这个环境下读写寄存器是可行的。但是runtime需要在rocketchip上运行riscv-linux，这需要生成SD卡接口来存放BOOT和Image文件，很明显ZYNQ器件的开发板没有直接约束在PL端的SD卡接口，所以这个项目放弃了。
 
@@ -52,7 +79,7 @@ date: 2021-02-06 13:56:27
    1. nvdla_parser这个项目还没有从loadable里拿出weight的数据
    2. 上了操作系统之后，原本NVDLA会产生的硬件中断被操作系统屏蔽了。。。。这里有两个想法，一个是用寄存器查询来代替，一个是调研一下能不能拿到这个中断。
 
-#### 下周计划：
+**下周计划：**
 
 1. 从loadable里解析出权重数据
 2. 解决一下中断的问题
