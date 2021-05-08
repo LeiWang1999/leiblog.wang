@@ -9,7 +9,7 @@ tags:
 date: 2020-02-03 23:05:12
 ---
 
-![Banner	](http://leiblog.wang/static/image/2020/8/adventurealtitude.jpg)
+![Banner](http://leiblog.wang/static/image/2020/8/adventurealtitude.jpg)
 
 大二的时候，接触硬件描述语言。Vivado 自带的编辑器实在很难用，为了有更加舒适的体验，我寻找着取而代之的方法。
 网络上的答案大同小异，基本上都是用的 Sublime Text.（我的学长们也都是）
@@ -30,7 +30,7 @@ date: 2020-02-03 23:05:12
 ##### 第二步 在 Settings 里更换默认的文本编辑器
 
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20190730172425179.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5NDk4NzAx,size_16,color_FFFFFF,t_70)
-这里需要键入的表达式是： C:/Program Files/Microsoft VS Code/Code.exe [file name] -[line number]
+这里需要键入的表达式是：`C:/Program Files/Microsoft VS Code/Code.exe -g [file name]:[line number]`
 前面是 VsCode 应用程序的绝对路径。Linux 下如果是在环境变量中，可以直接写 Code 但是 Windows 下好像不可以。
 这样双击工程下面的文件，Vivado 会自动使用 Code 打开文件。
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20190730172648606.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5NDk4NzAx,size_16,color_FFFFFF,t_70)
@@ -59,8 +59,8 @@ vivado 安装目录下的 xvlog（这个是 vivado 自带的语法纠错工具�
 **你需要将这个工具所在的目录放置在系统的环境变量**，以便 VsCode 能够方便的调用他。
 具体的目录就是 Vivado 的 bin 文件夹。
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20190730173554915.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5NDk4NzAx,size_16,color_FFFFFF,t_70)
-如果你不知道上述界面如何调出，请移步:www.google.cn
-添加完成之后，在命令行输入 xvlog -- version 检测是否生效
+如果你不知道上述界面如何调出，请移步:www.google.com
+添加完成之后，在命令行输入 `xvlog --version` 检测是否生效
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20190730173907830.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5NDk4NzAx,size_16,color_FFFFFF,t_70)
 如果没有打印出未找到该命令，那么你可能需要重启您的电脑。
 
