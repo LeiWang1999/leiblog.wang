@@ -3,6 +3,14 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20210509
+
+**本周的工作**：
+
+1. 学习邱志雄老师开的课[《数字集成电路静态时序分析基础》](https://www.bilibili.com/video/BV1if4y1p7Dq)，学习了 TCL 语言，还有静态时序分析的基本概念，在Vivado里添加虚拟时钟约束来生成时序报告等。
+2. 🤦‍♂️另外本周女朋友的毕业设计没做出来，我帮忙看了好几天，快做完了。
+3. 我在搜索有没有曾经用 NVDLA 推理Yolo的项目，发现了一个[ITRI YOLO](https://ictjournal.itri.org.tw/content/Messagess/contents.aspx?&MmmID=654304432061644411&CatID=654313611227352166&MSID=1037365734414623040)，在YouTube上还有演示视频，看了一下介绍，他的前端使用的是一个别的工具链 [ONNC](https://github.com/ONNC/onnc)，好像是 ONNX 官方做的，可以接受 ONNX 的模型，然后也会生成 Loadable ，运行的时候需要对原本sw的代码打个patch，对于 NVDLA 不支持的算子，会使用C++实现，所以能够实现Yolo这样的模型。关于onnc，他也提供了修改过sw代码的 vp docker容器，下周试一下编译onnc看看流程。但是看issue，**好像以前 nvsmall 的配置需要申请商业授权，原因是原本NVDLA没有开源出关于small配置的软件代码，所以onnc组织自己写的，比较累。但是不清楚现在是否还需要申请商业授权了。**
+
 ## 20210505
 
 **本周的工作：**
