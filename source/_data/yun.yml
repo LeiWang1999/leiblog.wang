@@ -1,0 +1,54 @@
+avatar:
+  url: /images/avatar_1.jpg
+
+codeblock:
+  copy_btn: true
+  prismjs:
+    light: default
+    dark: tomorrow
+
+wordcloud:
+  enable: true
+
+banner:
+  enable: false
+
+social:
+  - name: QQ
+    # https://isux.tencent.com/wp-content/uploads/2016/05/20160512101222609.pdf
+    link: https://wpa.qq.com/msgrd?v=3&uin=2230647190&site=qq&menu=yes
+    icon: icon-qq-line
+    color: "#12B7F5"
+  - name: GitHub
+    link: https://github.com/LeiWang1999
+    icon: icon-github-line
+    color: "#181717"
+  - name: E-Mail
+    link: mailto:2230647190@qq.com
+    icon: icon-mail-line
+    color: "#8E71C1"
+  - name: Telegram
+    link: https://t.me/chprinceling
+    icon: icon-telegram-line
+    color: "#0088CC"
+
+font:
+  cdn:
+    enable: true
+    lib:
+      - https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&display=swap
+  serif:
+    family: "Ovo, Georgia, STZhongsong, 'Microsoft YaHei'"
+    weight: 900
+  sans_serif:
+    family: "Ovo, Georgia, STZhongsong, 'Microsoft YaHei'"
+    weight: 400
+  monospace:
+    family: "'Source Code Pro', 'Courier New', Courier, Consolas, Monaco, monospace"
+
+engine_search:
+  enable: false
+
+local_search:
+  enable: true
+  src: /js/search/local-search.js

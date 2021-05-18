@@ -207,11 +207,11 @@ lwIP 最早由 Adam Dunkels 编写，目前由 Kieran Mansley 带领的团队开
 
 ![ZYNQ_CONFIG](http://leiblog.wang/static/image/2020/7/ZYNQ_config.png)
 
-{% colorquote info %}
+<div class="info">
 
-其实你可以下载我预先保存好的 tcl 配置文件，在 Preset 选项里选择导入，下载地址：http://leiblog.wang/static/FPGA/Easy_Simple_pynq_z2.tcl
+> 其实你可以下载我预先保存好的 tcl 配置文件，在 Preset 选项里选择导入，下载地址：http://leiblog.wang/static/FPGA/Easy_Simple_pynq_z2.tcl
 
-{% endcolorquote %}
+</div>
 
 然后点击自动布线，连接上 Clock，如下图
 

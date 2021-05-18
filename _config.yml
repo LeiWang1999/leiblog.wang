@@ -8,8 +8,7 @@ subtitle: "Welcome My Blog"
 description: ""
 keywords: "Blog WangLei"
 author: Lei Wang
-language:
-  - en
+language: zh-CN
 timezone: ""
 
 # URL
@@ -46,12 +45,19 @@ post_asset_folder: false
 relative_link: false
 future: true
 highlight:
-  enable: true
-  line_number: true
+  enable: false
+  line_number: false
   auto_detect: false
   tab_replace: ""
   wrap: true
   hljs: false
+
+# 启用 prism
+prismjs:
+  enable: true
+  preprocess: true
+  line_number: false
+  tab_replace: ""
 
 # Home page setting
 # path: Root path for your blogs index page. (default = '')
@@ -64,10 +70,7 @@ highlight:
 # Category & Tag
 default_category: uncategorized
 category_map:
-  无他: nothing
 tag_map:
-  随笔: anything
-
 # Metadata elements
 ## https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta
 meta_generator: true
@@ -78,8 +81,6 @@ meta_generator: true
 ## http://momentjs.com/docs/#/displaying/format/
 date_format: YYYY-MM-DD
 time_format: HH:mm:ss
-## Use post's date for updated date unless set in front-matter
-use_date_for_updated: false
 
 # Pagination
 ## Set per_page to 0 to disable pagination
@@ -95,7 +96,7 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: minos
+theme: yun  
 
 # 自动生成sitemap
 sitemap:

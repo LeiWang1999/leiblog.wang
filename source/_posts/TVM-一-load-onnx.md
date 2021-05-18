@@ -97,17 +97,14 @@ from .pytorch import from_pytorch
 from .caffe import from_caffe
 ```
 
-{% colorquote info %}
+<div class="info">
 
-这里插个题外话，科普一下 Python 小知识。在框架源代码中经常使用 from . import A 或者 from .A import B 的操作是什么意思？
+> 这里插个题外话，科普一下 Python 小知识。在框架源代码中经常使用 from . import A 或者 from .A import B 的操作是什么意思？
+> 首先，`.`的意思是当前目录，`..`的意思是上级目录。
+> 当碰到 from . import A，python 回去找当前目录下的 `__init__.py`文件，从里面去找 A，如果是..就是上级文件夹。
+> 如果当前目录下没有`__init__.py`,则需要 from .A import B,回到当前目录下的`A.py`里去寻找 B，如果是..就是上级文件夹。
 
-首先，`.`的意思是当前目录，`..`的意思是上级目录。
-
-当碰到 from . import A，python 回去找当前目录下的 `__init__.py`文件，从里面去找 A，如果是..就是上级文件夹。
-
-如果当前目录下没有`__init__.py`,则需要 from .A import B,回到当前目录下的`A.py`里去寻找 B，如果是..就是上级文件夹。
-
-{% endcolorquote %}
+</div>
 
 ```python
 def from_onnx(model,

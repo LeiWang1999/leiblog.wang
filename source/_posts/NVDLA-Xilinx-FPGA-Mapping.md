@@ -335,11 +335,11 @@ NVDLA是面向ASIC设计，内部的RAM默认有`clock gating`用来降低功耗
 
 ![](http://leiblog.wang/static/image/2021/4/dlacopy_result.png)
 
-{% colorquote info %}
+<div class="info">
 
-你也可以在SDK上写一些别的Sanity，欢迎PR！
+> 你也可以在SDK上写一些别的Sanity，欢迎PR！
 
-{% endcolorquote %}
+</div>
 
 ## 2. 软件系统设计概述
 
