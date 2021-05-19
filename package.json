@@ -15,9 +15,11 @@
     "cheerio": "^1.0.0-rc.3",
     "hexo": "^5.4.0",
     "hexo-deployer-git": "^2.1.0",
+    "hexo-filter-mathjax": "^0.7.0",
     "hexo-generator-archive": "^1.0.0",
     "hexo-generator-baidu-sitemap": "^0.1.6",
     "hexo-generator-category": "^1.0.0",
+    "hexo-generator-feed": "^3.0.0",
     "hexo-generator-index": "^1.0.0",
     "hexo-generator-search": "^2.4.2",
     "hexo-generator-sitemap": "^2.0.0",
@@ -31,6 +33,7 @@
     "hexo-server": "^1.0.0",
     "hexo-tag-aplayer": "^3.0.4",
     "hexo-tag-asset-img": "^0.2.0",
-    "hexo-tag-dplayer": "^0.3.3"
+    "hexo-tag-dplayer": "^0.3.3",
+    "hexo-wordcount": "^6.0.1"
   }
 }

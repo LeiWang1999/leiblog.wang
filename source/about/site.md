@@ -3,7 +3,12 @@ title: 关于站点
 date: 2021-05-18 22:38:33
 comments: false
 type: about
+aplayer: true
+reward: true
+icon: icon-home-4-line
 ---
+{% meting "497572729" "netease" "song" "theme:#C20C0C"%}
+
 
 2020 年 2 月 12 日
 

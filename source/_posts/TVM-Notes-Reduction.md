@@ -1,6 +1,6 @@
 ---
 title: TVM Notes | Reduction Op
-
+mathjax: true
 categories:
   - Technical
 tags:
@@ -18,8 +18,8 @@ date: 2020-11-03 14:52:30
 
 计算公式如下：
 
-$$
-C_{i,j} = \sum_{k=1}^l A_{i,k} B_{k,j}.
+$$ 
+C_{i,j} = \sum_{k=1}^l A_{i,k} B_{k,j}. 
 $$
 
 <!-- more -->

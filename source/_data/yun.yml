@@ -13,13 +13,42 @@ wordcloud:
 banner:
   enable: false
 
-github_issues:
+wordcount:
   enable: true
-  username: LeiWang1999
-  repository: leiblog.wang
-  filters: is:issue
+  count: true
+  time: true
+
+valine:
+  enable: true
+  appId: vTjojtAolevJ2QEt3Ig8gEKD-MdYXbMMI 
+  appKey: Ylh2i3sM1fEJrejGuujx52Ja
+  placeholder: "不要发布不友善、负能量或引战的内容!"
+  avatar: retro
+  meta:
+    - nick
+    - mail
+  pageSize: 10 
+
+google_analytics:
+  enable: true
+  id: G-XXVS78XPZQ
+
+leancloud_visitors:
+  enable: true
+  app_id: vTjojtAolevJ2QEt3Ig8gEKD-MdYXbMMI
+  app_key: Ylh2i3sM1fEJrejGuujx52Ja
+
+baidu_push: true
+
+katex:
+  copy_tex: false
+  global: false
 
 social:
+  - name: RSS
+    link: /atom.xml # config.feed.path
+    icon: icon-rss-line
+    color: orange
   - name: QQ
     # https://isux.tencent.com/wp-content/uploads/2016/05/20160512101222609.pdf
     link: https://wpa.qq.com/msgrd?v=3&uin=2230647190&site=qq&menu=yes
@@ -58,3 +87,40 @@ engine_search:
 local_search:
   enable: true
   src: /js/search/local-search.js
+
+mathjax:
+  tags: none # or 'ams' or 'all'
+  single_dollars: true # enable single dollar signs as in-line math delimiters
+  cjk_width: 0.9 # relative CJK char width
+  normal_width: 0.6 # relative normal (monospace) width
+  append_css: true # add CSS to pages rendered by MathJax
+  every_page: false # if true, every page will be rendered by MathJax regardless the `mathjax` setting in Front-matter
+
+
+reward:
+  enable: false
+  icon: icon-hand-coin-line
+  comment: I'm so cute. Please give me money.
+  # url: https://github.com/YunYouJun/yunyoujun.github.io/issues/96
+  methods:
+    - name: 支付宝
+      path: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/donate/alipay-qrcode.jpg
+      color: "#00A3EE"
+      icon: icon-alipay-line
+    - name: QQ 支付
+      path: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/donate/qqpay-qrcode.png
+      color: "#12B7F5"
+      icon: icon-qq-line
+    - name: 微信支付
+      path: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/donate/wechatpay-qrcode.jpg
+      color: "#2DC100"
+      icon: icon-wechat-pay-line
+
+menu:
+  custom:
+    title: 留言板
+    path: /about/#comment
+    icon: icon-clipboard-line
+
+footer:
+  since: 2020
