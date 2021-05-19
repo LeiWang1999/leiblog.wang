@@ -10,22 +10,24 @@ codeblock:
 wordcloud:
   enable: false
 
-colors:
-  primary: purple
+bg_image:
+  enable: true
+  url: http://leiblog.wang/static/image/2021/5/paper.jpg
+  dark: http://leiblog.wang/static/image/2021/5/UbnY5C.jpg
+  # blur: 30px # 设置背景模糊程度
+  opacity: 0.8
 
 
 banner:
   enable: true
+  border: false
   title: 
-    - 磊
-    - 的
-    - 小
-    - 站
-    - 1999
-  src: /js/banner.js
-  border: true
+    - The
+    - Blog
+    - of
+    - Lei Wang
   cloud:
-    enable: false
+    enable: true
     color: "white"
   go_down:
     enable: true
@@ -122,15 +124,11 @@ reward:
   # url: https://github.com/YunYouJun/yunyoujun.github.io/issues/96
   methods:
     - name: 支付宝
-      path: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/donate/alipay-qrcode.jpg
+      path: http://leiblog.wang/static/image/2021/5/A7F73DEE8F40EB06600447DC752929EC.jpg
       color: "#00A3EE"
       icon: icon-alipay-line
-    - name: QQ 支付
-      path: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/donate/qqpay-qrcode.png
-      color: "#12B7F5"
-      icon: icon-qq-line
     - name: 微信支付
-      path: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/donate/wechatpay-qrcode.jpg
+      path: http://leiblog.wang/static/image/2021/5/BC8882A9FFA6D23A3B59C03865CE970D.jpg
       color: "#2DC100"
       icon: icon-wechat-pay-line
 
