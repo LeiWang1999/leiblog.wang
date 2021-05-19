@@ -4,7 +4,7 @@ categories:
   - Technical
 tags:
   - Digilal Design
-  - EEEE
+  - NVDLA
 date: 2021-04-28 15:16:34
 ---
 

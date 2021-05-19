@@ -1,4 +1,5 @@
 ---
+title: 为ESXI新增物理磁盘
 categories:
   - Technical
 tags:

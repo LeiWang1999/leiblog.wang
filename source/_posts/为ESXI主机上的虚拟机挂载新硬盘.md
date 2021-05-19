@@ -1,4 +1,5 @@
 ---
+title: 为ESXI主机上的虚拟机挂载新硬盘
 categories:
   - Technical
 tags:

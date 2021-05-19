@@ -3,7 +3,7 @@ title: TVM Notes｜一、前端导入ONNX模型
 categories:
   - Technical
 tags:
-  - tvm
+  - TVM
 date: 2020-09-15 11:22:02
 ---
 

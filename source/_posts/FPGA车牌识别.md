@@ -1,4 +1,5 @@
 ---
+title: FPGA车牌识别
 categories:
   - Technical
 

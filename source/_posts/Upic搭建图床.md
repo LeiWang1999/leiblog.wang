@@ -1,4 +1,5 @@
 ---
+title: Upic搭建图床
 categories:
   - Technical
 tags:

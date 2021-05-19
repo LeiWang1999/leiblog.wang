@@ -1,4 +1,5 @@
 ---
+title: 李宏毅CNN作业的笔记-食物分类
 categories:
   - Technical
 tags:
