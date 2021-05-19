@@ -7,17 +7,19 @@ aplayer: true
 reward: true
 icon: icon-home-4-line
 ---
-{% meting "497572729" "netease" "song" "theme:#C20C0C"%}
 
+## Time
 
-2020 年 2 月 12 日
+### 2021年 5 月 18 日
 
-在帮学校信息中心崔北亮主任开发他的个人博客的时候，给自己也手撸了一个，当时的技术栈是 Vuetify + Nodejs
+换成了 [yun](https://github.com/YunYouJun/hexo-theme-yun) 主题，增加了很多花哨的功能，原先的留言系统使用的是 leancloud.cn ，居然不能邮件通知，导致错失了一些评论的及时回复，现在换回 leancloud.app （国际服） 了。
 
-2020 年 5 月 3 日
+### 2020 年 6 月 29 日
 
-改成了 Hexo、主题是 Minos
+之后过了一段时间，想重构一下自己的博客，结果发现 Vue 和 Vuetify 又更新了，自己的本职也不是搞 Web 开发的，学习会浪费很多精力，于是改成了 Hexo、主题是 Minos，画风非常简洁不错！
 
-2021年 5 月 18 日
+![](https://leiblog.wang/static/image/2021/5/blog-minos.png)
 
-换成了 yun 主题。
+### 2020 年 2 月 12 日
+
+本科学校的信息中心副主任崔老师想要重构一下他的个人博客，于是在帮他开发的时候（1800 元的酬劳我记得），给自己也手撸了一个，当时的技术栈是 Vuetify + Nodejs。
