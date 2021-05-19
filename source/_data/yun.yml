@@ -8,10 +8,28 @@ codeblock:
     dark: tomorrow
 
 wordcloud:
-  enable: true
+  enable: false
+
+colors:
+  primary: purple
+
 
 banner:
-  enable: false
+  enable: true
+  title: 
+    - 磊
+    - 的
+    - 小
+    - 站
+    - 1999
+  src: /js/banner.js
+  border: true
+  cloud:
+    enable: false
+    color: "white"
+  go_down:
+    enable: true
+    icon: icon-arrow-down-s-line
 
 wordcount:
   enable: true
