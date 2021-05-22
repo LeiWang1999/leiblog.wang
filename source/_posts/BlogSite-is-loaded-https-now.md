@@ -2,10 +2,9 @@
 title: "HTTPS Blog site Released! "
 
 categories:
-  - Technical
+  - LifeStyle
 tags:
-  - Digilal Design
-  - EEEE
+  - Blog
 date: 2020-10-20 20:45:13
 ---
 

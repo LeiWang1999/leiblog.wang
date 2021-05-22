@@ -4,8 +4,7 @@ title: 靶机日记 一 | Kevgir
 categories:
   - Technical
 tags:
-  - Digilal Design
-  - EEEE
+  - Crack
 date: 2020-08-18 18:50:10
 ---
 
