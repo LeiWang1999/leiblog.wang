@@ -14,6 +14,8 @@ NVDLA 是英伟达于2017年开源出来的深度学习加速器框架。可惜�
 
 本设计的Github Repo地址：https://github.com/LeiWang1999/ZYNQ-NVDLA
 
+你可以在这里看到我的本科毕业设计论文：[Graduation Paper](https://leiblog.wang/static/2021-05-30/%E6%9C%AC%E7%A7%91%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%AE%BA%E6%96%87.pdf)
+
 <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=100% height=86 src="//music.163.com/outchain/player?type=2&id=28267674&auto=1&height=66"></iframe>
 
 开发器件：Zynq 7000+ / Zynq MPSoc
@@ -696,7 +698,9 @@ root@arm:~/OpenDLA/umd/out/apps/runtime/nvdla_runtime# cat output.dimg
 0 0 0 99 26 0 0 0 0 0 root@arm:~/OpenDLA/umd/out/apps/runtime/nvdla_runtime# 
 ```
 
-结果都非常正确，话说Resnet18比Lenet5复杂N倍，两个运行起来速度居然是一样的。
+这里会发现他的运行时间都是差不多的，实际上 resnet18 比 lenet5 要复杂许多，经过笔者研究，他还计算了一段 load 内存的时间，于是在最新版本的umd代码中，我将统计时间换算到发送给kmd，到kmd执行完毕。这样速度就正常一些了，截取一下文章里测到的数据：
+
+![](http://leiblog.wang/static/image/2021/5/DNkWv2.png)
 
 但如果运行一个针对Imagenet的Resnet网络，会发现：
 
