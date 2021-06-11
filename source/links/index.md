@@ -4,6 +4,14 @@ title: My Friends Online
 date: 2020-06-21 13:06:06
 comments: true
 links:
+  - url: https://www.yunyoujun.cn
+    avatar: https://cdn.jsdelivr.net/gh/YunYouJun/yunyoujun.github.io/images/avatar.jpg
+    name: 云游君
+    blog: 云游君的小站
+    desc: 希望能成为一个有趣的人。
+    # Or: All at sea.
+    email: me@yunyoujun.cn
+    color: "#0078e7"
   - url: http://gezhilai.com/
     avatar: http://gezhilai.com/images/avatar.jpg#QQ1.jpg
     name: 葛志来
