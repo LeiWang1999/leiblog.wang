@@ -140,3 +140,6 @@ menu:
 
 footer:
   since: 2020
+  beian:
+    enable: true
+    icp: 苏ICP备20006513号-1
