@@ -74,6 +74,10 @@ social:
     link: https://wpa.qq.com/msgrd?v=3&uin=2230647190&site=qq&menu=yes
     icon: icon-qq-line
     color: "#12B7F5"
+  - name: 知乎
+    link: https://www.zhihu.com/people/wang-lei-1-25
+    icon: icon-zhihu-line
+    color: "#0084FF"
   - name: GitHub
     link: https://github.com/LeiWang1999
     icon: icon-github-line
