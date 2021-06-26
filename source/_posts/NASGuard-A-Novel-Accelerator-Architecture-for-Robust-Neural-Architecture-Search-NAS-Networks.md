@@ -59,6 +59,8 @@ date: 2021-06-24 09:57:01
 
 所以我个人的理解是，Compiler会根据网络的结构生成一个推荐的PE阵列的调度顺序，由Runtime来存到Schedule Table内部，分支检测器根据Schedule Table的内容分配 PE 的资源，同时更新权重管理表与激活管理表，这两个表如果检测到当前运算的分支的权重数据的索引接近预存入的点的时候将触发相应的操作，进行运算的权重等数据读入prefetch缓存（其中prefetch缓存分了三个存储层次）。
 
+最后，本文章的对比是在前文的 Fig.2 这个体系结构中，将蓝色标注的两部分电路去除所得到的常见加速器结构与加上分支调度电路、加上Prefetch电路的加速器结构进行的对比。
+
 ![image-20210623222900443](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210623222900443.png)
 
 结论如图，这是在几个典型网络上的加速比，此外还可以提高PE的数量来做到进一步的加速：
@@ -66,6 +68,10 @@ date: 2021-06-24 09:57:01
 ![image-20210623223000769](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210623223000769.png)
 
 但是在 MnasNet 上的效果不是很明显，主要是该网络的深度Conv太多了，限制了PE的利用率，这个本设计也是没有解决。
+
+虽然获得了一定的效果，但是也是用面积换来的：
+
+![image-20210626220229429](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210626220229429.png)
 
 此外，他的各种数据得到的方式是由一个开源的模拟器MAESTRO得出的。
 
