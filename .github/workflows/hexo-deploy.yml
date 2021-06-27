@@ -1,20 +1,32 @@
-name: deploying Hexo project to GitHub pages
+name: Hexo build and deploy
+
 on:
   push:
-    branches:
-      - master # master 分支有 push 行为时就触发这个 action
+    branches: [ master ]
 
 jobs:
-  build-and-deploy:
+  build:
+
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@master
-
-      - name: Build and Deploy
-        uses: theme-keep/hexo-deploy-github-pages-action@master # 使用专门部署 Hexo 到 GitHub pages 的 action
-        env:
-          PERSONAL_TOKEN: ${{ secrets.HEXO_DEPLOY }} # secret 名
-          PUBLISH_REPOSITORY: LeiWang1999/leiblog.wang.static # 公共仓库，格式：GitHub 用户名/仓库名
-          BRANCH: gh-pages # 分支，填 gh-pages 就行
-          PUBLISH_DIR: ./public # 部署 public 目录下的文件
+    - name: Checkout
+      uses: actions/checkout@v2 # If you're using actions/checkout@v2 you must set persist-credentials to false in most cases for the deployment to work correctly.
+      with:
+        persist-credentials: false
+        # checkout到你的hexo代码分支
+        ref: master
+        # hexo需要加载内部子模块
+        submodules: true
+    - name: Install and Build
+      run: |
+        npm install
+        npm run build
+    - name: Deploy to aliyun server
+      uses: easingthemes/ssh-deploy@v2.0.7
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.ALIYUN_SERVER_ACCESS_TOKEN }}
+        ARGS: "-avz --delete"
+        SOURCE: "public"
+        REMOTE_HOST: ${{ secrets.ALIYUN_SERVER_HOST }}
+        REMOTE_USER: "root"
+        TARGET: "/var/www/html/leiblog.wang"
