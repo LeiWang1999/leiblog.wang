@@ -10,7 +10,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
-
+        with:
+          persist-credentials: false
+          # checkout到你的hexo代码分支
+          ref: master
+          # hexo需要加载内部子模块
+          submodules: true
       - name: Build and Deploy
         uses: theme-keep/hexo-deploy-github-pages-action@master # 使用专门部署 Hexo 到 GitHub pages 的 action
         env:
