@@ -3,6 +3,24 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20210627
+
+1. 本周看了浩博师兄发给我的一篇论文 《NASGuard: A Novel Accelerator Architecture for Robust Neural Architecture Search (NAS) Networks》，论文的阅读笔记放在了博客：https://leiblog.wang/NASGuard-A-Novel-Accelerator-Architecture-for-Robust-Neural-Architecture-Search-NAS-Networks/
+
+   总结：Robust NAS是研究人员用神经网络架构搜索的方式来研究神经网络的结构本身针对神经网络模型的对抗训练攻击的防御性而产生的。虽然本篇文章是和 NAS 相关的论文，但不是针对NAS漫长的训练过程设计的加速器，而是作者总结近年来典型的 Robust NAS 网络，发现其存在较多的多分支结构、分支与分支之间存在较多的互联情况等问题，这些问题的存在使得常见的加速器的PE阵列资源利用率变得不高，以及因为互联造成了并行度的限制，导致需要多次与外存交互。这篇论文提出了一个分支调度电路、以及一个权重等数据的 prefetch 缓存电路，结合编译器来自动分配PE阵列的资源、提前将需要的数据进行缓存，是一个以面积换效率的工作。
+
+   本文我比较感兴趣的点是作者在对设计的电路进行评估的时候使用的一些方法；例如评估系统的各个模块的面积占用使用的是Synopsys DC；电路仿真与性能评估使用的是一个叫 MAESTRO 的模拟器；这些方法的指导我觉得是很有意义的，找到了关于 MAESTRO 的两篇论文，其中一篇还与 NVDLA 有关，下周看看。
+
+2. 调试学习了 NVDLA 的编译器部分，因为 NVDLA 支持的算子有限，师兄说想让我看看能不能让 NVDLA 不支持的算子在 CPU 上跑。我读了几天的代码，还没有分析完，已经分析了的部分也放在了博客里：https://leiblog.wang/NVDLA-Compiler-Analysis/
+
+   总的来说，它接受了 Caffe 的模型之后会把模型转换成 Network 对象，然后将 Network 变成一个 canonical AST、这个就和计算图差不多，canonical AST 又会被转化成 engine AST、engine AST 是最关键的 IR，和 canonical AST 不同的是它会包含硬件的信息，比如 Lenet5 第一层卷积在 canonical AST 上单独的一个节点，到 engine AST 上的时候会变成 conv 和 sdp 两个节点，因为 conv 是一个引擎，还有一个加 bias 的操作是用 SDP 引擎去做的。之后的量化、融合，都是根据这个 AST 做的各种变换。代码里还有一些设计模式的理念，比如工厂模式。
+
+   ![image-20210627194944502](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210627194944502.png)
+
+   把不支持的操作用 CPU 计算我觉得是可以的，问题是它这个前端只支持 caffemodel，像 yolo 是没有caffe版本的就无法解析，工作量太大。之前调研过的 onnc 因为是支持onnx的模型的就没这个问题，但是他的nvdla_small版本需要商业授权，我发邮件过去也没人回我，我又发邮件给一个买过他们商业授权的团队（ITRI），他把我的邮件转发给了他认识的 ONNC 的工程师，但还是没回我。但是 ONNC 这个团队在两个月之前还在 IEEE 上发了篇论文。。。。可能是不想分享吧。
+
+   
+
 ## 20210523
 
 1. 花了两天在 Arm A9 上把 Caffe 编译出来，将论文最后缺失的数据补全了：
@@ -181,7 +199,7 @@ Second. 上述的工作流程，Parser部分的代码是C++实现，移植kmd的
       ```c++
       // Custom Config
       int
-network_config_lenet(struct dla_network_desc * network){
+      network_config_lenet(struct dla_network_desc * network){
       	network->operation_desc_index = 6;
       	network->surface_desc_index = 6;
    	network->dependency_graph_index = 5;

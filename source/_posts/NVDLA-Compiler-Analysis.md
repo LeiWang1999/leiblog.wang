@@ -75,9 +75,11 @@ vim /etc/ssh/sshd_config
 
 下图是我整理的，Compiler工作的主要路线图，其中蓝色标注的部分是编译部分的主体，在正式进行编译之前，编译器会把 CaffeModel 转换成 Network 对象；把输入的profileName 转换成 Profile 对象，例如指定 fast-math 那么在profile 对象里就会把一些优化的开关打开，把targetname，就是nv_small/nv_large 这种，会转换成TargetConfig对象，内有硬件相关的配置信息。
 
+![WorkFlow of  NVDLA Compiler](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/WorkFlow%20of%20%20NVDLA%20Compiler.png)
+
 之后，通过 Network，生成一个标准的抽象语法树，再转换成与硬件相关的 engine_ast，engine_ast 就是编译器最核心的 IR，接下来的各种优化都是对该 IR 做变换。
 
-![WorkFlow of  NVDLA Compiler](/Users/wanglei/Downloads/WorkFlow of  NVDLA Compiler.png)
+![cangraph2enggraph](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/cangraph2enggraph.png)
 
 在阅读代码的时候，可以打开官方已经写了的部分调试信息输出开关，在源代码里可以找到类似这样的声明：
 
