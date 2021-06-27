@@ -29,4 +29,4 @@ jobs:
         SOURCE: "public"
         REMOTE_HOST: ${{ secrets.ALIYUN_SERVER_HOST }}
         REMOTE_USER: "root"
-        TARGET: "/root/dist/"
+        TARGET: "/var/www/html/leiblog.wang"
