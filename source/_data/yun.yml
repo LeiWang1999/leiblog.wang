@@ -12,10 +12,11 @@ wordcloud:
 
 bg_image:
   enable: true
-  url: http://leiblog.wang/static/image/2021/5/paper.jpg
+  # url: http://leiblog.wang/static/image/2021/5/paper.jpg
+  # url: https://leiblog.wang/static/image/2021/6/APKNIGHTS.jpg
   dark: http://leiblog.wang/static/image/2021/5/UbnY5C.jpg
   # blur: 30px # 设置背景模糊程度
-  opacity: 0.8
+  # opacity: 0.8
 
 
 banner:
