@@ -3,6 +3,11 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20210704
+
+1. 本周读了一篇论文《MAESTRO: An Open-source Infrastructure for the Cost-Benefit Analysis of Dataflows within Deep Learning Accelerators》，算是一篇综述，利用 MAESTRO...
+2. 主要是将分析 NVDLA Compiler 工作机制进行了延续，具体的分析出来的工作机制我也都记录下来了放在了我的
+
 ## 20210627
 
 1. 本周看了浩博师兄发给我的一篇论文 《NASGuard: A Novel Accelerator Architecture for Robust Neural Architecture Search (NAS) Networks》，论文的阅读笔记放在了博客：https://leiblog.wang/NASGuard-A-Novel-Accelerator-Architecture-for-Robust-Neural-Architecture-Search-NAS-Networks/
