@@ -4325,11 +4325,134 @@ fail:
 
 ### 4. Compiler 量化原理
 
+<div class="info">
+  在C程序中，可以用宏代码提高执行效率。宏代码本身不是函数，但使用起来象函数。预处理器用复制宏代码的方式代替函数调用，省去了参数压栈、生成汇编语言的CALL调用、返回参数、执行return等过程，从而提高了速度。 
+  但使用宏代码最大的缺点是容易出错，预处理器在复制宏代码时常常产生意想不到的边际效应。
+</div>
+
+```cpp
+#define PRECISION_SWITCH(modelPrec, computePrec, retVal, func, ...)     \
+    switch(modelPrec) {                                                 \
+        case nvdla::DataType::INT8:                                     \
+        switch(computePrec) {                                           \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:   \
+                retVal = func<NvS8, NvS8>(__VA_ARGS__); break;          \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:  \
+                retVal = func<NvS8, NvS16>(__VA_ARGS__); break;         \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:   \
+                retVal = func<NvS8, half_float::half>(__VA_ARGS__); break;          \
+            default:                                                    \
+            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec);      \
+        }; break;                                                       \
+        case nvdla::DataType::INT16:                                    \
+        switch(computePrec) {                                           \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:   \
+                retVal = func<NvS16, NvS8>(__VA_ARGS__); break;         \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:  \
+                retVal = func<NvS16, NvS16>(__VA_ARGS__); break;        \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:   \
+                retVal = func<NvS16, half_float::half>(__VA_ARGS__); break;         \
+            default:                                                    \
+            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec);      \
+        }; break;                                                       \
+        case nvdla::DataType::HALF:                                     \
+        switch(computePrec) {                                           \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:   \
+                retVal = func<half_float::half, NvS8>(__VA_ARGS__); break;          \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:  \
+                retVal = func<half_float::half, NvS16>(__VA_ARGS__); break;         \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:   \
+                retVal = func<half_float::half, half_float::half>(__VA_ARGS__); break;          \
+            default:                                                    \
+            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec);      \
+        }; break;                                                       \
+        case nvdla::DataType::FLOAT:                                    \
+        switch(computePrec) {                                           \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:   \
+                retVal = func<NvF32, NvS8>(__VA_ARGS__); break;         \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:  \
+                retVal = func<NvF32, NvS16>(__VA_ARGS__); break;        \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:   \
+                retVal = func<NvF32, half_float::half>(__VA_ARGS__); break;         \
+            default:                                                    \
+            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec);      \
+        }; break;                                                       \
+        default:                                                        \
+        REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", modelPrec);            \
+    }
+```
+
+具体的量化套路在 preProcessAuxData 和 quantizeAuxData 两个函数中：
+
+```cpp
+template <typename MP, typename CP>
+static std::vector<NvF32> perKernelQuantizeWts
+(
+    Weights highPrecWts,
+    NvS32 G, NvS32 K, NvS32 C, NvS32 RS, NvS32 kStride, NvS32 cStride,
+    NvS8* quantizedWts
+)
+{
+    std::vector<NvF32> filterScales;
+    NvF32 max = std::numeric_limits<NvF32>::lowest(); // 先把 max 初始化为 FLoat 32 的最小值
+    const MP* origWts = reinterpret_cast<const MP*>(const_cast<void*>(highPrecWts.values));
+    // 获取所有Tensor的最大值
+    for (NvS32 g = 0; g < G; g++)
+    {
+        NvS32 gOffset = g * K * C * RS;
+        for (NvS32 k = 0; k < K; k++)
+        {
+            for (NvS32 c = 0; c < C; c++)
+            {
+                for (NvS32 rs = 0; rs < RS; rs++)
+                    // max = std::max(max, std::abs(origWts[gOffset + k * kStride + c * cStride + rs] * inScale));
+                    max = std::max<NvF32>(max, std::fabs(origWts[gOffset + k * kStride + c * cStride + rs]));
+            }
+        }
+    }
+
+    NvF32 scale = max / 127, invScale = 1 / scale;
+    // 开始量化
+    for (NvS32 g = 0; g < G; g++)
+    {
+        NvS32 gOffset = g * K * C * RS;
+        for (NvS32 k = 0; k < K; k++)
+        {
+            for (NvS32 c = 0; c < C; c++)
+            {
+                for (NvS32 rs = 0; rs < RS; rs++)
+                {
+                    NvS32 index = gOffset + k * kStride + c * cStride + rs;
+                    // quantizedWts[index] = int8_t(std::floor(origWts[index] * inScale * invScale + 0.5f));
+
+                    // quantizedWts[index] = static_cast<NvS8>(std::floor(origWts[index] * invScale + 0.5f));
+                    NvS32 int32Weight = static_cast<NvS32>(std::floor(origWts[index] * invScale + 0.5f));
+                    quantizedWts[index] = static_cast<NvS8>(std::max(std::min(int32Weight, static_cast<NvS32>(std::numeric_limits<NvS8>::max())),
+                                                            static_cast<NvS32>(std::numeric_limits<NvS8>::lowest())));
+                }
+            }
+            filterScales.push_back(scale);
+        }
+    }
+    return filterScales;
+}
+```
+
+$$
+Scale = \frac{max}{127} \\
+invScale = \frac{1}{Scale} = \frac{127}{max} \\
+Tensor_{int32} = floor(Tensor_{float32} * invScale + 0.5) = floor(\frac{Tensor_{float32}}{max} * 127 + 0.5) \\
+Tensor_{int8} = max(min(Tensor_{int32}, 127), -128) 
+$$
+
+
+
+
+
 ## 待解决的问题
 
-1. 具体的量化公示是啥呢？
-2. 量化前后的数据输出对比。
+1. 量化前后的数据输出对比。
 3. symbol table (符号表)有什么用？
-4. Graph 计分牌机制？
-5. raw weights of bias 到底是权重数据还是bias数据
+3. Graph 计分牌机制？
+4. raw weights of bias 到底是权重数据还是bias数据
 

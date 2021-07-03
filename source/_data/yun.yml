@@ -1,6 +1,14 @@
 avatar:
   url: /images/avatar_1.jpg
 
+colors:
+  primary: "#98D1D1"
+  # bg: "#F5F5F5"
+  selection_bg: "#98D1D1" # 选取文字时的背景色
+  # 标签云中标签的起始色和结束色
+  # tag_start_color:
+  # tag_end_color:
+
 codeblock:
   copy_btn: true
   prismjs:
@@ -14,6 +22,7 @@ bg_image:
   enable: true
   # url: http://leiblog.wang/static/image/2021/5/paper.jpg
   # url: https://leiblog.wang/static/image/2021/6/APKNIGHTS.jpg
+  url: https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/banner.jpg
   dark: http://leiblog.wang/static/image/2021/5/UbnY5C.jpg
   # blur: 30px # 设置背景模糊程度
   # opacity: 0.8
@@ -22,11 +31,7 @@ bg_image:
 banner:
   enable: true
   border: false
-  title: 
-    - The
-    - Blog
-    - of
-    - Lei Wang
+  title: " "
   cloud:
     enable: true
     color: "white"
