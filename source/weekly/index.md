@@ -5,8 +5,35 @@ date: 2021-02-06 13:56:27
 
 ## 20210704
 
-1. 本周读了一篇论文《MAESTRO: An Open-source Infrastructure for the Cost-Benefit Analysis of Dataflows within Deep Learning Accelerators》，算是一篇综述，利用 MAESTRO...
-2. 主要是将分析 NVDLA Compiler 工作机制进行了延续，具体的分析出来的工作机制我也都记录下来了放在了我的
+1. 本周读了一篇论文《MAESTRO: An Open-source Infrastructure for the Cost-Benefit Analysis of Dataflows within Deep Learning Accelerators》，算是一篇综述，利用 MAESTRO 来评估像是 Eyeriss、NVDLA 这些硬件结构的调度性能，这篇论文的收获是知道了一些经典的AI加速器论文，例如 Eyeriss、FlexFlow等，制定了接下来暂时要阅读的论文列表：
+
+   <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210704195406392.png" alt="image-20210704195406392" style="zoom:50%;" />
+
+   很巧的是卢美璇师姐本周看了一篇 Time Loop 的论文，其工作看起来是 MAESTRO 的延续，仔细分析了一波这部分的工作都被英伟达的一个团队所垄断了，~~难怪每次都要评估NVDLA~~。
+
+2. 将分析 NVDLA Compiler 工作机制进行了延续，总之结论就是想跑 Yolo 非常困难。首先，NVDLA的编译器接受的是 Caffe 的模型，里面有一些运算也是不能用加速器来做，比如最后的 Softmax，就是用 CPU 来算的，但是他的前端只有一个 Caffe 的 Parser ，这导致只能跑一些很简单的分类网络，对于目标识别网络，例如 Yolo、虽然也可以转成Caffe的模型，但是里面常见的 LeakyRelu、NMS 这些算子 Compiler 这边是不支持的。
+
+   但是根据我的调研，对这些算子做支持的工作也有人已经做过了，是由台湾的一个团队研发的 ONNC、有看到别的台湾人用 ONNC 在 ZCU 102 这些板卡上跑 YOLO、我也和他们发邮件聊了一下，ONNC 也分开源和商业授权两个版本，开源的直支持 nv_full、并且不能量化、支持的算子也有限，商业授权版本的 ONNC 就可以支持 YOLO 这些目标检测网络的算子、支持量化等、可以实现一个端到端的调度，支持的算子也是开源版本的两倍。**但是这个台湾人说且商业授权大概要 800~1000萬 (人民幣約 200~250萬)一年。**
+
+   另一个，就是官方提供的 YOLO V3 的 Demo 我也调研了一下，他原本是在 firesim （aws fpga）平台上运行的，用的是 NVDLA Large 挂在 RocketChip 上，因为 AWS 服务器注册需要信用卡，服务器使用起来也貌似有点贵，我在本机搭建了一下环境。这部分是官方把 Darknet 的代码进行了更改，让 NVDLA 支持的操作调用 Runtime 去执行：
+
+   <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210704203114826.png" alt="image-20210704203114826"  /> 
+
+   专门拆出了三个 Loadable，应该是 Yolo 里能用 NVDLA 进行处理的三大块，以不能用 NVDLA 进行处理的几个算子做的切片，这个 Loadable 的生成不是用编译器生成的，根据官方的 issue 里的描述，是使用的内部工具。
+
+   这样在 NVDLA Large 下，跑个 Yolo V3 应该问题不大了，跑其他的网络/NVDLA 配置就要研读这部分代码，反向研究一下这个 Loadable 该怎么自己生成。
+
+   于是，根据这两周的调研，想要推理 YOLO 网络，就需要把 Leaky RELU 等不支持的算子使用 CPU 去调度，我能想到的有四条路线：
+
+   1. 直接操作寄存器读写，这个需要对 NVDLA 的寄存器很熟悉，然后需要手动把网络的每一层数据都量化、提取成单独的二进制文件。该方案的问题是灵活度太低，针对不同的网络的工作量太大（手上有一份 ZCU 102 Rev 1.0 板卡、nvdla_small 的 demo、可以运行的版本似乎只有可执行文件、但是提供了量化好的 Yolov1 tiny 的权重二进制文件）。
+   2. 基于 NVDLA Compiler/Runtime 更改，为 Compiler 加上不支持的算子的代码，Runtime也要做一定的更改，但是没有看到基于这套方案的工作，首先 Compiler 需要大改，因为只有 Caffe 的 Parser 限制了很多网络的类型，其次这个代码用 Makefile 组织，这个组织结构错综复杂，改起来太麻烦了。
+   3. 基于 ONNC 更改，首先商业授权版本的可以跑 Yolo 等，可以以开源版本作为切入点，首先其前端是 ONNX 的 Parser、模型天生支持的算子就比 Caffe 要多很多，其次是以 CMake 组织现代化一点，然后还做了 Python 的接口，代码相对 NVDLA 的软件栈要规范很多，学习的收获应该会大一点。但是对于 ONNC，还没有 Debug 调试，理解其运行的机制，这些特性是否是优秀的还是 YY 阶段。其次，这部分工作只是 Compiler、在板卡上的运行时还需要对应的修改，工作量也是很大的。
+   4. 基于 darknet-nvdla 的修改，这部分工作，我觉得能够搞明白还是比较有意思的，他对 darknet 的源代码修改量不大，官方提供的 demo 是在 firesim 上跑的 riscv + large，这个配置使用 chipyard应该是可以在 VCU 118 上复现的（刚好 352 有一块），运气好的话，这个 demo 能跑起来。 问题是如果要自定义一些东西，比如想跑别的 Yolo 模型，或者不使用 Large、用 Full 的配置，可以预见的困难就有，怎么模型拆分，编译成对应的 Loadable 文件，这其中还涉及到一个 YOLO 网络的 INT8 量化的问题，难度看起来也很大。
+
+   **下周的工作：**
+
+   1. 读一篇 Eyeriss v1 的论文
+   2. 读一下 ONNC 的开源版本的代码
 
 ## 20210627
 
