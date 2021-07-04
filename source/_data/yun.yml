@@ -1,4 +1,6 @@
 
+mode: light
+
 avatar:
   url: /images/avatar_1.jpg
 
@@ -22,8 +24,7 @@ wordcloud:
 bg_image:
   enable: true
   # url: http://leiblog.wang/static/image/2021/5/paper.jpg
-  # url: https://leiblog.wang/static/image/2021/6/APKNIGHTS.jpg
-  url: https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/banner.jpg
+  url: https://leiblog.wang/static/image/2021/7/banner.png
   dark: http://leiblog.wang/static/image/2021/5/UbnY5C.jpg
   # blur: 30px # 设置背景模糊程度
   # opacity: 0.8
@@ -33,7 +34,7 @@ banner:
   enable: true
   border: false
   # src: /js/banner_1.js
-  title: "磊的笔记本"
+  title: "没人看的记事本"
   cloud:
     enable: true
     color: "white"
