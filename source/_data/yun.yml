@@ -2,15 +2,29 @@
 mode: light
 
 avatar:
-  url: /images/avatar_1.jpg
+  url: /images/avatar_2.jpg
 
 colors:
-  primary: "#98D1D1"
+  primary: "#5eb7b7"
   # bg: "#F5F5F5"
-  selection_bg: "#98D1D1" # 选取文字时的背景色
+  selection_bg: "#96d1c7" # 选取文字时的背景色
   # 标签云中标签的起始色和结束色
   # tag_start_color:
   # tag_end_color:
+
+
+font:
+  cdn:
+    enable: false
+  serif:
+    family: "'Noto Serif SC', 'Songti SC', STZhonngSong, STKaiti, KaiTi, Roboto, serif"
+    weight: 900
+  sans_serif:
+    family: "Lato, 'PingFang SC', 'Microsoft YaHei', Roboto, Arial, sans-serif"
+    weight: 300
+  monospace:
+    family: "'Courier New', Courier, Consolas, Monaco, monospace"
+
 
 codeblock:
   copy_btn: true
@@ -25,6 +39,7 @@ bg_image:
   enable: true
   # url: http://leiblog.wang/static/image/2021/5/paper.jpg
   url: https://leiblog.wang/static/image/2021/7/banner.png
+  # dark: https://leiblog.wang/static/image/2021/7/banner.png
   dark: http://leiblog.wang/static/image/2021/5/UbnY5C.jpg
   # blur: 30px # 设置背景模糊程度
   # opacity: 0.8
@@ -33,8 +48,7 @@ bg_image:
 banner:
   enable: true
   border: false
-  # src: /js/banner_1.js
-  title: "没人看的记事本"
+  title: "引领全球"
   cloud:
     enable: true
     color: "white"
@@ -51,7 +65,7 @@ valine:
   enable: true
   appId: vTjojtAolevJ2QEt3Ig8gEKD-MdYXbMMI 
   appKey: Ylh2i3sM1fEJrejGuujx52Ja
-  placeholder: "不要发布不友善、负能量或引战的内容!"
+  placeholder: "可以前往 About 页面即使取得联系喔!"
   avatar: retro
   meta:
     - nick
@@ -99,23 +113,6 @@ social:
     link: https://t.me/chprinceling
     icon: icon-telegram-line
     color: "#0088CC"
-
-font:
-  cdn:
-    enable: true
-    lib:
-      - https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&display=swap
-  # serif:
-    # family: "Ovo, Georgia, STZhongsong, 'Microsoft YaHei'"
-    # weight: 900
-  sans_serif:
-    family: "Ovo, Georgia, STZhongsong, 'Microsoft YaHei'"
-    weight: 400
-  monospace:
-    family: "'Source Code Pro', 'Courier New', Courier, Consolas, Monaco, monospace"
-
-engine_search:
-  enable: false
 
 local_search:
   enable: true
