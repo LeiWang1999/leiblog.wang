@@ -1,4 +1,0 @@
-[submodule "themes/yun"]
-	path = themes/yun
-	url = https://github.com/LeiWang1999/hexo-theme-yun
-	branch = custom
