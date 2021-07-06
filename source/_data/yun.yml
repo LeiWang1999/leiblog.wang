@@ -65,7 +65,7 @@ valine:
   enable: true
   appId: vTjojtAolevJ2QEt3Ig8gEKD-MdYXbMMI 
   appKey: Ylh2i3sM1fEJrejGuujx52Ja
-  placeholder: "可以前往 About 页面即使取得联系喔!"
+  placeholder: "说点什么吧!"
   avatar: retro
   meta:
     - nick
@@ -88,10 +88,6 @@ katex:
   global: false
 
 social:
-  - name: RSS
-    link: /atom.xml # config.feed.path
-    icon: icon-rss-line
-    color: orange
   - name: QQ
     # https://isux.tencent.com/wp-content/uploads/2016/05/20160512101222609.pdf
     link: https://wpa.qq.com/msgrd?v=3&uin=2230647190&site=qq&menu=yes
@@ -113,6 +109,18 @@ social:
     link: https://t.me/chprinceling
     icon: icon-telegram-line
     color: "#0088CC"
+
+# Extra links
+pages:
+  - name: 本站RSS
+    url: /atom.xml # config.feed.path
+    icon: icon-rss-line
+    color: orange
+  - name: 我的小伙伴们
+    url: /links/
+    icon: icon-open-arm-line
+    color: red
+
 
 local_search:
   enable: true
@@ -153,3 +161,13 @@ footer:
   beian:
     enable: true
     icp: 苏ICP备20006513号-1
+
+# custom your assets in head
+head:
+  css:
+    exapmle: /css/custom.css
+  js:
+    base:
+    async:
+      iconfont: //at.alicdn.com/t/font_1763255_y9klqsvfr3b.js
+    defer:
