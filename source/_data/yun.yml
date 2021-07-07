@@ -48,7 +48,8 @@ bg_image:
 banner:
   enable: true
   border: false
-  title: "引领全球"
+  title: 
+    - "Hi, Mashiro!"
   cloud:
     enable: true
     color: "white"
