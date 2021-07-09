@@ -85,6 +85,8 @@ GLB：
 
 > a GLB is paired with each PG and records weights and input/output activation values from the off-chip memory or prefetch buffer
 
+GLB 应该是指 Global Buffer，每个 PE 阵列都会有的一个片上 SRAM 缓存，这部分设计可以参考 Eyeriss v1。
+
 Crossbar：https://www.zhihu.com/question/31049944/answer/55536358
 
 ![image-20210622110556936](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210622110556936.png)
