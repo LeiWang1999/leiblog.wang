@@ -77,13 +77,13 @@ root@1d0954a2d18b:/usr/local/nvdla/nvdla_hw# ./tools/bin/tmake -build vmod
 [TMAKE]: nv_small: PASS
 ```
 
-输出的RTL文件会在 `out\nv_small\vmod`里，但是如果直接在Vivado里引入vmod文件夹会导致LUT资源占用提高十倍左右，因为其内部的RAM是行为级描述，我们需要替换成BRAM。
+输出的RTL文件会在 `out\nv_small\vmod`里，但是如果直接在Vivado里引入vmod文件夹会导致LUT资源占用提高十倍左右，因为其内部的RAM在FPGA上会被映射到 LUT 去实现，所以我们需要替换成BRAM。
 
 一个思路是把BRAM都替换成Vivado内部的Bram Controller，但是RAM文件的数量实在太多了。替换成BRAM其实有个简单的方式，就是使用`rams\fpga`这个文件夹里面的文件，为了图方便，我们将`rams\synth`删除，之后再把vmod文件夹全部添加到Vivado工程内部即可。
 
 ### 1.2 IP Package
 
-在 Vivado 内部把删除过行为级描述的`rams\synth`文件夹之后的的vmod文件夹添加进来，`NV_nvdla.v`是NVDLA的Top文件，但是在项目里我们不着急把它设置为TOP，为了上板还要再做一层包装。
+在 Vivado 内部把删除过`rams\synth`文件夹之后的的vmod文件夹添加进来，`NV_nvdla.v`是NVDLA的Top文件，但是在项目里我们不着急把它设置为TOP，为了上板还要再做一层包装。
 
 #### 1.2.1 csb2apb
 

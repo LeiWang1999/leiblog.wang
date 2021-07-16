@@ -3118,7 +3118,7 @@ inline bool debugRelocs() const { return false; }
 
 之后，通过 Network，生成一个标准的抽象语法树，再转换成与硬件相关的 engine_ast，engine_ast 就是编译器最核心的 IR，接下来的各种优化都是对该 IR 做变换。
 
-<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/nvdla_ast.jpg" alt="cangraph2enggraph" style="zoom: 33%;" />
+<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/nvdla_ast.jpg" alt="cangraph2enggraph" />
 
 在这里可以看到 engine_ast 已经包含了硬件信息，在左边的抽象语法树里，只有算子的信息，右边会把算子对应的映射到硬件上去，映射关系在 log 里也可以找到：
 
