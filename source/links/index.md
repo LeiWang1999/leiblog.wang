@@ -61,6 +61,14 @@ links:
     desc: 群希望
     color: "#0011e7" # 代表色
     email: # 非必须
+  - url: https://yanqiyu.info
+    avatar: https://cdn.jsdelivr.net/gh/karuboniru/blog_ci@master/source/img/avatar.webp
+    name: Karuboniru
+    blog: Karuboniru's Blog
+    desc: 就是个学物理的，懂个屁的计算机
+    color: "#001aa7" # 代表色
+    email: # 非必须
+  
 placeholder: 还没想好说些什么 # 默认对友链的描述
 tip: 友链加载中～如失败请刷新重试～
 ---
