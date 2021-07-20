@@ -446,7 +446,7 @@ INFO: opendla has been enabled
 ->
     dma = dma_declare_coherent_memory(drm->dev, 0x30000000, 0x30000000,
                                       0x10000000, DMA_MEMORY_EXCLUSIVE);
-	if (!dma) {
+	if (dma) {
 		err = -ENOMEM;
 		goto unref;
 	}
@@ -523,6 +523,29 @@ INFO: opendla has been enabled
   	{ },
   };
   ```
+
+如果用的是 ZYNQ MPSoc，那么设备树的内容如下：
+
+```bash
+/include/ "system-conf.dtsi"
+/ {
+    reserved-memory {
+	    #address-cells = <2>;
+	    #size-cells = <2>;
+	    ranges;
+
+	    nvdla_reserved: buffer@0 {
+		      no-map;
+		      reg = <0x0 0x40000000 0x0 0x40000000>;
+	    };
+    };
+};
+
+&NV_nvdla_wrapper_0{
+    compatible = "nvidia,nv_small";
+    memory-region = <&nvdla_reserved>;
+};
+```
 
 之后，重新build：
 
