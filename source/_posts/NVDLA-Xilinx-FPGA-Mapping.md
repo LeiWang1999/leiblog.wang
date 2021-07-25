@@ -309,11 +309,11 @@ NVDLA是面向ASIC设计，内部的RAM默认有`clock gating`用来降低功耗
 1. 以太网，用来远程开发调试。
 2. SD卡，用来存放BOOT、文件系统
 3. UART，用来实现串口终端
-4. FCLK_CLK0，我给了默认的100Mhz，用来给csb时钟，控制总线占用的时间不长不需要太快的速度。根据前人所述，core时钟在ASIC仿真下可以运行到1Ghz，但在FPGA设计里，我只给了100Mhz作为输入（能给200Mhz就不错了，笔者之前尝试过给500Mhz，会在寄存器读写的时候卡住）。
+4. FCLK_CLK0，我给了默认的100Mhz，用来给csb时钟，控制总线占用的时间不长不需要太快的速度。根据前人所述，core时钟在ASIC仿真下可以运行到1Ghz，但在FPGA设计里，我只给了100Mhz作为输入（能给200Mhz就不错了，笔者之前尝试过给500Mhz，会在寄存器读写的时候卡住，具体的最大频率的得出详见毕业论文）。
 
 最后给大家看一下我的 Address Editor：
 
-![Address](http://leiblog.wang/static/image/2021/4/fIXSzZ.jpg)
+![ZYNQ 7000 Address](http://leiblog.wang/static/image/2021/4/fIXSzZ.jpg)
 
 这样，我们在SDK里通过内存读写就能通过内存映射操作NVDLA的寄存器，例如读取NVDLA位于0x0000的寄存器值，我们只需要读入0x40000000上的数据即可，关于寄存器的地址与功能，详见官方提供的KMD代码中的opendla.h文件。
 

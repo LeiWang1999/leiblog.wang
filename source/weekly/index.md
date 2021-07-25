@@ -3,6 +3,22 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20210718
+
+1. 本周阅读调试了 ONNC 的开源版本的代码，尝试添加算子，ONNC 的代码写的很规范，添加算子比NVDLA的那套流程要简单明了。而问题是， ONNC 只支持 full 版本，意味着不可以上FPGA开发板调试。但是如果是添加 Sigmoid 这类算子的话，不需要改动 Runtime 的代码，这样就可以在原本的 vp 环境中验证，但是要加一些他不支持的算子，需要在 Runtime 的代码里添加 emulator 的 op 实现（cpu 运行的算子都会放到用emulator 去执行），意味着需要改动 Runtime 的代码，而且不好调试，难度大。而且即使添加完了算子，需要解决问的问题还有，高版本的 yolo 似乎也没有 onnx 的版本，量化问题等。
+
+2. 而为了解决这个问题，我找到了新的方向，可能是因为老师转发了 NVDLA 的那边公众号文章，一位业界大佬（Tengine 推理框架的负责人）看到了我的毕业设计：
+
+   <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210719124508514.png" alt="image-20210719124508514" style="zoom: 67%;" />
+
+   具体来说，我们需要把 NVDLA 支持的算子交给 NVDLA 实现，其他算子交给 CPU 实现，这个过程叫做**计算图切图**，Tengine 本身有一个 NPU 的后端，支持的是 TIM-VX，这样的机制已经做得比较完善了，而且前端支持绝大部分的框架、也完成了量化等（因为 TIM-VX 只支持 unit8），他们有意向找一个开源的FPGA加速器的后端，于是联系了我，我觉得这个如果能学会了对很多加速器设计都是刚需。
+
+   有关Tengine的 NPU 后端讲解：https://live.csdn.net/room/weixin_43476455/lt1qpikr
+
+   ![image-20210719124629891](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210719124629891.png)
+
+   下周任务：在 ZCU 102 上完成 NVDLA 的移植，学习 Tengine。
+
 ## 20210704
 
 1. 本周读了一篇论文《MAESTRO: An Open-source Infrastructure for the Cost-Benefit Analysis of Dataflows within Deep Learning Accelerators》，算是一篇综述，利用 MAESTRO 来评估像是 Eyeriss、NVDLA 这些硬件结构的调度性能，这篇论文的收获是知道了一些经典的AI加速器论文，例如 Eyeriss、FlexFlow等，制定了接下来暂时要阅读的论文列表：
