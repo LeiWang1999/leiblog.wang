@@ -8,7 +8,7 @@ tags:
 date: 2021-07-24 20:56:45
 ---
 
-<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/pigduck.jpg" alt="banner"  />
+![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/20210725151558.png)
 
 为接下来要尝试基于 Tengine 完成 CPU Fallback 的工作，在组里的 ZCU 102 开发板上进行了 NVDLA 的移植。本来以为这个过程会很顺利，没想到还是因为各种问题还是花费了一个星期的时间。
 
