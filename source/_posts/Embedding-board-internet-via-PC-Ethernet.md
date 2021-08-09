@@ -71,6 +71,20 @@ sudo route add default gw 192.168.137.1 netmask 0.0.0.0
 
 然后，查看一下路由表，大功告成。
 
+如果还是ping不通百度，可以看看目标设备的的域名解析服务器有没有设置:
+
+```bash
+cat /etc/resolv.conf
+```
+
+如果没有设置，可以添加：
+
+```bash
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+```
+
+大功告成
+
 ### Ubuntu 版
 
 命令行里输入
@@ -86,3 +100,11 @@ nm-connection-editor
 在 Method 里选择与其他计算机共享，最后在地址栏里增加静态 ip，完成。
 
 这里需要注意，如果有能连接上板卡，但是板卡还是没有办法上网的时候，要看看是不是连错以太网口了，像我这个 Ubuntu 就有两张以太网卡。
+
+### MacOS 版
+
+MacOS就更加简单了，不过共享的宿主机的网段似乎是不可以指定的，打开设置｜共享｜互联网共享
+
+![image-20210809164402137](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210809164402137.png)
+
+如果链接了设备，就可以分配的网段了，默认应该是192.168.2.xx .
