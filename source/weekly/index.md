@@ -3,6 +3,45 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20210808
+
+1. 本周继续为Tengine添加了NVDLA的Relu、CONV、ElementWise、FullyConntect等四个算子的实现。
+
+2. 加上上周写的pooling的算子一共五个算子已经具备了运行resnet18-cifar10的条件，在板卡上成功进行了推理，一张图耗时只有10ms，比我毕业设计的时候快三倍，应该是Tengine对计算图做了很多优化，比如把Batchnormalization层和conv融合了。
+
+3. 为了首先conv、跑模型，需要解决一个量化的问题。量化采用的是Tengine的工具，得到INT8的模型，但是NVDLA原来的软件栈是不支持的，原因在于他接受的caffe模型的权重和bias都只能是float类型的数据，在内部使用的是最简单的minmax量化方法，而需要使用TensorRT进行量化的方案得到的calibtable，作用是在每一层之后对输出的数据进行量化，而他的内部没有考虑到直接穿入int8的权重和定点的bias的情况（虽然写了部分代码，但是根本不能work，可能是在实际测试中没有测试例子）。
+
+   为了解决这个问题，我将经过Tengine量化之后的int8的权重和int32的bias，反量化到fp32，然后使用它的minmax来量化，暂时让他work，实际测试中结果的分布与直接用cpu跑int8的模型也差不多。
+
+4. 但是其实刚开始测的时候发现精度失真蛮严重的，但是经过我的调试发现应该是pooling算子的dla实现有点问题，我把pooling切到cpu上跑精度就正常了，测试发现是因为DLA的AVG Pooling失真有点严重，当通道数增加之后，从第四个通道开始就出问题了。
+
+下周计划：
+
+1. 试试跑yolo，Tengine那边想直接跑yolox，但是其中的激活函数都是hardswish，他们请旷视的工程师下周帮忙训练一个都换成relu的，虽然精度会降低但对加速器友好，希望能顺利。
+
+## 20210801
+
+本周学习了解了Tengine，并且开始进行了为其添加 NVDLA 后端的工作。我在 https://github.com/LeiWang1999/Tengine 进行工作，到今晚已经完成的工作有：
+
+1. 使用 Tengine 实现了计算图自动切图，将 NVDLA 支持的算子定义，然后 Tengine 会自动把计算图切分成几个子图 (subgraph)，我们只需要关心这个子图怎么用 NVDLA 去跑就行了，其他的子图会自动用别的设备（比如说CPU去运行）。
+
+2. 将 Tengine IR Graph 转换到了 NVDLA 用的 EngineAST 。原本 NVDLA 的软件栈由编译器进行模型到中间表示的转化，之后进行优化，接着序列化成 Loadable 文件，Runtime 进行反序列化，调度硬件资源，中间由一个 Loadable 文件作为媒介，我的做法是将中间的序列化和反序列化的过程抹去，将 Compiler 和 Runtime 的程序都整合到Tengine里，这样可以使用 NVDLA 原有的中间表示。
+
+3. 首先，我从一个最简单的 Max Pooling 算子开始实现，已经完成了整个工作流程，将 Tengine 的 IR 转化成 NVDLA 的 EngineAST（中间有许多Mapping的过程，包括Tensor的Mapping、IR的转化），最后将EngineGraph emit 成 Runtime 所需要的数据，使用 Runtime 分配内存和推理。整个过程略微复杂，在作业的过程中我分别调试Tengine和NVDLA原有软件栈的程序，对比运行中的数据才使得错误较少。
+
+4. Pooling OP的Test，我测了几组数据都是对的。其中 NVDLA 的数据摆放问题也比较关键，将输入数据给NVDLA的时候，要按照他的要求摆放，取出数据也要进行还原，研究了一天左右，最终还是work了。
+
+   > 我也了解到在部署领域这种数据摆放的问题还是很常见的，一般加速器都需要特殊的数据格式，但比如芯原底层，有个 tensor process 单元，非常快的做这个事，NVDLA则需要手动来移内存，这个公式想了我半天。。。
+
+接下来的任务：
+
+1. 支持更多的算子，pooling既然已经work了，接下来开始添加卷积和Relu这两个算子，然后就可以跑简单的网络了，说起来NVDLA支持的算子其实也有十个左右，，是个体力活。
+2. 这个过程还是比较复杂的，但我觉得是十分有意义的工作。文字描述有限，等下次组会的时候给大家分享一下。
+
+## 20210725
+
+完成了 NVDLA 在 ZCU 102 开发板的移植工作，关于这部分技术细节新写了文章：https://zhuanlan.zhihu.com/p/392974835
+
 ## 20210718
 
 1. 本周阅读调试了 ONNC 的开源版本的代码，尝试添加算子，ONNC 的代码写的很规范，添加算子比NVDLA的那套流程要简单明了。而问题是， ONNC 只支持 full 版本，意味着不可以上FPGA开发板调试。但是如果是添加 Sigmoid 这类算子的话，不需要改动 Runtime 的代码，这样就可以在原本的 vp 环境中验证，但是要加一些他不支持的算子，需要在 Runtime 的代码里添加 emulator 的 op 实现（cpu 运行的算子都会放到用emulator 去执行），意味着需要改动 Runtime 的代码，而且不好调试，难度大。而且即使添加完了算子，需要解决问的问题还有，高版本的 yolo 似乎也没有 onnx 的版本，量化问题等。

@@ -186,7 +186,7 @@ exec /sbin/getty -L 115200 ttyPS0 vt102
 
 ```shell
 exit
-./ch-mount -u ubuntu-rootfs
+./ch-mount.sh -u ubuntu-rootfs/
 tar -zvfp ubuntu-rootfs.tar.gz -C ubuntu-rootfs/ .
 ```
 
