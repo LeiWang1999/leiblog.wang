@@ -16,14 +16,14 @@ links:
     avatar: http://gezhilai.com/images/avatar.jpg#QQ1.jpg
     name: 葛志来
     blog: Apers'Blog
-    desc: 保送复旦研究生的葛同学
+    desc: 复旦巨巨
     color: "#0078e7" # 代表色
     email: # 非必须
   - url: https://rmheng.github.io/
     avatar: https://rmheng.github.io/20190731130715.jpg
     name: rmheng
     blog: rmheng'Blog
-    desc: 信工所的学姐
+    desc: 信工所巨巨学姐
     color: "#9668e7" # 代表色
     email: # 非必须
   - url: http://liangzhenduo0608.github.io/
@@ -37,14 +37,14 @@ links:
     avatar: https://avatars.githubusercontent.com/u/24228428?v=4
     name: Zhou Yuqian
     blog: Fitz'Blog
-    desc: 啊，是保送到东南的周学长
+    desc: 东南巨巨
     color: "#0087e7" # 代表色
     email: # 非必须
   - url: http://www.trumangu.fun/
     avatar: http://www.trumangu.fun/img/avatar.755346f4.jpg
     name: Gu Jiangtao
     blog: trumangu'Blog
-    desc: 已经是字节的社畜了！
+    desc: 已经是字节的巨巨了！
     color: "#003857" # 代表色
     email: # 非必须
   - url: https://atsud0.me/
@@ -58,7 +58,7 @@ links:
     avatar: https://esonhugh.me/assets/img/reol.png
     name: Eson
     blog: Esonhugh's Blog
-    desc: 群希望
+    desc: 群希望Eson
     color: "#0011e7" # 代表色
     email: # 非必须
   - url: https://yanqiyu.info
@@ -68,6 +68,13 @@ links:
     desc: 就是个学物理的，懂个屁的计算机
     color: "#001aa7" # 代表色
     email: # 非必须
+  - url: https://wmc1999.top
+    avatar: https://www.wmc1999.top/images/avatar.jpeg
+    name: naruto21
+    blog: "naruto21's Blog"
+    desc: 软件所巨巨
+    email: wmc314@outlook.com
+    color: "#111aa7"
   
 placeholder: 还没想好说些什么 # 默认对友链的描述
 tip: 友链加载中～如失败请刷新重试～

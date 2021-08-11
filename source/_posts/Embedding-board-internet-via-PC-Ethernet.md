@@ -108,3 +108,4 @@ MacOS就更加简单了，不过共享的宿主机的网段似乎是不可以指
 ![image-20210809164402137](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210809164402137.png)
 
 如果链接了设备，就可以分配的网段了，默认应该是192.168.2.xx .
+
