@@ -3,6 +3,12 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20210817
+
+上周把几个能加的算子都调了调，然后自己量化了一个yolov3-tiny，可以work了。不过标准的v3-tiny是leaky-relu，都切给cpu去跑了，这个时候耗时1秒7，如果换成relu的话，一帧需要600多毫秒。但是yolo-v3-tiny-relu这个版本，我训练的精度不太行，还没法做demo。
+
+现在准备第一阶段进行小结，准备先发布一个能用的版本，在写文档啥的。
+
 ## 20210808
 
 1. 本周继续为Tengine添加了NVDLA的Relu、CONV、ElementWise、FullyConntect等四个算子的实现。
