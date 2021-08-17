@@ -42,7 +42,7 @@ NVDLA 是英伟达于2017年开源出来的深度学习加速器框架，他的�
 
 并且这些处理单元都暴露出了一组可配置寄存器接口。
 
-!["Small" and "Large" NVDLA systems side by side, with SRAMIF disconnected on "small" system, and a microcontroller on "large" system.](http://nvdla.org/_images/nvdla-primer-system-comparison.svg)
+!["Small" and "Large" NVDLA systems side by side, with SRAMIF disconnected on "small" system, and a microcontroller on "large" system.](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/nvdla-primer-system-comparison.svg)
 
 前文中提到他软件设计工具链的缺陷，主要是其Compiler、Runtime的程序写的非常乱，明显是根据公司内部制定的设计文档，很多人一起完成的开发过程，整个架构设计和代码风格真的不咋地，但是其内核驱动代码写的却很棒。
 
@@ -107,7 +107,7 @@ https://zhuanlan.zhihu.com/p/378814739
 
 Tengine（不是阿里云那个Tengine），是由Open AI Lab开源的面向边缘设备推理的Runtime框架。在考虑Tengine之前，我首先考虑的是对接另一个推理框架TVM，但是TVM已经有一个开源的FPGA加速器后端VTA，并且TVM非常庞大。而Tengine的后端对接过程使人感到舒适。
 
-<img src="/Users/wanglei/Tengine/doc/architecture.png" alt="architecture" style="zoom:75%;" />
+<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/architecture.png" alt="architecture" style="zoom:75%;" />
 
 在前端的模型转换部分，可以把各大主流的训练框架训练出来的模型转化到Tengine的tmfile格式，这就包括了在前言里提到的Caffe与ONNX，格局打开，并且在模型转化的时候，Tengine会做一些图优化，如果对接DLA后端在模型转化的时候需要把fuse_conv_relu_common关掉，因为现在还不支持conv和relu合并的op实现，在之后重构IR的时候会支持的。
 
@@ -142,7 +142,7 @@ int graph_opt(graph_t graph)
 
 例如，对于一个典型的Lenet5网络：
 
-![lenet](/Users/wanglei/Downloads/lenet.png)
+![lenet](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/lenet.png)
 
 NVDLA不支持Softmax，那么Tengine在知道要使用NVDLA来做推理的情况下就会自动将原来的计算图切分为两个子图，第一个子图不包括Softmax，那么在DLA看来就是一个最后一层是FullyConnect的网络，第二个子图只有Softmax这一个节点，交给CPU运行。
 
@@ -184,7 +184,7 @@ include和lib文件夹都可以Follow写在官方仓库里的教程，这里贴�
 
 在对接之前，先讲解一下原来的NVDLA的软件栈是如何工作的，主要分为三个部分：
 
-![DL training software produces a model, which the compilation tool takes and turns into a loadable, which is used by runtime environment. In runtime, UMD submits with ioctl()s to KMD, which is sent to NVDLA with register writes.](http://nvdla.org/_images/nvdla-primer-sw-flow.svg)
+![DL training software produces a model, which the compilation tool takes and turns into a loadable, which is used by runtime environment. In runtime, UMD submits with ioctl()s to KMD, which is sent to NVDLA with register writes.](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/nvdla-primer-sw-flow.svg)
 
 #### 2.1.1 Compiler
 
@@ -192,7 +192,7 @@ include和lib文件夹都可以Follow写在官方仓库里的教程，这里贴�
 
 例如，下图是我绘制的Lenet5的两个AST的结构，Canonical是通用的，所以该语法书就是一个很简单通用的结构，而EngineAST则每一个Node都被映射到硬件的单元，例如原来CanonicalAST里的`Convolution Node`会被应设为`ConvlutionOPNode`和`SDPBiasOPNode`两个节点，bias、weight和input也被从Node里抽离出来，然后，编译器会有很多PASS来针对EngineAST来工作，比如量化、比如简单的merge；等到所有的Pass都走完，最后得到的IR会被emit成为需要给Runtime的数据，以Flatbuffer序列化协议来组织，最后生成一个Loadable文件，交给Runtime做推理。
 
-<img src="/Users/wanglei/Desktop/nvdla_ast.jpg" alt="nvdla_ast" style="zoom: 25%;" align="center"/>
+<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/nvdla_ast.jpg" alt="nvdla_ast" style="zoom: 25%;" align="center"/>
 
 那么，如何对接呢？首先，因为笔者马上研究生就要开学了，所以想先做出一版可以使用的，于是我决定在第一版使用官方的程序，于是在下文中进行编译的时候是把官方的core代码做成了lib进行链接，调用里面的 Function；另一方面，我想学习一下他的IR是怎么设计的，于是不从Network这么高的层次下手（当然这也导致无法很方便的做到OP的拼接，但也无所谓，反正要重构的）；然后就是决定接入CanonicalAST还是EngineAST了，因为是调用的官方提供的函数来构建Graph，所以EngineAST的创建过于依赖CanonicalGraph，于是笔者选择把Tengine提供给后端的ir_graph接入CanonicalAST，然后转成EngineAST，然后所有的Pass照走。
 
@@ -446,7 +446,11 @@ set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
 
 ### 2.2 量化与反量化 
 
-经过Tengine量化的模型，我们可以直接从中拿到int8的weight以及int32的bias数据。
+原来，NVDLA的编译器完成量化首先需要借助TensorRT完成校准生成CalibTable，然后NVDLA的校准转换工具还有BUG（我给修了。CalibTable里是网络的每一个Layer对应的OutputScale、而其权重是通过编译器统计minmax完成的量化。
+
+Tengine的量化工具原理与TensorRT一致，并且更好用。经过Tengine量化的模型可以直接从模型中拿到int8的weight以及int32的bias数据以及量化的时候得到的量化参数，然而NVDLA原来的编译器虽然写了部分INT8的支持代码，但估计是因为他前端只能吃Caffe的模型没办法验证直接拿INT8的代码塞到AST上能不能work，所以我试了半天有一堆BUG；更奇葩的是，他支持FP32、FP16、INT16、INT8，但是唯独没有INT32这个类型。
+
+由于之后考虑到
 
 ### 2.3 Average Pooling 的量化透传问题
 
