@@ -52,7 +52,7 @@ NVDLA 是英伟达于2017年开源出来的深度学习加速器框架，他的�
 
 NVDLA自上而下十分规范，其硬件设计是一个较为完整的体系结构。有寄存器接口，有PE阵列、有多级缓存设计，软件设计包括驱动程序，主机上的 Compiler、设备上的驱动程序与 Runtime等等。在一些学术论文里往往是关键的部分，比如作者的设计里 Runtime 做了哪些事，PE阵列是如何优化，缓存如何设计，但他们的设计细节又大多不会公开，基本无法通过看论文的方式复现。一个刚开始科研的小白看到了一篇论文，认为其有更好的设计方案，但是他拿什么去验证呢？NVDLA就可以作为一个典型的参考设计。NVDLA里，上述的这些单元都是实实在在的代码，研究价值还是极高的，在这里需要感谢英伟达的开源工作。
 
-NVDLA 的硬件是可以配置的，比较典型的有Full、large、media、small这几个版本，修改[spec](https://github.com/nvdla/hw/blob/master/spec/defs/nv_small.spec)即可。本文使用的是其最小的small配置完成设计，一些算子其实是无法实现的，读者可以自行调整设计。
+NVDLA 的硬件是可以配置的，比较典型的有full、large、media、small这几个版本，修改[spec](https://github.com/nvdla/hw/blob/master/spec/defs/nv_small.spec)即可。本文使用的是其最小的small配置完成设计，一些算子其实是无法实现的，读者可以自行调整设计。
 
 例如，在small的spec文件里：
 
@@ -192,15 +192,15 @@ include和lib文件夹都可以Follow写在官方仓库里的教程，这里贴�
 
 例如，下图是我绘制的Lenet5的两个AST的结构，Canonical是通用的，所以该语法书就是一个很简单通用的结构，而EngineAST则每一个Node都被映射到硬件的单元，例如原来CanonicalAST里的`Convolution Node`会被应设为`ConvlutionOPNode`和`SDPBiasOPNode`两个节点，bias、weight和input也被从Node里抽离出来，然后，编译器会有很多PASS来针对EngineAST来工作，比如量化、比如简单的merge；等到所有的Pass都走完，最后得到的IR会被emit成为需要给Runtime的数据，以Flatbuffer序列化协议来组织，最后生成一个Loadable文件，交给Runtime做推理。
 
-<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/nvdla_ast.jpg" alt="nvdla_ast" style="zoom: 25%;" align="center"/>
 
-那么，如何对接呢？首先，因为笔者马上研究生就要开学了，所以想先做出一版可以使用的，于是我决定在第一版使用官方的程序，于是在下文中进行编译的时候是把官方的core代码做成了lib进行链接，调用里面的 Function；另一方面，我想学习一下他的IR是怎么设计的，于是不从Network这么高的层次下手（当然这也导致无法很方便的做到OP的拼接，但也无所谓，反正要重构的）；然后就是决定接入CanonicalAST还是EngineAST了，因为是调用的官方提供的函数来构建Graph，所以EngineAST的创建过于依赖CanonicalGraph，于是笔者选择把Tengine提供给后端的ir_graph接入CanonicalAST，然后转成EngineAST，然后所有的Pass照走。
+
+<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/nvdla_ast.png" alt="nvdla_ast"  align="center" />
+
+那么，如何对接呢？我决定在第一版使用官方的程序，于是在下文中进行编译的时候是把官方的core代码做成了lib进行链接，调用里面的 Function；另一方面，我想学习一下他的IR是怎么设计的，于是不从Network这么高的层次下手（当然这也导致无法很方便的做到OP的拼接，但也无所谓，反正要重构的）；然后就是决定接入CanonicalAST还是EngineAST了，因为是调用的官方提供的函数来构建Graph，所以EngineAST的创建过于依赖CanonicalGraph，于是笔者选择把Tengine提供给后端的ir_graph接入CanonicalAST，然后转成EngineAST，然后所有的Pass照走。
 
 #### 2.1.2 Runtime
 
-Runtime 的代码量不大，首先是需要将Compiler生成的Loadable进行反序列化，然后为输入输出tensor开辟内存，将输入的Tensor填充数据，递交任务给nvdla，拿到数据。
-
-因为笔者即将开学，所以第一版为了偷懒决定将Compiler和Runtime这两部分代码做成链接库直接调用其提供的函数完成作业，并且我简化了一些流程：
+Runtime 的代码量不大，首先是需要将Compiler生成的Loadable进行反序列化，然后为输入输出tensor开辟内存，将输入的Tensor填充数据，递交任务给nvdla，拿到数据。我简化了一些流程：
 
 1. Compiler和Runtime对接的时候原先需要由Compiler离线序列化生成Loadable文件，再由Runtime反序列化，我将这个步骤去除，data直接导入给Runtime：
 
@@ -249,7 +249,7 @@ reg = ((conv_surface->dst_data.channel - 1)
 cacc_reg_write(D_DATAOUT_SIZE_1, reg);
 ```
 
-### 2.1.4 需要实现的函数：
+#### 2.1.4 需要实现的函数：
 
 Tengine的架构做的很好，对接一个后端的一部分工作就是反复套娃，抄抄其他后端的代码，然后改改名字。自己需要实现的大概是以下三个函数，以及创建一个后端Engine对象，这部分内容分别在`odla_executor.hpp`、`odla_executor.cc`里。
 
@@ -284,7 +284,9 @@ const int odla_supported_ops[] = {
 
 然后在`odla_device.cc`里会把支持的op与不支持的op分到两个vector里，由Tengine根据该信息完成切图，而每个具体op的实现在`op`文件夹里可以找到。
 
-### 2.1 拉取代码
+### 2.2 拉取代码
+
+这里贴一下如何编译， 具体可以参考Tengine的文档，已经提交PR上去了。
 
 #### 2.1.1 拉取 ZYNQ-NVDLA
 
@@ -298,13 +300,13 @@ $ git clone https://github.com/LeiWang1999/ZYNQ-NVDLA # clone不下来的话就�
 $ git clone https://github.com/OAID/Tengine.git Tengine
 ```
 
-### 2.2 Tengine-Lite 集成编译 opendla 
+### 2.3 Tengine-Lite 集成编译 opendla 
 
 Tengine-Lite 目前只支持一种 opendla 的集成编译方法，即编译opendla的软件支持，首先生成.so文件，而在Tengine编译opendla后端的时候进行链接。
 
 其他的方案，例如在Tengine编译的过程中连同opendla的编译器和运行时的源代码一起编译，由于代码肯定是要重构的，所以现在还不支持。
 
-这里不讲解内核驱动程序`opendla.ko`是如何编译的，如何编译看这篇[文章](https://zhuanlan.zhihu.com/p/378202360)。
+这里不讲解内核驱动程序`opendla.ko`是如何编译的，如何编译看这篇[文章](https://zhuanlan.zhihu.com/p/378202360)。这里要注意如果直接拿NVDLA官方的仓库里的umd来编译在tengine里是无法work的，有一些编译链接的问题，以及自己custom了一些代码。
 
 #### 2.4.0 载入内核驱动程序
 
@@ -417,7 +419,7 @@ Repeat 1 times, thread 1, avg time 12.62 ms, max_time 12.62 ms, min_time 12.62 m
 
 ## 三、有意思的技术细节
 
-### 2.1 捏一个简单的 OP Test
+### 3.1 捏一个简单的 OP Test
 
 Tengine还有一个很方便的特性是，可以自己通过创建Tensor、Node的方式捏一个Graph，来方便我们测试一个单独的OP是否可以正常工作。
 
@@ -444,22 +446,152 @@ set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
 
 然后往里面塞数据，用`create_opendla_test_graph`就可以调度opendla的后端来运行程序、用`create_cpu_test_graph`就可以使用cpu来运行得到golden数据！
 
-### 2.2 量化与反量化 
+### 3.2 量化与反量化 
 
 原来，NVDLA的编译器完成量化首先需要借助TensorRT完成校准生成CalibTable，然后NVDLA的校准转换工具还有BUG（我给修了。CalibTable里是网络的每一个Layer对应的OutputScale、而其权重是通过编译器统计minmax完成的量化。
 
 Tengine的量化工具原理与TensorRT一致，并且更好用。经过Tengine量化的模型可以直接从模型中拿到int8的weight以及int32的bias数据以及量化的时候得到的量化参数，然而NVDLA原来的编译器虽然写了部分INT8的支持代码，但估计是因为他前端只能吃Caffe的模型没办法验证直接拿INT8的代码塞到AST上能不能work，所以我试了半天有一堆BUG；更奇葩的是，他支持FP32、FP16、INT16、INT8，但是唯独没有INT32这个类型。
 
-由于之后考虑到
+由于之后考虑到要重构IR，不准备在原来的Compiler上增加INT8和INT32的支持，所以这里参考Tengine的TensorRT后端进行了反量化，然后再由编译器进行minmax的量化。
 
-### 2.3 Average Pooling 的量化透传问题
+```C++
+case TENGINE_DT_INT8:
+{
+  if (conv_weight->quant_param_num != conv_weight->dims[0])
+  {
+    fprintf(stderr, "Tengine: Unsupported weight quant channel of conv(id: %d, name: %s).\n", ir_node->index, ir_node->name);
+    return nullptr;
+  }
+  float* weight_buffer = (float*)sys_malloc(conv_weight->elem_num * sizeof(float));
+  this->host_buffer.push_back(weight_buffer);
+  if (1 == conv_weight->quant_param_num)
+  {
+    for (uint32_t i = 0; i < conv_weight->elem_num; i++)
+    {
+      weight_buffer[i] = (float)(((int8_t*)conv_weight->data)[i]) * conv_weight->scale;
+    }
+  }else for (int ch = 0; ch < conv_weight->quant_param_num; ch++)
+  {
+    int block_size = conv_weight->dims[1] * conv_weight->dims[2] * conv_weight->dims[3];
+    for (int i = 0; i < block_size; i++)
+    {
+      int offset = block_size * ch;
+      weight_buffer[offset + i] = (float)(((int8_t*)conv_weight->data)[offset + i]) * conv_weight->scale_list[ch];
+    }
+  }
 
-### 2.4 DLA的数据摆放
+  kernelWeights.values = weight_buffer;
+  kernelWeights.count = conv_weight->elem_num;
+  kernelWeights.type = nvdla::DataType::FLOAT;
+  break;
+}
+```
 
-## 四、可以优化的方向
+所以现在的流程是，INT8->FP32->INT8，会带来一定程度上的失真，但在重构IR的时候会得到解决（
 
+### 3.3 Average Pooling 的量化透传问题
 
+起初笔者调试Resnet18-CIFAR10这个模型的时候精度总是失真严重。在漫长，漫长的debug中发现，当把Global Pooling切到CPU上运行的时候精度就会恢复正常！于是我对比了CPU的AVGPooling与DLA的AVGPooling的输入和输出终于发现了问题。DLA的Pooling运算不知道是为了偷懒还是啥，没有给Pooling逻辑设计Scale单元这就要求AVGPooling的输入和输出Scale。
 
-## 五、结语
+这个时候我想，为什么TensorRT量化出来的就可以work呢？！结果发现TensorRT量化完成的GlobalAVGPooling的输入Scale和输出Scale就是一样的，根据Tengine的量化专家介绍，这个机制是avgpooling的量化透传，而Tengine的量化工具目前还没有。
 
-大概一两年前圈圈虫大佬在ncnn社区的交流群里为刚开源的Tengine做宣传，我在那个时候给Tengine点了star之后就没有怎么关注这个框架了，也是有一些奇妙的缘分。
+那么，如何解决这个问题？
+
+就在我准备试着改Tengine的量化工具的时候，Tengine的量化专家经过一通理论分析，“你可以先试试把Scale从前往后传，或者从后往前传试试”，于是有了下面这段代码：
+
+```C++
+if(1 == param->global){
+  if(1 == input_tensor->quant_param_num){
+    output_tensor->scale = input_tensor->scale;
+    float tensor_min_val = output_tensor->scale * -127.0f;
+    float tensor_max_val = output_tensor->scale * +127.0f;
+    this->odla_tensor_map[output_tensor->index]->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
+  }else if (1 < input_tensor->quant_param_num){
+    for (int ch = 0; ch < input_tensor->quant_param_num; ++ch)
+    {
+      output_tensor->scale_list[ch] = input_tensor->scale_list[ch];
+      float tensor_min_val = output_tensor->scale_list[ch] * -127.0f;
+      float tensor_max_val = output_tensor->scale_list[ch] * +127.0f;
+      this->odla_tensor_map[output_tensor->index]->setChannelDynamicRange(ch, tensor_min_val, tensor_max_val);
+    }
+  }
+}
+```
+
+结果，他真的可以work！而且经过一些简单的测试发现从前往后传要比从后往前传看起来效果好一些，给理论大师献上我的膝盖。
+
+### 3.4 DLA的数据摆放
+
+NVDLA的数据摆放，或者说加速器基本上都需要特殊的数据摆放格式，以方便运算单元访存，遗憾的是NVDLA没有提供数据摆放的电路这导致整个工作需要使用CPU来完成。NVDLA的数据摆放在[in memory data format](http://nvdla.org/hw/format.html)这一小节，但是官方举的例子是以32\*32的PE阵列来计算的，本设计使用的是8\*8，讲的也不是很清楚。这里我们只讲述FreatureMap是如何在内存中摆放的。
+
+![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/format_packed_feature_diagram.svg)
+
+NVDLA将Featuremap以一个PE的大小来做切分，例如官方给的例子里，PE的长宽都是32，那么按照如下优先级来切：
+
+> In conclusion, mapping in memory follows pitch linear format. The order is C’ (32byte) -> W -> H -> C (surfaces). Here C’ changes fastest and C changes slowest.
+
+其实，简单来讲就是，第一个通道的第一个数据摆在内存的第一个位置、第二个通道的第一个数据摆在内存的第二个数据，内存的前32位摆放的是前三十二个通道的第一个数据，内存的31～63位摆放的前三十二个通道的第二个数据。然后依次类存，数据是从以c->w->h这个优先级来展开。
+
+总结一下，那么数据摆放的代码就可以按照如下的逻辑来实现。
+
+```C++
+for (size_t n = 0; n < batch; n++){
+  #pragma omp parallel for num_threads(max_thread)
+  for (size_t c = 0; c < channel; c++)
+  {
+    NvU32 cquotient = c / atom_c_size;
+    NvU32 cremainder = c % atom_c_size;
+    for (size_t h = 0; h < height; h++)
+    {
+      for (size_t w = 0; w < width; w++)
+      {
+        size_t idx = n * channel * height * width + c * height * width + h * width + w;
+        int8_t* _dst = (int8_t*)dst + idx;
+        uint32_t _offset = (cquotient * surface_stride) + (h * line_stride) + (w * atom_k_size) + cremainder + n*c*h*w;
+        *_dst = *((int8_t*)src + _offset);
+      }
+    }
+  }
+}
+```
+
+前面提到了这部分工作需要使用CPU来完成，如果整个网络都在加速器上运行那么只需要拷贝一次输入的图像与一次输出的数据就可以了，计算量微乎其微。然而，如果考虑到要切很多图的情况，那么中间的Featuremap的数据量轻轻松松就可以达到百万字节的数量级，无疑是很耗费时间的。因为由于其不规则的摆放格式导致没有办法像使用memcpy这样的块拷贝，只能单个字节单个字节的拷贝，不过考虑到其中存在很高的并行度，于是代码里写了SIMD，利用OPENMP完成了多核展开进行了简单的并行加速处理。
+
+但是，这部分工作交给CPU来做还是有些不合适的，根据Tengine的架构师@极限教的，针对加速器的时候数据摆放问题还是很常见的，但是很多都有硬件支持，比如芯原底层，有个 tensor process 单元非常快的做这个事，比如 nvidia tensor core。
+
+这一小节还要感谢一下浙江大学的周帅同学，在一年前我们都选做NVDLA作为自己的本科毕业设计而认识。我是将DLA在FPGA上实现然后烧系统、挂驱动、编译Runtime、Compiler等等，周帅是基于Chipyard用rvv+dla写寄存器之类的工作，并通过配置寄存器的方式完成了lenet5的推理，而这也使得他对内存摆放的研究比较深入，DLA的内存摆放问题多是有向他请教。
+
+### 3.5 一些方便调试的宏
+
+`export TG_ODLA_DEBUG_DATA=1`会在当前目录下生成每个subgraph的loadable，以及每个subgraph的输入输出数据。
+
+`export TG_DEBUG_TIME=1`会输出CPU跑了哪些算子，耗时怎么样。
+
+`export TG_DEBUG_DATA=1`会在当前目录下生成CPU跑的每个Node的输入和输出。
+
+### 3.5 接下来需要做的事
+
+#### 3.5.1 一套全新IR
+
+现在用的IR还是用的NVDLA的编译器里的，其设计很难做一些额外的工作。这部分的工作也有参考，前面提到的ONNC就有一套自己的IR这是可以借鉴的，相比NVDLA原来的AST，需要增加能够直接载入INT8权重的能力、能够支持算子拼接的能力等。
+
+#### 3.5.2 模拟器开发
+
+NVDLA的官方是有提供CMOD模型的，他原本的作用是挂载到QEMU上做仿真、得到Golden数据。Tengine后端支持的TIM-VX提供了这样一个模拟器的接口，也就是仿真环境。一般模拟器开发也是先于硬件开发，用高层语言把功能实现，更快地做一些评估，有了这个模拟器也是很方便的，相比之下连着板子开发还是有一些不便。
+
+#### 3.5.3 硬件可以重构一下
+
+为什么官方生成RTL需要搭建一个tmake，需要那么多工具作为支持？为什么判断使能某些模块、PE阵列大小的时候要用C语言的宏作处理而不是Verilog自带的宏定义来做？我认为这些代码应该可以都是用verilog来做，只不过重构是个体力活。
+
+硬件这边也有许多可以做得地方，比如把原来的PE阵列运用上Eyeriss的dataflow，比如之前提到的加上一个硬件实现的摆放数据的单元。其次，硬件没有实现Concat运算，NVDLA的做法是让Concat之后的算子改变访问Concat之前的数据的位置，在内存中数据并没有真正做拼接，看起来还是比较智慧的。但是这导致Concat必须夹在DLA能够支持的算子中间才可以正常工作，而yolo系列的网络里，总会有一两个Concat不符合这个情况而在切图的时候被一刀切，把所有的Concat都调度到CPU上运行。
+
+#### 3.5.4
+
+#### 3.5.6
+
+## 四、结语
+
+其实，NVDLA的硬件已经非常复杂，想要从头到位的研究透彻这个框架涵盖的知识面很广，有体系结构领域的DSA设计workflow、Linux内核驱动的开发、应用层面的运行时和编译器也是比较硬核的知识点。而现在沉寂已久的 NVDLA 似乎有了新的起色，就我知道的有几个课题组在研究这个，大多是想把 small 流片，他们有的也苦恼于原来的工具链无法运行分类以外的网络，而笔者现在对接的 Tengine 就可以解决这个问题了，那些把 small tapeout 拿去做商业的也不需要买ONNC一年两百万的商业授权，基于Tengine的这一套Toolchain比他强的多不是吗！
+
+大概一两年前圈圈虫大佬在ncnn社区的交流群里为刚开源的Tengine做宣传，我给点了star之后就没有关注过Tengine了。想到去年六月份我在做毕业设计想在板卡上 Debug Runtime 来排查bug，正好让我撞上了 Clion 在一两个星期前刚发布的新版本有了 Remote Makefile Debug 的支持（笔者当时使用的版本就连识别Makefile都要装插件）
+
