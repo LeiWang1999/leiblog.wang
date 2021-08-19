@@ -10,7 +10,9 @@ date: 2021-08-15 19:37:46
 
 ## 前言
 
-在之前的文章里笔者已经记述了怎样在FPGA上映射由英伟达开源的加速器NVDLA。但是NVDLA的官方发布的工具链很弱，只能端到端地运行极为简单的分类网络，而现在在绝大部分的深度神经网络应用里分类往往只是其中一小部分。例如我现在想利用加速器去运行yolo，但其中有许多加速器并不支持的算子，加速器支持的convolution、pooling、relu等等算子最好都要用加速器运行，而那些不支持的算子则需要Fallback到CPU去运行。可是这一步说起来容易，但却很少有人能够实现。
+在之前的文章里笔者已经记述了怎样在FPGA上映射由英伟达开源的加速器NVDLA。但是NVDLA的官方发布的工具链很弱，只能端到端地运行极为简单的分类网络，而现在在绝大部分的深度神经网络应用里分类往往只是其中一小部分。例如我现在想利用加速器去运行yolo，但其中有许多加速器并不支持的算子，加速器支持的convolution、pooling、relu等等算子最好都要用加速器运行，而那些不支持的算子则需要Fallback到CPU去运行。
+
+这片文章要介绍的是笔者利用Open AI Lab开源的边缘设备推理框架Tengine，为NVDLA打造一套新的工具链！
 
 ![banner](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/banner.jpeg)
 
@@ -22,11 +24,9 @@ date: 2021-08-15 19:37:46
 2. NVIDIA 官方与 Sifive 合作有介绍过一个[firesim-nvdla](https://github.com/CSL-KU/firesim-nvdla)的项目。他们在FPGA云服务器平台上面跑了一个RiscV+NVDLA。并且魔改了darknet，利用内部工具将yolov3中能够用dla运行的子图提取出来生成了Loadable文件，成功运行了yolov3，并且在large配置下yolov3可以到7帧。但是工具链是不开源的，并且局限在了darknet这个框架。
 3. 台湾的一家公司Skymizer则野心在制作一套全新的编译器，叫做ONNC。与官方的编译器只能接受caffe的模型不同，ONNC的前端接受的是ONNX模型。可惜的是这家公司开源的编译器也只能跑分类网络并且只能支持full配置，而且无法完成量化。但是其商业版本发布的内容来看支持的算子也很少，并且也只能跑yolov1-tiny。在我的调研里发现，其商业版授权更是高达一年两百多万人名币！起初我以为他们看我是大陆人想宰我，结果认识几个台湾朋友也都反映是这个价格。一些初创公司的第一版加速器设计参考NVDLA，想必也为了短时间内度过难关、寻求应用而不得已花了不少钱购买授权吧。
 
-这反映出来一个加速器设计完成之后的通病，缺少工具链的支持。一个大的公司可以砸人为自己的加速器设计一套独有的工具链，但DLA不支持的算子数量可以高达近百个，实现他们不仅是个体力活，并且实现的过程还需要考虑到在不同设备上的运行效率。其次，还要具备强的模型接受能力，支持量化，能够自动的将计算图中的算子做切分，可以用DLA运行的调度DLA运行、不可以用DLA运行的用CPU去跑。
+这反映出来一个加速器设计完成之后的通病，缺少工具链的支持。一个大的公司可以单独成立一个部门，投入不少的人力为自己的加速器设计一套独有的工具链，但DLA不支持的算子数量可以高达近百个，实现他们不仅是个体力活，并且实现的过程还需要考虑到在不同设备上的运行效率。其次，还要具备强的模型接受能力，一般DL加速器支持INT8的较多，这有要求支持量化，又要能够自动的将计算图中的算子做切分，可以用DLA运行的调度DLA运行、不可以用DLA运行的Fallback到CPU去跑。
 
-以上的种种问题对于一个小的团体来说，许多都能在开源社区得到解决，而在[Tengine](https://github.com/OAID/Tengine)就是这样一个框架。
-
-这片文章要介绍的是笔者利用Open AI Lab开源的边缘设备推理框架Tengine，为NVDLA打造一套新的工具链。并且为了与上面的几种方案对比（主要是卷一卷onnc），本篇文章也会利用 Tengine 演示一下如何利用完成模型的转换、量化，调度DLA跑一个yolo网络！
+以上的种种问题对于一个小的团体来说，许多能在开源社区得到解决，而[Tengine](https://github.com/OAID/Tengine)就是这样一个框架。并且为了与上面的几种方案对比（主要是卷一卷onnc），本篇文章也会利用 Tengine 演示一下如何利用完成模型的转换、量化，调度DLA跑一个yolox-nano网络！
 
 ## 一、NVDLA 与 Tengine 简介
 
@@ -271,7 +271,7 @@ int odla_dev_postrun(struct device* dev, struct subgraph* subgraph);
 
 **如何定义支持哪些op？**
 
-在`odla_limit.hpp`里完成注册，将后端能够支持的op取消注释:
+在`odla_limit.hpp`里完成注册，将后端能够支持的op取消注释（Tengine这里定义算子刚好有100个！）:
 
 ```C++
 const int odla_supported_ops[] = {
@@ -399,6 +399,12 @@ $ cmake --build . --target tm_classification_opendla
 
 ### 2.4 RESNET18-CIFAR10 推理演示
 
+在推理之前，需要做模型的转换和量化，这两个工具分别在源代码的tools目录下，使用方法详见：
+
+- [模型转换工具](https://github.com/OAID/Tengine-Convert-Tools)
+
+- [量化工具](https://github.com/OAID/Tengine/tree/tengine-lite/tools/quantize)
+
 RESNET18-CIFAR10 需要的五个op DLA都可以支持，所以不需要做切图，完全交给DLA来运行就好，在之前的文章里使用 NVDLA 的工具链进行过评估，DLA运行的部分需要30ms，而Tengine这一套工具链运行一次只需要10ms左右，一部分原因应该是对接的Graph能吃到Tengine的图优化。
 
 ```bash
@@ -423,6 +429,34 @@ Repeat 1 times, thread 1, avg time 12.62 ms, max_time 12.62 ms, min_time 12.62 m
 
 ### 2.5 YOLOX-Nano-Relu
 
+YOLOX系列不止需要做模型的转化、还需要把前处理的Focus去掉，详见虫叔之前写的[文章](https://zhuanlan.zhihu.com/p/392387835)：
+
+```bash
+$ python3 yolov5s-opt.py --input yolovx-nano-relu.onnx --output yolox-nano-relu_nofocus.onnx --in_tensor 683 --out_tensor output
+---- Tengine YOLOv5 Optimize Tool ----
+
+Input model      : yolovx-nano-relu.onnx
+Output model     : yolovx-nano-relu_nofocus.onnx
+Input tensor     : 683
+Output tensor    : output
+[Quant Tools Info]: Step 0, load original onnx model from yolovx-nano-relu.onnx.
+[Quant Tools Info]: Step 1, Remove the focus and postprocess nodes.
+[Quant Tools Info]: Step 2, Using hardswish replace the sigmoid and mul.
+[Quant Tools Info]: Step 3, Rebuild onnx graph nodes.
+[Quant Tools Info]: Step 4, Update input and output tensor.
+[Quant Tools Info]: Step 5, save the new onnx model to yolox-nano-relu_nofocus.onnx.
+
+---- Tengine YOLOv5s Optimize onnx create success, best wish for your inference has a high accuracy ...\(^0^)/ ----
+```
+
+这里的683是整个Focus的输出Tensor，即第一个Conv节点的输入Tensor，output是整个网络的输出Tensor。
+
+量化：
+
+```bash
+./quant_tool_int8 -m /root/yolox_nano_relu.tmfile -i /home/workspace/wanglei/cocoval2014/ -o /root/yolox_nano_relu_int8.tmfile -g 12,208,208 -w 0,0,0 -s 0.003921,0.003921,0.003921 -y 416,416
+```
+
 在这里，大家不要对推理速度报太多的期望。在FPGA运行的加速器多是为了验证，FPGA本身的性能不太行，Small配置下的NVDLA只能跑到100Mhz、中国科学院信息工程技术研究所流片过一块Small、可以跑到800Mhz（不知道当时用的是几纳米的工艺），而本设计用的也是最小的8乘8的MAC阵列，可以增加到32乘32，其次也没有使用GlobalSram来当第二级的缓存。
 
 ```bash
@@ -441,7 +475,7 @@ detection num: 3
 
 ![image-20210819181849777](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210819181849777.png)
 
-一秒一帧，嗯中规中矩的速度，主要是因为Concat被一刀切，所以切图被切成了七八块，数据来回转换浪费了绝大多数的时间。但是**又不是不能用！**作为参考，yolov3-tiny大概是600毫秒左右，Firesim的那一套用的是Large+RiscV运行Yolov3可以跑到7帧。
+一秒一帧，嗯中规中矩的速度，主要是因为Concat被一刀切，所以切图被切成了七八块，数据来回转换浪费了时间。但是 **又不是不能用！**作为参考，yolov3-tiny大概是600毫秒左右，Firesim的那一套用的是Large+RiscV运行Yolov3可以跑到7帧。
 
 ## 三、有意思的技术细节
 
