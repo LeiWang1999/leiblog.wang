@@ -12,11 +12,13 @@ date: 2021-08-15 19:37:46
 
 在之前的文章里笔者已经记述了怎样在FPGA上映射由英伟达开源的加速器NVDLA。但是NVDLA的官方发布的工具链很弱，只能端到端地运行极为简单的分类网络，而现在在绝大部分的深度神经网络应用里分类往往只是其中一小部分。例如我现在想利用加速器去运行yolo，但其中有许多加速器并不支持的算子，加速器支持的convolution、pooling、relu等等算子最好都要用加速器运行，而那些不支持的算子则需要Fallback到CPU去运行。可是这一步说起来容易，但却很少有人能够实现。
 
+![banner](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/banner.jpeg)
+
 <!-- more -->
 
 有意思的是，对于这件事近年来一些机构也基本上在可能的方向上有过尝试，例如：
 
-1. 台湾工研院的做法是硬刚NVDLA的寄存器配置，将yolov1-tiny之中可以使用加速器运行的层单独提出来并且量化，手动根据加速器需要的摆放格式放到内存，然后通过配置寄存器的方法完成加速器侧的推理，之后拿到数据之后用cpu算其他的layer。这种原始的方法部署需要对硬件理解的极为深刻，显然是一个非常懂硬件的一开始能够想到的可行方案。但我想一个人没有一两个月是完不成一个网络的部署的，而如果需要推理的目标网络换成另一个则需要做太多的重复工作。
+1. 台湾工研院的做法是[硬刚NVDLA的寄存器配置](https://youtu.be/sQ9oIjHF5ac)，将yolov1-tiny之中可以使用加速器运行的层单独提出来并且量化，手动根据加速器需要的摆放格式放到内存，然后通过配置寄存器的方法完成加速器侧的推理，之后拿到数据之后用cpu算其他的layer。这种原始的方法部署需要对硬件理解的极为深刻，显然是一个非常懂硬件的一开始能够想到的可行方案。但我想一个人没有一两个月是完不成一个网络的部署的，而如果需要推理的目标网络换成另一个则需要做太多的重复工作。
 2. NVIDIA 官方与 Sifive 合作有介绍过一个[firesim-nvdla](https://github.com/CSL-KU/firesim-nvdla)的项目。他们在FPGA云服务器平台上面跑了一个RiscV+NVDLA。并且魔改了darknet，利用内部工具将yolov3中能够用dla运行的子图提取出来生成了Loadable文件，成功运行了yolov3，并且在large配置下yolov3可以到7帧。但是工具链是不开源的，并且局限在了darknet这个框架。
 3. 台湾的一家公司Skymizer则野心在制作一套全新的编译器，叫做ONNC。与官方的编译器只能接受caffe的模型不同，ONNC的前端接受的是ONNX模型。可惜的是这家公司开源的编译器也只能跑分类网络并且只能支持full配置，而且无法完成量化。但是其商业版本发布的内容来看支持的算子也很少，并且也只能跑yolov1-tiny。在我的调研里发现，其商业版授权更是高达一年两百多万人名币！起初我以为他们看我是大陆人想宰我，结果认识几个台湾朋友也都反映是这个价格。一些初创公司的第一版加速器设计参考NVDLA，想必也为了短时间内度过难关、寻求应用而不得已花了不少钱购买授权吧。
 
@@ -102,6 +104,10 @@ https://zhuanlan.zhihu.com/p/392974835
 而之后为了方便大家开发与调试，我将开发板通过以太网桥接到了自己的开发机器上，完成了开发板通过主机的wifi访问互联网，已经有了Windows、Ubuntu、MAC三个版本的解决方案，非常舒服：
 
 https://zhuanlan.zhihu.com/p/378814739
+
+我是在ZCU102上部署的NVDLA，除了FPGA资源以外还有一个四核的A53处理器。
+
+![image-20210819204351444](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210819204351444.png)
 
 ### 为什么选择 Tengine
 
@@ -196,7 +202,7 @@ include和lib文件夹都可以Follow写在官方仓库里的教程，这里贴�
 
 <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/nvdla_ast.png" alt="nvdla_ast"  align="center" />
 
-那么，如何对接呢？我决定在第一版使用官方的程序，于是在下文中进行编译的时候是把官方的core代码做成了lib进行链接，调用里面的 Function；另一方面，我想学习一下他的IR是怎么设计的，于是不从Network这么高的层次下手（当然这也导致无法很方便的做到OP的拼接，但也无所谓，反正要重构的）；然后就是决定接入CanonicalAST还是EngineAST了，因为是调用的官方提供的函数来构建Graph，所以EngineAST的创建过于依赖CanonicalGraph，于是笔者选择把Tengine提供给后端的ir_graph接入CanonicalAST，然后转成EngineAST，然后所有的Pass照走。
+那么，如何对接呢？我在第一版使用官方的语法树来完成任务，于是在下文中进行编译的时候是把官方的core代码做成了lib进行链接，调用里面的 Function；另一方面，我想学习一下他的IR是怎么设计的，于是不从Network这么高的层次下手（当然这也导致无法很方便的做到OP的拼接，但也无所谓，反正要重构的）；然后就是决定接入CanonicalAST还是EngineAST了，因为是调用的官方提供的函数来构建Graph，所以EngineAST的创建过于依赖CanonicalGraph，于是笔者选择把Tengine提供给后端的ir_graph接入CanonicalAST，然后转成EngineAST，然后所有的Pass照走。
 
 #### 2.1.2 Runtime
 
@@ -306,7 +312,7 @@ Tengine-Lite 目前只支持一种 opendla 的集成编译方法，即编译open
 
 其他的方案，例如在Tengine编译的过程中连同opendla的编译器和运行时的源代码一起编译，由于代码肯定是要重构的，所以现在还不支持。
 
-这里不讲解内核驱动程序`opendla.ko`是如何编译的，如何编译看这篇[文章](https://zhuanlan.zhihu.com/p/378202360)。这里要注意如果直接拿NVDLA官方的仓库里的umd来编译在tengine里是无法work的，有一些编译链接的问题，以及自己custom了一些代码。
+这里不讲解内核驱动程序`opendla.ko`是如何编译的，如何编译看这篇[文章](https://zhuanlan.zhihu.com/p/378202360)。这里要注意如果直接拿NVDLA官方的仓库里的umd来编译在tengine里是无法work的，有一些编译链接的问题，以及自己custom了一些代码，比如解决了量化的一个BUG和增加了INT8的分组卷积的实现。
 
 #### 2.4.0 载入内核驱动程序
 
@@ -415,7 +421,27 @@ Repeat 1 times, thread 1, avg time 12.62 ms, max_time 12.62 ms, min_time 12.62 m
 --------------------------------------
 ```
 
-### 2.5 YOLOV3-Tiny
+### 2.5 YOLOX-Nano-Relu
+
+在这里，大家不要对推理速度报太多的期望。在FPGA运行的加速器多是为了验证，FPGA本身的性能不太行，Small配置下的NVDLA只能跑到100Mhz、中国科学院信息工程技术研究所流片过一块Small、可以跑到800Mhz（不知道当时用的是几纳米的工艺），而本设计用的也是最小的8乘8的MAC阵列，可以增加到32乘32，其次也没有使用GlobalSram来当第二级的缓存。
+
+```bash
+$ cd <tengine-lite-root-dir>/build
+$ cmake --build . --target tm_classification_opendla tm_yolox_opendla
+$ cd examples
+$ ./tm_yolox_opendla -m /root/Tengine/models/yolox_nano_relu_int8.tmfile -i /root/Tengine/images/dog.jpg -r 1
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 1138.80 ms, max_time 1138.80 ms, min_time 1138.80 ms
+--------------------------------------
+detection num: 3
+ 2:  70%, [ 463,   80,  676,  163], car
+16:  52%, [ 122,  220,  315,  517], dog
+ 1:  48%, [ 180,  181,  564,  430], bicycle
+```
+
+![image-20210819181849777](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210819181849777.png)
+
+一秒一帧，嗯中规中矩的速度，主要是因为Concat被一刀切，所以切图被切成了七八块，数据来回转换浪费了绝大多数的时间。但是**又不是不能用！**作为参考，yolov3-tiny大概是600毫秒左右，Firesim的那一套用的是Large+RiscV运行Yolov3可以跑到7帧。
 
 ## 三、有意思的技术细节
 
@@ -526,7 +552,7 @@ NVDLA的数据摆放，或者说加速器基本上都需要特殊的数据摆放
 
 ![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/format_packed_feature_diagram.svg)
 
-NVDLA将Featuremap以一个PE的大小来做切分，例如官方给的例子里，PE的长宽都是32，那么按照如下优先级来切：
+NVDLA将 Featuremap 以一个PE的大小来做切分，例如官方给的例子里，PE的长宽都是32，那么按照如下优先级来切：
 
 > In conclusion, mapping in memory follows pitch linear format. The order is C’ (32byte) -> W -> H -> C (surfaces). Here C’ changes fastest and C changes slowest.
 
@@ -557,41 +583,85 @@ for (size_t n = 0; n < batch; n++){
 
 前面提到了这部分工作需要使用CPU来完成，如果整个网络都在加速器上运行那么只需要拷贝一次输入的图像与一次输出的数据就可以了，计算量微乎其微。然而，如果考虑到要切很多图的情况，那么中间的Featuremap的数据量轻轻松松就可以达到百万字节的数量级，无疑是很耗费时间的。因为由于其不规则的摆放格式导致没有办法像使用memcpy这样的块拷贝，只能单个字节单个字节的拷贝，不过考虑到其中存在很高的并行度，于是代码里写了SIMD，利用OPENMP完成了多核展开进行了简单的并行加速处理。
 
-但是，这部分工作交给CPU来做还是有些不合适的，根据Tengine的架构师@极限教的，针对加速器的时候数据摆放问题还是很常见的，但是很多都有硬件支持，比如芯原底层，有个 tensor process 单元非常快的做这个事，比如 nvidia tensor core。
+但是这部分工作交给CPU来做还是有些不合适的，根据Tengine的架构师@极限的讲述，针对加速器的时候数据摆放问题还是很常见的，但是很多都有硬件支持，比如芯原底层，有个 tensor process 单元非常快的做这个事，比如 nvidia tensor core。
 
 这一小节还要感谢一下浙江大学的周帅同学，在一年前我们都选做NVDLA作为自己的本科毕业设计而认识。我是将DLA在FPGA上实现然后烧系统、挂驱动、编译Runtime、Compiler等等，周帅是基于Chipyard用rvv+dla写寄存器之类的工作，并通过配置寄存器的方式完成了lenet5的推理，而这也使得他对内存摆放的研究比较深入，DLA的内存摆放问题多是有向他请教。
 
-### 3.5 一些方便调试的宏
+### 3.5 凑合着用的 INT8 Group Conv
 
-`export TG_ODLA_DEBUG_DATA=1`会在当前目录下生成每个subgraph的loadable，以及每个subgraph的输入输出数据。
+虫叔拜托了旷视的大佬帮忙迁就了一下DLA训练了一个都是Relu激活函数的 Yolox-Nano、结果笔者调试了半天发现原来不支持 Group Conv、但是又不好意思再麻烦训练一个 Yolox-Tiny，于是一通分析之后将 Group Conv 换成了直接 Conv，以网络中出现的第一个 Group Conv 为例：
+
+![image-20210819205154677](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210819205154677.png)
+
+原来，网络的输出特征图应该是这样计算：
+$$
+Output_0 = Input_0 \ast filter_{0\_0} + Input_1 \ast filter_{0\_1} + ... + Input_15 \ast filter_{_015}
+$$
+输入的Channel是16、Group也是16，那么输出的特征图这样计算：
+$$
+Output_0 = Input_0 \ast filter_{0\_0}
+$$
+可以看到，如果两者需要等效，则需要把fitler_0除了第0位全都清零，需要把filter_1除了第一位全都清0，则那么，手动把weight_tensor扩展为输入为十六个通道，Group设为1，然后在对应的位置上把值塞进去，这里可以看dump下来的INT8的数据，一个虚伪的分组卷积就完成了（：
+
+```bash
+Batch 0:
+	Channel 0:
+		-10 -15 -13 
+		49 126 117 
+		-47 -127 -102 
+
+	Channel 1:
+		0 0 0 
+		0 0 0 
+		0 0 0 
+
+	Channel 2:
+		0 0 0 
+		0 0 0 
+		0 0 0 
+...
+Batch 1:
+	Channel 0:
+		0 0 0 
+		0 0 0 
+		0 0 0 
+
+	Channel 1:
+		-68 -46 100 
+		-83 116 34 
+		41 48 -127 
+...
+```
+
+### 3.6 一些方便调试的宏
+
+`export TG_ODLA_DEBUG_DATA=1`会在当前目录下生成每个subgraph的loadable，以及每个subgraph的输入输出数据、每一层的Layer量化之后的数据是多少。
 
 `export TG_DEBUG_TIME=1`会输出CPU跑了哪些算子，耗时怎么样。
 
 `export TG_DEBUG_DATA=1`会在当前目录下生成CPU跑的每个Node的输入和输出。
 
-### 3.5 接下来需要做的事
+### 3.7 接下来需要做的事
 
-#### 3.5.1 一套全新IR
+#### 3.7.1 全新的IR
 
 现在用的IR还是用的NVDLA的编译器里的，其设计很难做一些额外的工作。这部分的工作也有参考，前面提到的ONNC就有一套自己的IR这是可以借鉴的，相比NVDLA原来的AST，需要增加能够直接载入INT8权重的能力、能够支持算子拼接的能力等。
 
-#### 3.5.2 模拟器开发
+#### 3.7.2 模拟器开发
 
 NVDLA的官方是有提供CMOD模型的，他原本的作用是挂载到QEMU上做仿真、得到Golden数据。Tengine后端支持的TIM-VX提供了这样一个模拟器的接口，也就是仿真环境。一般模拟器开发也是先于硬件开发，用高层语言把功能实现，更快地做一些评估，有了这个模拟器也是很方便的，相比之下连着板子开发还是有一些不便。
 
-#### 3.5.3 硬件可以重构一下
+#### 3.7.3 硬件也可以重构
 
 为什么官方生成RTL需要搭建一个tmake，需要那么多工具作为支持？为什么判断使能某些模块、PE阵列大小的时候要用C语言的宏作处理而不是Verilog自带的宏定义来做？我认为这些代码应该可以都是用verilog来做，只不过重构是个体力活。
 
 硬件这边也有许多可以做得地方，比如把原来的PE阵列运用上Eyeriss的dataflow，比如之前提到的加上一个硬件实现的摆放数据的单元。其次，硬件没有实现Concat运算，NVDLA的做法是让Concat之后的算子改变访问Concat之前的数据的位置，在内存中数据并没有真正做拼接，看起来还是比较智慧的。但是这导致Concat必须夹在DLA能够支持的算子中间才可以正常工作，而yolo系列的网络里，总会有一两个Concat不符合这个情况而在切图的时候被一刀切，把所有的Concat都调度到CPU上运行。
 
-#### 3.5.4
-
-#### 3.5.6
-
 ## 四、结语
 
-其实，NVDLA的硬件已经非常复杂，想要从头到位的研究透彻这个框架涵盖的知识面很广，有体系结构领域的DSA设计workflow、Linux内核驱动的开发、应用层面的运行时和编译器也是比较硬核的知识点。而现在沉寂已久的 NVDLA 似乎有了新的起色，就我知道的有几个课题组在研究这个，大多是想把 small 流片，他们有的也苦恼于原来的工具链无法运行分类以外的网络，而笔者现在对接的 Tengine 就可以解决这个问题了，那些把 small tapeout 拿去做商业的也不需要买ONNC一年两百万的商业授权，基于Tengine的这一套Toolchain比他强的多不是吗！
+其实，NVDLA的硬件已经非常复杂，想要从头到位的研究透彻这个框架涵盖的知识面很广，有体系结构领域的DSA设计workflow、Linux内核驱动的开发、应用层面的运行时和编译器也是比较硬核的知识点。而现在沉寂已久的 NVDLA 似乎有了新的起色，就我知道的有几个课题组在研究这个，大多是想把 small 流片，他们有的也苦恼于原来的工具链无法运行分类以外的网络，而笔者现在对接的 Tengine 就可以解决这个问题了，那些把 small tapeout 拿去做商业的也不需要买ONNC一年两百万的商业授权，基于 Tengine 的这一套 Toolchain 比他强的多不是吗！
 
-大概一两年前圈圈虫大佬在ncnn社区的交流群里为刚开源的Tengine做宣传，我给点了star之后就没有关注过Tengine了。想到去年六月份我在做毕业设计想在板卡上 Debug Runtime 来排查bug，正好让我撞上了 Clion 在一两个星期前刚发布的新版本有了 Remote Makefile Debug 的支持（笔者当时使用的版本就连识别Makefile都要装插件）
+大概一两年前圈圈虫大佬在ncnn社区的交流群里为刚开源的Tengine做宣传，我给点了star之后就没有关注过Tengine了。想到去年六月份我在做毕业设计想在板卡上 Debug Runtime 来排查bug，正好让我撞上了 Clion 在一两个星期前刚发布的新版本有了 Remote Makefile Debug 的支持（笔者当时使用的版本就连识别Makefile都要装插件）而NVDLA也有很多很多坑，但好在很多前人都帮忙踩过了翻翻Issue能解决大半，要感谢很多帮助过我的人呀，祝开源社区越来越好。
+
+最后，NVDLA其实还是设计的不错的框架。就这样突然间悄无声息地停止维护没有人知道究竟是部门被砍了，还是说不想开源了？但是根据Bilibili的与Nvidia合作过这个项目的蔡yujie同学的描述，似乎是真的没人搞了。但万一，突然某一天，英伟达带着内部研发了两三年的DLA与Toolchain横空出世，ONNC的价值就会消失，但Tengine却一直在那里。
 
