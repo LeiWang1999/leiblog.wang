@@ -113,7 +113,7 @@ https://zhuanlan.zhihu.com/p/378814739
 
 Tengine（不是阿里云那个Tengine），是由Open AI Lab开源的面向边缘设备推理的Runtime框架。在考虑Tengine之前，我也考虑过对接另一个推理框架TVM，但是TVM已经有一个开源的FPGA加速器后端VTA，并且TVM非常庞大。而Tengine的后端对接过程使人感到舒适。
 
-<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/architecture.png" alt="architecture" style="zoom:75%;" />
+<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/architecture.jpg" alt="architecture" style="zoom:75%;" />
 
 在前端的模型转换部分，可以把各大主流的训练框架训练出来的模型转化到Tengine的tmfile格式，也包括了在前言里提到的Caffe与ONNX，格局打开！在模型转化的时候，DLA可以吃到Tengine做的一些图优化，如果对接DLA后端在模型转化的时候需要把fuse_conv_relu_common关掉，因为现在还不支持conv和relu合并的op实现，这在之后重构IR的时候会支持的。
 
