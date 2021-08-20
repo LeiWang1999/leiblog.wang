@@ -44,9 +44,9 @@ NVDLA 是英伟达于2017年开源出来的深度学习加速器框架，他的�
 
 并且这些处理单元都暴露出了一组可配置寄存器接口。
 
-!["Small" and "Large" NVDLA systems side by side, with SRAMIF disconnected on "small" system, and a microcontroller on "large" system.](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/nvdla-primer-system-comparison.svg)
+![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/20210820210010.png)
 
-前文中提到他软件设计工具链的缺陷，主要是其Compiler、Runtime的程序写的非常乱，明显是根据公司内部制定的设计文档，很多人一起完成的开发过程，整个架构设计和代码风格真的不咋地，但是内核驱动代码写的很棒。
+前文中提到他软件设计工具链的缺陷，主要是其Compiler、Runtime的程序写的非常乱，很难自己定制和增加功能，但是内核驱动代码写的很棒，有很多的参考价值。
 
 硬件这部分，RTL代码生成我也不是很懂为何要使用如此多的工具链去搭建tmake，利用C语言的宏来处理字符串决定哪些模块应该生成，哪些模块不应该生成，而不是用 Verilog 内部的宏定义完成这部分工作。其次，其发布时间是2017年，那么实际的研发时间应该在2015年到2016年，其中的很多设计也正是借鉴的寒武纪最初的 DianNao、DaDianNao结构。而现在，不说寒武纪已经迭代了好几个版本并且上市了，而在这之后的一些研究，例如eyeriss系列、以及一些围绕着数据服用做出来的工作，NVDLA当时的设计肯定是没有考虑到的，所以其性能肯定不如当下的商用加速器。（话说能商用肯定搞钱去了，干嘛开源给大家玩
 
@@ -629,11 +629,11 @@ for (size_t n = 0; n < batch; n++){
 
 但是这部分工作交给CPU来做还是有些不合适的，根据Tengine的架构师@极限的讲述，针对加速器的时候数据摆放问题还是很常见的，但是很多都有硬件支持，比如芯原底层，有个 tensor process 单元非常快的做这个事，比如 nvidia tensor core。
 
-这一小节还要感谢一下浙江大学的周帅同学，在一年前我们都选做NVDLA作为自己的本科毕业设计而认识。我是将DLA在FPGA上实现然后烧系统、挂驱动、编译Runtime、Compiler等等，周帅是基于Chipyard用rvv+dla写寄存器之类的工作，并通过配置寄存器的方式完成了lenet5的推理，而这也使得他对内存摆放的研究比较深入，DLA的内存摆放问题多是有向他请教。
+这一小节还要感谢一下浙江大学的周帅同学，在一年前我们都选做NVDLA来做自己的毕业设计认识。周帅是基于Chipyard用rvv+dla写寄存器之类的工作，并通过配置寄存器的方式完成了lenet5的推理，而这也使得他对内存摆放的研究比较深入，DLA的内存摆放问题多是有向他请教。
 
 ### 3.5 Fake INT8 Group Conv
 
-虫叔拜托了旷视的大佬帮忙迁就了一下DLA训练了一个都是Relu激活函数的 Yolox-Nano、结果笔者调试了半天发现原来不支持 Group Conv、但是又不好意思再麻烦训练一个 Yolox-Tiny，于是一通分析之后将 Group Conv 换成了直接 Conv，以网络中出现的第一个 Group Conv 为例：
+虫叔拜托了旷视的大佬帮忙迁就了一下DLA训练了一个都是Relu激活函数的 Yolox-Nano、结果我高高兴兴拿到模型调试了半天发现原来是不支持 Group Conv、但是又不好意思再麻烦训练一个 Yolox-Tiny，于是一通分析之后将 Group Conv 换成了直接 Conv，以网络中出现的第一个 Group Conv 为例：
 
 ![image-20210819205154677](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210819205154677.png)
 
@@ -645,7 +645,7 @@ $$
 $$
 Output_0 = Input_0 \ast filter_{0\_0}
 $$
-可以看到，如果两者需要等效，则需要把fitler_0除了第0位全都清零，需要把filter_1除了第一位全都清0，则那么，手动把weight_tensor扩展为输入为十六个通道，Group设为1，然后在对应的位置上把值塞进去，这里可以看dump下来的INT8的数据，一个虚伪的分组卷积就完成了（：
+可以看到，如果两者需要等效，则需要把fitler_0除了第0位全都清零，需要把filter_1除了第一位全都清0，则那么，手动把weight_tensor扩展为输入为十六个通道，Group设为1，然后在对应的位置上把值塞进去，这里可以看dump下来的INT8的数据，一个虚伪的分组卷积就完成了（虽然增大了计算量：
 
 ```bash
 Batch 0:
