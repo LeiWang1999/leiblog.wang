@@ -194,7 +194,7 @@ include和lib文件夹都可以Follow写在官方仓库里的教程，这里贴�
 
 在对接之前，先讲解一下原来的NVDLA的软件栈是如何工作的，主要分为三个部分：
 
-![DL training software produces a model, which the compilation tool takes and turns into a loadable, which is used by runtime environment. In runtime, UMD submits with ioctl()s to KMD, which is sent to NVDLA with register writes.](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/nvdla-primer-sw-flow.svg)
+![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/20210820210645.png)
 
 #### 2.1.1 Compiler
 
