@@ -75,6 +75,13 @@ links:
     desc: 软件所巨巨
     email: wmc314@outlook.com
     color: "#111aa7"
+  - url: https://www.lzrnote.cn/
+    avatar: https://www.lzrnote.cn/wp-content/uploads/2021/08/%E7%8E%B0%E7%94%A8%E5%A4%B4%E5%83%8F.jpg
+    name: lzr
+    blog: "lzrnote"
+    desc: "阿锐是处理器和OS巨佬！"
+    email: exiis@126.com
+    color: "#222bb8"
   
 placeholder: 还没想好说些什么 # 默认对友链的描述
 tip: 友链加载中～如失败请刷新重试～
