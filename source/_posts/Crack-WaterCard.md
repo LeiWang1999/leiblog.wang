@@ -9,7 +9,9 @@ tags:
 date: 2020-07-07 17:29:41
 ---
 
-![Banner](http://leiblog.wang/static/image/2020/7/u9ZKM2.jpg)
+<div class="info">
+  欢迎来到我的小站！
+</div>
 
 如何破解不联网的 IC 卡呢？本文以我就读的学校开水卡为例，只需要有一台装有`Windows XP`以上版本的电脑，再加上一些硬件和软件，你就可以使用该解决方案。
 
