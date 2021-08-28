@@ -3,6 +3,37 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20210828
+
+本周我了解了一些关于会议、期刊论文的一些知识。并且学习了一些QEMU的技能，我决定在QEMU上把NVDLA的CMOD模型挂上去来做仿真（就是构建一个官方那样的VP环境），这样可以脱离开发板来开发软件程序，也应该是一个标准的流程。
+
+真的有一些公司是基于NVDLA做加速器设计的，本周接触了一些企业的人：
+
+1. 和浙江杭州的一家不愿意透露姓名的AI芯片公司的compiler leader交流，获得了不少有用的信息，他们流片了Large，并且加上了RUBIK和BDMA（因为Large的官方的Spec文件里是没有BDMA和RUBIK的，然后还加了一些自己的模块，他们结论是速度不比RK和海思的差，这里海思应该指的是NNIE吧）他们内部也有评估板，但是也不肯借给我玩。。
+
+   然后，sifive arm有一块惊鸿7100评估板上面有一个large，不过买不到这个板子，他提醒我Tengine可能有，因为之前Tengine那边有一块，因为这个评估板上有sifive自己的nne加速器，软件是找Tengine来设计的。结果问了一下Tengine的人，，已经还回去了，不过可能今年会拿出来卖？Tengine感觉做这个团队人很少，无法支撑一个可靠的芯片。
+
+<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210828192048729.png" alt="image-20210828192048729" style="zoom:50%;" />
+
+<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210828193238940.png" alt="image-20210828193238940" style="zoom:50%;" />
+
+2. 网易也准备基于NVDLA搞加速器，感觉他们把这个工作想的太简单了，还想让我去打工：
+
+   ![image-20210828193441354](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210828193441354.png)
+
+   <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210828193621554.png" alt="image-20210828193621554" style="zoom:50%;" />
+
+3. 一个叫思尔芯的公司，感觉不厉害。
+
+4. 还有一个在台湾国立交通大学留学的老外，叫Nagendra也在调研NVDLA看来：
+
+   <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210828194003932.png" alt="image-20210828194003932" style="zoom:50%;" />
+
+下周计划：
+
+1. 继续学习QEMU
+2. 完善PPT
+
 ## 20210822
 
 这两周完成了 Yolox-Nano 的量化与调试，把代码整理优化总结、合并到了Tengine的Github仓库里，写了教程与宣传文章，发布在了知乎和博客。
