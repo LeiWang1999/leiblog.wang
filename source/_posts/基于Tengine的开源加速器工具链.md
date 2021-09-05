@@ -107,7 +107,7 @@ https://zhuanlan.zhihu.com/p/378814739
 
 我是在ZCU102上部署的NVDLA，除了FPGA资源以外还有一个四核的A53处理器。
 
-![image-20210819204351444](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20210819204351444.png)
+![image-20210819204351444](/Users/wanglei/Downloads/image-20210819204351444.png)
 
 ### 为什么选择 Tengine
 
