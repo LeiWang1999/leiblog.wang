@@ -139,7 +139,7 @@ fi
 首先，可以安装一些软件
 
 ```bash
-apt update & apt upgrade -y &apt-get -y install \
+apt update -y && apt upgrade -y && apt-get -y install \
   language-pack-en-base \
   sudo \
   ssh \
@@ -187,7 +187,7 @@ exec /sbin/getty -L 115200 ttyPS0 vt102
 ```shell
 exit
 ./ch-mount.sh -u ubuntu-rootfs/
-tar -zvfp ubuntu-rootfs.tar.gz -C ubuntu-rootfs/ .
+tar zcvf ubuntu-rootfs.tar.gz -C ubuntu-rootfs/ .
 ```
 
 这样打包可以取消顶层文件夹，否则打包出来最外层会有一个ubuntu-rootfs的文件夹。
@@ -195,7 +195,8 @@ tar -zvfp ubuntu-rootfs.tar.gz -C ubuntu-rootfs/ .
 最后，解压缩到 rootfs 中：
 
 ```bash
-sudp tar -xvfp ubuntu-rootfs.tar.gz -C /media/ubuntu/rootfs/
+sudp tar xvfp ubuntu-rootfs.tar.gz -C /media/ubuntu/rootfs/
 ```
 
 大功告成啦！
+

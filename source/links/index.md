@@ -82,7 +82,13 @@ links:
     desc: "阿锐是处理器和OS巨佬！"
     email: exiis@126.com
     color: "#222bb8"
-  
+  - url: https://www.ruin-of-future.online/
+    avatar: https://www.ruin-of-future.online/wp-content/uploads/2018/03/nerv.png
+    name: LinHeLurking
+    blog: "未来遗迹"
+    desc: 遗落于未来
+    email: LinHe.Lurking@gmail.com
+    color: "#66ccff"
 placeholder: 还没想好说些什么 # 默认对友链的描述
 tip: 友链加载中～如失败请刷新重试～
 ---
