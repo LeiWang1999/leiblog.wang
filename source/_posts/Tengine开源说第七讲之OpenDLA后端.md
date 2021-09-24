@@ -20,5 +20,5 @@ Bilibili链接：https://www.bilibili.com/video/BV1z44y1478k
 
 直接观看：
 
-<iframe src="//player.bilibili.com/player.html?aid=975738360&bvid=BV1z44y1478k&cid=413387534&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+<iframe src="//player.bilibili.com/player.html?aid=975738360&bvid=BV1z44y1478k&cid=413387534&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" width=480px height=640px allowfullscreen="true"> </iframe>
 
