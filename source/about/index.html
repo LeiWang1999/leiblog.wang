@@ -6,6 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About</title>
     <style type="text/css">
+        * {
+            font-family: "Segoe UI", "Roboto", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+
+        div#resume {
+            min-width: 310px;
+            font: 16px Helvetica, Avernir, sans-serif;
+            line-height: 24px;
+            color: #000
+        }
+
+        div#resume img {
+            float: right;
+            padding: 10px;
+            background: #fff;
+            margin: 0 30px;
+            transform: rotate(-4deg);
+            box-shadow: 0 0 4px rgba(0, 0, 0, .3);
+            width: 30%;
+            max-width: 220px
+        }
+
         .title h1 {
             text-align: center;
             font-size: larger;
@@ -30,25 +52,58 @@
             font-size: larger;
             font-weight: bold;
         }
+
+        .education {
+            font-size: large;
+        }
+
+        .education img {
+            border-radius: 50%;
+            width: 12vmin;
+            height: 12vmin;
+            object-fit: cover;
+            float: right;
+        }
+
+        .education .rank {
+            color: red;
+            font-size: large;
+            font-weight: bold;
+        }
+
+        .experience img {
+            box-shadow: none;
+            border: none;
+            width: 5vmin;
+            display: inline-block;
+            vertical-align: middle;
+        }
     </style>
 </head>
 
 <body>
     <div class="content">
         <div class="intro">
-
-            <h2>INTRODUCTION</h2>
+            <div id="resume">
+                <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/WechatIMG38.jpeg" alt="Wang Lei">
+            </div>
+            <h2>Introduction</h2>
             <p>
-                I am currently an undergraduate major in <a href="https://green.njtech.edu.cn">Electronic
-                    Engineering</a>, <a href="http://www.njtech.edu.cn">Nanjing Tech University</a>
-                , ranking the <span class="rank">1st</span> out of 59 students in the department with GPA
-                <span class="rank">3.93/4.00</span>.
+                I am currently a firt year postgraduate major in University of Chinese Academy of Sciences <a href="https://www.ucas.ac.cn/">UCAS</a>, Institute of Computer Technology (<a href="http://www.ict.ac.cn/">ICT</a>), and <a href="http://people.ucas.ac.cn/~yinhe">yinhes</a> is my mentor.
             </p>
             <p>
-                Now, I am about to become a postgraduate of <a href="https://www.ucas.ac.cn/">UCAS</a> Institute of
-                Computer Technology (<a href="http://www.ict.ac.cn/">ICT</a>) by postgraduate recommendation,
-                focus on Intelligent computer development.
-                <a href="http://people.ucas.ac.cn/~yinhe">yinhes</a> is my mentor.
+                And I am now focusing on :
+                <ul>
+                    <li>
+                        <a href="https://github.com/OAID/Tengine">CPU Fallback based on Tengine</a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/LeiWang1999/ZYNQ-NVDLA">Opensoure Accelerator System Design</a>
+                    </li>
+                </ul>
+            </p>
+            <p>
+                You can browse my Technical post <a href="https://leiblog.wang">here</a>。
             </p>
             <div class="detail">
                 <img class="avatar" src="http://leiblog.wang/static/image/2020/11/long_avatar.jpg" alt="avatar">
@@ -62,7 +117,7 @@
             </div>
         </div>
         <div class="honors">
-            <h2>AWARDS & HONORS</h2>
+            <h2>Awards & Honors</h2>
             <div class="scholarship">
                 <ul>
                     <li class="nice">Njtech <b>Person of The Year</b> (10 each academic year / include PhD）</li>
@@ -93,6 +148,47 @@
                 </ul>
             </div>
         </div>
+
+        <div class="education">
+            <h2>Education</h2>
+            <div class="school">
+                <ul>
+                    <li>
+                        <div class="ucas">
+                            <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/ucasLogo.png" width="20%"">
+                            <b>University of Chinese Academy of Science</b><br>
+                            <b>Institute of Computer Technology</b><br>
+                            Master in Computer Science(Aug. 2021 - Present)
+                        </div>
+                    </li>
+                    <li>
+                        <div class=" njtech">
+                            <b>Nanjing Tech University</b><br>
+                            Master in Electronic Engineering(Aug. 2017 - Jun. 2021) <br>
+                            Overall GPA: <span class="rank">3.95/4.00</span> <br>
+                            Ranking: <span class="rank">1/59</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="experience">
+            <h2>Work Experience</h2>
+            <ul>
+                <li>
+                    <div class="netease">
+                        <b><a href="https://www.youdao.com/">Netease Intelligent Hardware R&D Department</a></b>
+                        <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/600px-NetEase_logo.png">
+                        <br>
+                        <span>Bei Jing, China</span>
+                        <br>
+                        <span>NPU / DLA Development intern. (Sep. 2021 - Oct. 2021)</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
         <div class="research-publication">
             <h2>RESEARCH & PUBLICATION</h2>
             <div class="research">
