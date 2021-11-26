@@ -90,7 +90,7 @@ links:
     email: LinHe.Lurking@gmail.com
     color: "#66ccff"
   - url: https://blog.imlk.top
-    # avatar: 
+    avatar: https://esonhugh.me/assets/img/reol.png
     name: imlk
     blog: "imlk's Blog"
     desc: ⚡️power := INF⚡️
