@@ -89,6 +89,13 @@ links:
     desc: 遗落于未来
     email: LinHe.Lurking@gmail.com
     color: "#66ccff"
+  - url: https://blog.imlk.top
+    avatar: 
+    name: imlk
+    blog: "imlk's Blog"
+    desc: ⚡️power := INF⚡️
+    email: me@imlk.top
+    color: "#000"
 placeholder: 还没想好说些什么 # 默认对友链的描述
 tip: 友链加载中～如失败请刷新重试～
 ---
