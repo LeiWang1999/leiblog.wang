@@ -123,7 +123,7 @@ https://www.jetbrains.com/help/clion/remote-projects-support.html
 
 .toy 文本文件 -> Toy AST -> MLIRGen -> Transformation -> Lowering -> JIT/LLVM IR.
 
-首先是AST部分，对于如下的Toy语言，没有用ast.toy这个文件，有点复杂而且是会抛异常的。如下来自Ch2的Codegen.toy的例子能更好的贯穿文章：
+首先是AST部分，对于如下的Toy语言，没有用ast.toy这个文件，有点复杂而且是会抛异常的。如下来自Ch2的codegen.toy的例子能更好的贯穿文章：
 
 ```python
 # User defined generic function that operates on unknown shaped arguments
@@ -139,8 +139,6 @@ def main() {
   print(d);
 }
 ```
-
-
 
 打印出该语言的Toy抽象语法树：
 
@@ -192,6 +190,29 @@ MLIR的语言详细参考官方文档中的 Lang Ref : https://mlir.llvm.org/doc
 `ch2 ../../mlir/test/Examples/Toy/Ch2/codegen.toy -emit=mlir -mlir-print-debuginfo`
 
 其根本上是一个类似图的数据结构，节点就是Operations，边就是Value.每个Value可以是Operation的返回值或者是Block的参数，Operations被包含在Blocks里，Block包含在Regions里，Regions包含在Operations里，如此往复，生生不息。
+
+即可将之前的codegen.toy文件转化正MLIR：
+
+```python
+module  {
+  func @multiply_transpose(%arg0: tensor<*xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":4:1), %arg1: tensor<*xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":4:1)) -> tensor<*xf64> {
+    %0 = toy.transpose(%arg0 : tensor<*xf64>) to tensor<*xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":5:10)
+    %1 = toy.transpose(%arg1 : tensor<*xf64>) to tensor<*xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":5:25)
+    %2 = toy.mul %0, %1 : tensor<*xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":5:25)
+    toy.return %2 : tensor<*xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":5:3)
+  } loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":4:1)
+  func @main() {
+    %0 = toy.constant dense<[[1.000000e+00, 2.000000e+00, 3.000000e+00], [4.000000e+00, 5.000000e+00, 6.000000e+00]]> : tensor<2x3xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":9:17)
+    %1 = toy.reshape(%0 : tensor<2x3xf64>) to tensor<2x3xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":9:3)
+    %2 = toy.constant dense<[1.000000e+00, 2.000000e+00, 3.000000e+00, 4.000000e+00, 5.000000e+00, 6.000000e+00]> : tensor<6xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":10:17)
+    %3 = toy.reshape(%2 : tensor<6xf64>) to tensor<2x3xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":10:3)
+    %4 = toy.generic_call @multiply_transpose(%1, %3) : (tensor<2x3xf64>, tensor<2x3xf64>) -> tensor<*xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":11:11)
+    %5 = toy.generic_call @multiply_transpose(%3, %1) : (tensor<2x3xf64>, tensor<2x3xf64>) -> tensor<*xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":12:11)
+    toy.print %5 : tensor<*xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":13:3)
+    toy.return loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":8:1)
+  } loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":8:1)
+} loc(unknown)
+```
 
 Operations顾名思义可以代表很多内容，高层次比如说函数定义、函数调用、内存分配、进程创建；低层次比如说硬件专属的指令，配置寄存器和逻辑门（应该是指CIRCT这样的HLS项目），这些OP可以被我们随意的扩充。
 
