@@ -123,6 +123,8 @@ https://www.jetbrains.com/help/clion/remote-projects-support.html
 
 .toy 文本文件 -> Toy AST -> MLIRGen -> Transformation -> Lowering -> JIT/LLVM IR.
 
+#### AST
+
 首先是AST部分，对于如下的Toy语言，没有用ast.toy这个文件，有点复杂而且是会抛异常的。如下来自Ch2的codegen.toy的例子能更好的贯穿文章：
 
 ```python
@@ -183,13 +185,15 @@ def main() {
 
 不难察觉其和LLVM的抽象语法树的组织形式一样，一个文件对应一个Module，Module里包含若干Function，Function里包含若干基本块BasicBlock，BasicBlock里包含了若干条指令。
 
+#### MLIRGen与Toy语言
+
 .toy 文本文件 -> Toy AST -> **MLIRGen** -> Transformation -> Lowering -> JIT/LLVM IR.
 
 MLIR的语言详细参考官方文档中的 Lang Ref : https://mlir.llvm.org/docs/LangRef/
 
-`ch2 ../../mlir/test/Examples/Toy/Ch2/codegen.toy -emit=mlir -mlir-print-debuginfo`
+其根本上是一个类似图的数据结构，节点就是Operations，边就是Value.每个Value可以是Operation的返回值或者是Block的参数，Operations被包含在Blocks里，Block包含在Regions里，Regions包含在Operations里，如此往复，生生不息。Operations顾名思义可以代表很多内容，高层次比如说函数定义、函数调用、内存分配、进程创建；低层次比如说硬件专属的指令，配置寄存器和逻辑门（应该是指CIRCT这样的HLS项目），这些OP可以被我们随意的扩充。
 
-其根本上是一个类似图的数据结构，节点就是Operations，边就是Value.每个Value可以是Operation的返回值或者是Block的参数，Operations被包含在Blocks里，Block包含在Regions里，Regions包含在Operations里，如此往复，生生不息。
+`ch2 ../../mlir/test/Examples/Toy/Ch2/codegen.toy -emit=mlir -mlir-print-debuginfo`
 
 即可将之前的codegen.toy文件转化正MLIR：
 
@@ -214,23 +218,393 @@ module  {
 } loc(unknown)
 ```
 
-Operations顾名思义可以代表很多内容，高层次比如说函数定义、函数调用、内存分配、进程创建；低层次比如说硬件专属的指令，配置寄存器和逻辑门（应该是指CIRCT这样的HLS项目），这些OP可以被我们随意的扩充。
+单独拎出一句来简单看一下MLIR的表达式结构：
 
+```c
+%0 = toy.transpose(%arg0 : tensor<*xf64>) to tensor<*xf64> loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":5:10)
+```
 
+显而易见的是`%0`是表达式的返回值，其也是以一种和LLVM IR一样递增的临时寄存器的形式存在，但是和LLVM IR不一样的是，LLVM的Basic Block本身会占用一个临时寄存器号，BasicBlock内部的临时寄存器是从`%1`开始编号的，不同于MLIR。
 
-#### Dialect
+`toy.transpose`其中的toy类似于命名空间，算是Dialect的名字，transpose是OP的名字。
+
+`%arg0 : tensor<*xf64>`是参数列表，前者表示参数的名字，后者表示参数的类型。
+
+`to tensor<*xf64> `表示的是输出参数的类型。
+
+`loc("../../mlir/test/Examples/Toy/Ch2/codegen.toy":5:10)`是在添加了`-mlir-print-debuginfo`之后生成的调试信息，表示该行表达式是从源代码的何处产生的。
+
+你可能会疑惑，在有些tutorial里你看到的ir可能是这样的：
+
+```c
+%0 = "toy.transpose"(%arg0) : (tensor<*xf64>) -> tensor<*xf64> loc("test/codegen.toy":5:10)
+```
+
+这其实同一种表示不同的打印形式，毕竟这个打出来的IR是方便人来看的，在MLIR里可以非常方便的使用TableGen（MLIR专门设计的一个DSL）来调整这些输出，比如在我现在的的Project里，`Ops.td`里定义的Transpose的Operation如下：
+
+```C
+def TransposeOp : Toy_Op<"transpose"> {
+  let summary = "transpose operation";
+
+  let arguments = (ins F64Tensor:$input);
+  let results = (outs F64Tensor);
+
+  let assemblyFormat = [{
+    `(` $input `:` type($input) `)` attr-dict `to` type(results)
+  }];
+
+  // Allow building a TransposeOp with from the input operand.
+  let builders = [
+    OpBuilder<(ins "Value":$input)>
+  ];
+
+  // Invoke a static verify method to verify this transpose operation.
+  let verifier = [{ return ::verify(*this); }];
+}
+```
+
+其中的`assemblyFormat`就是输出的格式，可以看到我们的输出与他的内容是一一对应的，只要更改每个OP这里的内容就可以实现输出的MLIR的格式，具体怎样调整，有哪些关键字，请参考[Declarative Assembly Format](https://mlir.llvm.org/docs/OpDefinitions/#declarative-assembly-format)。从这里就可以看出MLIR的可操作性非常强！
+
+说回Toy Dialect，在上述源代码中我们可以看到该语言至少内置了诸如`transpose`,`print`,`constant`这一类的Operation，怎么定义或者扩展呢？在Tutorial的第二节里有讲，第一种方法是基于奇异递归模板模式(Curiously Recurring Template Pattern)，用C++来继承`mlir::Op`的创建方案，另一种是使用ODS( Operation Definition Specification，基于LLVM专门设计的一个DSL TableGen实现)来快速的给出各种OP的定义，ODS的语法参考[OpDefinitions](https://mlir.llvm.org/docs/OpDefinitions/),使用如下命令查看ods转化成的cpp文件内容，其中` -gen-op-defs`、` -gen-op-decls`分别对应着生成的定义和声明:
+
+```bash
+${build_root}/bin/mlir-tblgen -gen-op-defs ${mlir_src_root}/examples/toy/Ch2/include/toy/Ops.td -I ${mlir_src_root}/include/
+```
+
+简单看一下Ops.td里的AddOp的定义：
+
+```C
+def AddOp : Toy_Op<"add"> {
+  let summary = "element-wise addition operation";
+  let description = [{
+    The "add" operation performs element-wise addition between two tensors.
+    The shapes of the tensor operands are expected to match.
+  }];
+
+  let arguments = (ins F64Tensor:$lhs, F64Tensor:$rhs);
+  let results = (outs F64Tensor);
+
+  // Specify a parser and printer method.
+  let parser = [{ return ::parseBinaryOp(parser, result); }];
+  let printer = [{ return ::printBinaryOp(p, *this); }];
+
+  // Allow building an AddOp with from the two input operands.
+  let builders = [
+    OpBuilder<(ins "Value":$lhs, "Value":$rhs)>
+  ];
+}
+```
+
+显而易见的是声明的头部里有op在dialect里的name，“constant”，summary和description是自动生成文档用的。
+
+arguments 是输入的参数，ins表示的是inputs，两个都是Float64的Tensor，加了`$`的两个表示输入的变量，tablegen会自动生成获取两个变量的方法：
+
+```c
+::mlir::Value AddOp::lhs() {
+  return *getODSOperands(0).begin();
+}
+::mlir::Value AddOp::rhs() {
+  return *getODSOperands(1).begin();
+}
+```
+
+results是输出的内容，outs表示的是outputs，是一个Float64的Tensor。
+
+parser和printer是用来指定自定义的mlir的文本输出方式，和前文中提到的assemblyFormat作用应该是类似的。
+
+builders是指明了构造器，如果像上文中那样写的话，最后生成的构造器有三个：
+
+```c
+void AddOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::Type resultType0, ::mlir::Value lhs, ::mlir::Value rhs) {
+  odsState.addOperands(lhs);
+  odsState.addOperands(rhs);
+  odsState.addTypes(resultType0);
+}
+void AddOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::Value lhs, ::mlir::Value rhs) {
+  odsState.addOperands(lhs);
+  odsState.addOperands(rhs);
+  assert(resultTypes.size() == 1u && "mismatched number of results");
+  odsState.addTypes(resultTypes);
+}
+void AddOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
+  assert(operands.size() == 2u && "mismatched number of parameters");
+  odsState.addOperands(operands);
+  odsState.addAttributes(attributes);
+  assert(resultTypes.size() == 1u && "mismatched number of return types");
+  odsState.addTypes(resultTypes);
+}
+```
+
+还有一些没有写的，比如说验证参数正确性的verifier等等，这里只是做简单的survey就不要继续往下挖。总之，TableGen能帮助我们缩短构建一个新的DSL，添加OP、或者是添加一个新的后端的时间，这一点已经在LLVM里得到了验证。
+
+#### Transformation
+
+.toy 文本文件 -> Toy AST -> MLIRGen -> **Transformation** -> Lowering -> JIT/LLVM IR.
+
+接下来是Transformation，既然是IR当然会有Pass来做优化啦。MLIR的特点是Dialect是一个没有那么Low Level的IR，比如说：
+
+```c
+func @transpose_transpose(%arg0: tensor<*xf64>) -> tensor<*xf64> {
+  %0 = toy.transpose(%arg0 : tensor<*xf64>) to tensor<*xf64>
+  %1 = toy.transpose(%0 : tensor<*xf64>) to tensor<*xf64>
+  toy.return %1 : tensor<*xf64>
+}
+```
+
+这样的函数，input的矩阵经过两次transpose操作，那么显然它最后的结果仍然是它本身，可以把这两个transpose都优化掉，但是如果我们将这段mlir代码lowering到底层，展开成for循环的形式则发现这两个transpose可以优化的难度很大：
+
+```c
+#define N 100
+#define M 100
+
+void sink(void *);
+void double_transpose(int A[N][M]) {
+  int B[M][N];
+  for(int i = 0; i < N; ++i) {
+    for(int j = 0; j < M; ++j) {
+       B[j][i] = A[i][j];
+    }
+  }
+  for(int i = 0; i < N; ++i) {
+    for(int j = 0; j < M; ++j) {
+       A[i][j] = B[j][i];
+    }
+  }
+  sink(A);
+}
+```
+
+MLIR使用和LLVM一样的PassManager来管理Pass，而对于写Pass的方法，MLIR又提供了两种方案。比如对于刚才双重transpose的问题，我们可以通过重写MLIR的Canonicalizer里的MatchAndRewrite方法首先，顾名思义，他就是匹配模式然后重写，具体的代码如下：
+
+```C
+/// This is an example of a c++ rewrite pattern for the TransposeOp. It
+/// optimizes the following scenario: transpose(transpose(x)) -> x
+struct SimplifyRedundantTranspose : public mlir::OpRewritePattern<TransposeOp> {
+  /// We register this pattern to match every toy.transpose in the IR.
+  /// The "benefit" is used by the framework to order the patterns and process
+  /// them in order of profitability.
+  SimplifyRedundantTranspose(mlir::MLIRContext *context)
+      : OpRewritePattern<TransposeOp>(context, /*benefit=*/1) {}
+
+  /// This method attempts to match a pattern and rewrite it. The rewriter
+  /// argument is the orchestrator of the sequence of rewrites. The pattern is
+  /// expected to interact with it to perform any changes to the IR from here.
+  mlir::LogicalResult
+  matchAndRewrite(TransposeOp op,
+                  mlir::PatternRewriter &rewriter) const override {
+    // Look through the input of the current transpose.
+    mlir::Value transposeInput = op.getOperand();
+    TransposeOp transposeInputOp = transposeInput.getDefiningOp<TransposeOp>();
+
+    // Input defined by another transpose? If not, no match.
+    if (!transposeInputOp)
+      return failure();
+
+    // Otherwise, we have a redundant transpose. Use the rewriter.
+    rewriter.replaceOp(op, {transposeInputOp.getOperand()});
+    return success();
+  }
+};
+```
+
+大概的含义是，对于每个TransposeOp，找到他的输入，如果他的输入也是由一个TransposeOp定义的，那么就调用replaceOp函数来将这两个transpose消除，具体如何消除需要看replaceOp的内容。
+
+```c
+/// This method replaces the results of the operation with the specified list of
+/// values. The number of provided values must match the number of results of
+/// the operation.
+void RewriterBase::replaceOp(Operation *op, ValueRange newValues) {
+  // Notify the rewriter subclass that we're about to replace this root.
+  notifyRootReplaced(op);
+
+  assert(op->getNumResults() == newValues.size() &&
+         "incorrect # of replacement values");
+  op->replaceAllUsesWith(newValues);
+
+  notifyOperationRemoved(op);
+  op->erase();
+}
+```
+
+根据字面意思，这个函数的作用是会将输入op的result，也就是`%1 = toy.transpose(%0 : tensor<*xf64>) to tensor<*xf64>`中的%1替换成一组值，而这一组值是`transposeInputOp.getOperand()`也就是`%0 = toy.transpose(%arg0 : tensor<*xf64>) to tensor<*xf64>`中的`%arg0`，然后将原来的op删除。但是如此的话，经过这个pass优化完的mlir长这个样子：
+
+```c
+func @transpose_transpose(%arg0: tensor<*xf64>) -> tensor<*xf64> {
+  %0 = toy.transpose(%arg0 : tensor<*xf64>) to tensor<*xf64>
+  toy.return %arg0 : tensor<*xf64>
+}
+```
+
+这可以理解，因为replaceOp只清除了最下面的op，中间的operation应该如何删除？显然这是一条死代码，MLIR的CanonicalizerPass会自动的删除MLIR的死代码，所以最后输出的结果如下：
+
+```c
+func @transpose_transpose(%arg0: tensor<*xf64>) -> tensor<*xf64> {
+  toy.return %arg0 : tensor<*xf64>
+}
+```
+
+除了这种用C++来手撸Pass的方法，MLIR还提供了一种叫做DRR(Declarative, rule-based pattern-match and rewrite)的声明式的方法来快速的完成Pass的编写从而不需要care具体的API，其实也是TableGen的语法，有关DRR的细节，优点和局限具体参考[DeclarativeRewrites](https://mlir.llvm.org/docs/DeclarativeRewrites/)这一节。
+
+MLIR的文档里提到，不同的Dialect之间有很多的Pass具有重复的部分，可能对于这种transpose消除的操作，toy这个语言需要写这样的代码，另一个语言也需要重复实现不少相同的内容，为了更好的复用，MLIR提供了一种叫Interface的解决方案，Inteface分为Dialect和Op两类，其中后者的粒度更细。比如Ch4里演示的内置的DialectInlinerinterface和ShapeInferenceOpInterface，而且也有基于TableGen的设计方法！
 
 #### Lowering
 
+.toy 文本文件 -> Toy AST -> MLIRGen -> Transformation -> **Lowering** -> JIT/LLVM IR.
+
+把toy的dialect转化成llvm ir就是一个lowering的过程，但是在MLIR的设计上，一个dialect可以背lower到多个dialect上，比如ch5的例子就将toy dialect中的transpose下降到了Affine Dialect、其他的比如print可以先保持在toy dialect，之后可以lower到llvm dialect上来实现，常数lower到arith dialect、还有memref dialect来管理内存。言下之意就是MLIR在lower的过程中可以支持部分代码lower到不同的dialect，以及不同的dialect在MLIR里可以共存。
+
+Affine的意思是仿射变换，对于矩阵这种高纬度的运算适合lower到affine上做优化，但是为啥合适？可能需要参考一些多面体编程框架有关的知识，有关Affine Dialect详细，请参考：https://mlir.llvm.org/docs/Dialects/Affine/
+
+Arith是用来做基本的一元两元三元的数学运算，比如加减乘除求最大值最小值等。
+
+以及[Dialects](https://mlir.llvm.org/docs/Dialects/)里列出了很多现有的Dialect，对于如下的toy dialect：
+
+```c
+func @main() {
+  %0 = toy.constant dense<[[1.000000e+00, 2.000000e+00, 3.000000e+00], [4.000000e+00, 5.000000e+00, 6.000000e+00]]> : tensor<2x3xf64>
+  %2 = toy.transpose(%0 : tensor<2x3xf64>) to tensor<3x2xf64>
+  %3 = toy.mul %2, %2 : tensor<3x2xf64>
+  toy.print %3 : tensor<3x2xf64>
+  toy.return
+}
+```
+
+部分Lowering到Affine并通过Pass来优化的最终结果是：
+
+```c
+func @main() {
+  %cst = arith.constant 1.000000e+00 : f64
+  %cst_0 = arith.constant 2.000000e+00 : f64
+  %cst_1 = arith.constant 3.000000e+00 : f64
+  %cst_2 = arith.constant 4.000000e+00 : f64
+  %cst_3 = arith.constant 5.000000e+00 : f64
+  %cst_4 = arith.constant 6.000000e+00 : f64
+
+  // Allocating buffers for the inputs and outputs.
+  %0 = memref.alloc() : memref<3x2xf64>
+  %1 = memref.alloc() : memref<2x3xf64>
+
+  // Initialize the input buffer with the constant values.
+  affine.store %cst, %1[0, 0] : memref<2x3xf64>
+  affine.store %cst_0, %1[0, 1] : memref<2x3xf64>
+  affine.store %cst_1, %1[0, 2] : memref<2x3xf64>
+  affine.store %cst_2, %1[1, 0] : memref<2x3xf64>
+  affine.store %cst_3, %1[1, 1] : memref<2x3xf64>
+  affine.store %cst_4, %1[1, 2] : memref<2x3xf64>
+
+  affine.for %arg0 = 0 to 3 {
+    affine.for %arg1 = 0 to 2 {
+      // Load the transpose value from the input buffer.
+      %2 = affine.load %1[%arg1, %arg0] : memref<2x3xf64>
+
+      // Multiply and store into the output buffer.
+      %3 = arith.mulf %2, %2 : f64
+      affine.store %3, %0[%arg0, %arg1] : memref<3x2xf64>
+    }
+  }
+
+  // Print the value held by the buffer.
+  toy.print %0 : memref<3x2xf64>
+  memref.dealloc %1 : memref<2x3xf64>
+  memref.dealloc %0 : memref<3x2xf64>
+  return
+}
+```
+
+当然也可以全都Lowering到LLVM上:
+
+```c
+llvm.func @free(!llvm<"i8*">)
+llvm.func @printf(!llvm<"i8*">, ...) -> i32
+llvm.func @malloc(i64) -> !llvm<"i8*">
+llvm.func @main() {
+  %0 = llvm.mlir.constant(1.000000e+00 : f64) : f64
+  %1 = llvm.mlir.constant(2.000000e+00 : f64) : f64
+
+  ...
+
+^bb16:
+  %221 = llvm.extractvalue %25[0 : index] : !llvm<"{ double*, i64, [2 x i64], [2 x i64] }">
+  %222 = llvm.mlir.constant(0 : index) : i64
+  %223 = llvm.mlir.constant(2 : index) : i64
+  %224 = llvm.mul %214, %223 : i64
+  %225 = llvm.add %222, %224 : i64
+  %226 = llvm.mlir.constant(1 : index) : i64
+  %227 = llvm.mul %219, %226 : i64
+  %228 = llvm.add %225, %227 : i64
+  %229 = llvm.getelementptr %221[%228] : (!llvm."double*">, i64) -> !llvm<"f64*">
+  %230 = llvm.load %229 : !llvm<"double*">
+  %231 = llvm.call @printf(%207, %230) : (!llvm<"i8*">, f64) -> i32
+  %232 = llvm.add %219, %218 : i64
+  llvm.br ^bb15(%232 : i64)
+
+  ...
+
+^bb18:
+  %235 = llvm.extractvalue %65[0 : index] : !llvm<"{ double*, i64, [2 x i64], [2 x i64] }">
+  %236 = llvm.bitcast %235 : !llvm<"double*"> to !llvm<"i8*">
+  llvm.call @free(%236) : (!llvm<"i8*">) -> ()
+  %237 = llvm.extractvalue %45[0 : index] : !llvm<"{ double*, i64, [2 x i64], [2 x i64] }">
+  %238 = llvm.bitcast %237 : !llvm<"double*"> to !llvm<"i8*">
+  llvm.call @free(%238) : (!llvm<"i8*">) -> ()
+  %239 = llvm.extractvalue %25[0 : index] : !llvm<"{ double*, i64, [2 x i64], [2 x i64] }">
+  %240 = llvm.bitcast %239 : !llvm<"double*"> to !llvm<"i8*">
+  llvm.call @free(%240) : (!llvm<"i8*">) -> ()
+  llvm.return
+}
+```
+
+Lower的过程是需要我们针对toy里的Operation来写Lower的代码，，感觉这个工作量也是非常爆炸的吧，不知道有没有自动化的方法？
+
+#### Codegen
+
+.toy 文本文件 -> Toy AST -> MLIRGen -> Transformation -> Lowering -> **JIT/LLVM IR**.
+
+到这里，就可以做codegen了，生成LLVM IR或者是用LLVM JIT来执行程序，开了optimization之后的LLVM IR被优化为：
+
+```c
+define void @main()
+  %0 = tail call i32 (i8*, ...) @printf(i8* nonnull dereferenceable(1) getelementptr inbounds ([4 x i8], [4 x i8]* @frmt_spec, i64 0, i64 0), double 1.000000e+00)
+  %1 = tail call i32 (i8*, ...) @printf(i8* nonnull dereferenceable(1) getelementptr inbounds ([4 x i8], [4 x i8]* @frmt_spec, i64 0, i64 0), double 1.600000e+01)
+  %putchar = tail call i32 @putchar(i32 10)
+  %2 = tail call i32 (i8*, ...) @printf(i8* nonnull dereferenceable(1) getelementptr inbounds ([4 x i8], [4 x i8]* @frmt_spec, i64 0, i64 0), double 4.000000e+00)
+  %3 = tail call i32 (i8*, ...) @printf(i8* nonnull dereferenceable(1) getelementptr inbounds ([4 x i8], [4 x i8]* @frmt_spec, i64 0, i64 0), double 2.500000e+01)
+  %putchar.1 = tail call i32 @putchar(i32 10)
+  %4 = tail call i32 (i8*, ...) @printf(i8* nonnull dereferenceable(1) getelementptr inbounds ([4 x i8], [4 x i8]* @frmt_spec, i64 0, i64 0), double 9.000000e+00)
+  %5 = tail call i32 (i8*, ...) @printf(i8* nonnull dereferenceable(1) getelementptr inbounds ([4 x i8], [4 x i8]* @frmt_spec, i64 0, i64 0), double 3.600000e+01)
+  %putchar.2 = tail call i32 @putchar(i32 10)
+  ret void
+}
+```
+
 ### 三、已经使用MLIR的项目
 
-但是MLIR官方给的toy语言不足以支撑其在一个实际工业应用下MLIR可能发挥的作用，只能说可以帮助我们更好的了解MLIR。有关MLIR具体可以解决什么样的问题，解决的怎么样了，需要看一下当下使用MLIR的一些项目。
+从MLIR官方给的toy语言里我们能够感觉到在设计一个新的DSL其带来的便利，但是我更关心的是在其他一些领域比如说NN编译，或者一些更妙的地方MLIR能发挥什么作用？有关MLIR具体可以解决什么样的问题，解决的怎么样了，需要看一下当下使用MLIR的一些项目。
 
-#### CIRCT
+#### CIRCT - Circuit IR Compilers and Tools
+
+项目地址：https://github.com/llvm/circt
+
+Talks：
+
+- ASPLOS 2021：[The Golden Age of Compiler Design in an Era of HW/SW Co-design](https://www.youtube.com/watch?v=4HgShra-KnY)
+
+顾名思义，CIRCT是一个高层次综合的工具。值得注意的是，CIRCT的主要发起者还是Chris，并且FIRRTL的作者也在参与这个项目，此外还有Sifive、Xilinx、Microsoft这些大厂来做支持，MLIR在里面发挥了么作用呢？也是类似于一统IR的作用，在CIRCT的文档里提到，现有的很多的EDA工具都是以Verilog IR为主的，但是这个上世纪的语言显然有太多的缺点了，于是这个项目希望用MLIR来统一，具体怎么做？因为对这个不太感兴趣所以没有编译出来跑个Demo，就来看一下一个由法斯特豪斯大佬给的例子吧:https://www.bilibili.com/video/BV1UV411U7Nk.
+
+看起来，CIRCT至少提供了Hardware、FIRRTL、SystemVerilog这三个Dialect，但最后还不是要lowering到Verilog上嘛.....
+
+但是，我对高层次综合这个领域这个看法还是比较消极的，主要是他们最后还是都得生成verilog去综合而不是有自己的综合器，虽然使用高层次综合能在一定程度上增加开发的效率，但是对于整个IC设计的Workflow来说，前端的设计只占其中的一部分，后端的测试、验证等等工作用到的很多EDA软件对于生成的可读性不是很好的verilog代码来说反而是增加了难度，其次，前端设计也不是一些dirty work，反而是一些对延迟敏感的clean work，一般来讲，手写verilog RTL都能获得最好的性能，所以核心还是Synopsys这些厂商给不给综合器的支持。
+
+#### ONNX-MLIR
+
+https://github.com/onnx/onnx-mlir
 
 ### 总结
 
-tengine ncnn 这种是根据指令和高层次的 ir 意图，手写算子；mlir 试图不手写，直接从高层次的 ir 编译过去；前者问题是体力活，新芯片新指令新架构要继续肝；后者试图喝咖啡就把这事干了；现在 mlir 在造轮子苦逼的阶段，肝的内容比手写还多一些
-比较完善后，mlir 可以将多数优化的工作转为手写 schedule 和 pass；蓝领变白领
+刚刚接触MLIR的时候看了很多Talk和博客，我一直不明白MLIR的定位究竟是什么。从Chris大神一直在说的解决软件碎片化的角度来看，各大AI框架、软件框架之间的碎片化慢慢得转化成了MLIR内部各种Dialect的碎片化，再依托MLIR各种Dialect都属于同一种语言可以混用的特性来减轻这种碎片化带来的影响。
+
+再或者，以前的AI框架诸如Tengine、NCNN这些是根据指令和高层次的IR的意图来手写算子，当出现了新的指令架构或者新的DSA（这个在当下的需求越来越多，因为工艺很难上去了，各种DSA就被设计出来），需要耗费人力来对接后端，而MLIR试图缩减这些人力的开销，但是MLIR现在还是苦逼的造轮子阶段，比如大家都在给MLIR搭建生态，写Dialect，现在肝的内容甚至要比手写还要多一点。但是当MLIR做的比较完善之后，可能只需要写写Schedule和Pass就能把对接新后端的工作给做了！这也是MLIR论文的标题写到摩尔定律终结的原因吧。
+
+总之，至少MLIR绝对是一个优秀的编译器库，他由已经成神的拥有数十年编译器开发经验的Chris组织代码结构，模块化和可扩展性做的极度优秀。但如果把MLIR类比为编译器领域的ONNX，这条路看起来还不太明朗，至少我没有感觉到很便利，根据TVM的经验，ML的编译器有三个核心问题，分别是AutoTensorize，充分利用硬件的指令;AutoSchedule，本质是各种循环变换;AutoTiling，提高Cache命中率降低访存开销，除了Schedule有类似Affine这样的Dialect来做（大概可以吧，其他两个问题的答案似乎在MLIR里都没有找到，我只能希望MLIR不要走上ONNX的老路，成为一个能够真正一统江湖的IR。
 
 nihui建的mlir交流群：677104663（嘛可能不活跃就是了
