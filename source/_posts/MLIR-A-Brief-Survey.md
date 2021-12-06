@@ -38,7 +38,7 @@ MLIR SIG 组每周都会有一次 public meeting，如果你有特定的主题�
 
 ![img](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/261316515121404.jpg)
 
-> 2010 年的夏天，Chris Lattner 接到了一个不同寻常的任务：为 OS X 和 iOS 平台开发下一代新的编程语言。那时候乔布斯还在以带病之身掌控着庞大的苹果帝国，他是否参与了这个研发计划，我们不得而知，不过我想他至少应该知道此事，因为这个计划是高度机密的，只有极少数人知道，最初的执行者也只有一个人，那就是 Chris Lattner。
+> 网上瞎找的关于Chris的故事：2010 年的夏天，Chris Lattner 接到了一个不同寻常的任务：为 OS X 和 iOS 平台开发下一代新的编程语言。那时候乔布斯还在以带病之身掌控着庞大的苹果帝国，他是否参与了这个研发计划，我们不得而知，不过我想他至少应该知道此事，因为这个计划是高度机密的，只有极少数人知道，最初的执行者也只有一个人，那就是 Chris Lattner。
 >
 > 从 2010 年的 7 月起，克里斯（Chris）就开始了无休止的思考、设计、编程和调试，他用了近一年的时间实现了大部分基础语言结构，之后另一些语言专家加入进来持续改进。到了 2013 年，该项目成为了苹果开发工具组的重中之重，克里斯带领着他的团队逐步完成了一门全新语言的语法设计、编译器、运行时、框架、IDE 和文档等相关工作，并在 2014 年的 WWDC 大会上首次登台亮相便震惊了世界，这门语言的名字叫做：「Swift」。
 >
@@ -64,7 +64,7 @@ MLIR SIG 组每周都会有一次 public meeting，如果你有特定的主题�
 
 每个语言都会有自己的AST，除了AST以外这些语言还得有自己的IR来做language- specific optimization，但是他们的IR最后往往都会接到同样的后端，比如说LLVM IR上来做代码生成，来在不同的硬件上运行。这些语言专属的IR被叫做Mid-Level IR。
 
-对于NN编译器来说，首先一个显而易见的问题是组合爆炸，就比如说TFGraph为了在TPU上跑，要写生成TPU IR的代码，在CPU上跑要写对接LLVM IR的代码，类似的，其他PyTorch这样的框架也需要做同样的事情，但是每个组织发布的自己的框架，比如Pytorch、TensorFlow、MXNet他们的IR设计都是不一样的，不同的IR之间的可迁移性差，这也就代表着大量重复的工作与人力的浪费，这个问题是一个软件的碎片化问题，MLIR的一个设计目的就是为这些DSL提供一种统一的中间表示；其次，各个层次之间的优化无法迁移，比如说在XLA HLO这个层面做了一些图优化，在LLVM IR阶段并不知道XLA HLO做了哪方面的优化，所以有一些优化方式可能会在不同的层级那边执行多次（嘛，我觉得这个问题还好，最后跑起来快就行了，编译慢点没事）；最后，NN编译器的IR一般都是高层的计算图形式的IR，但是LLVM这些是基于三地址码的IR，他们的跨度比较大，这个转换过程带来的开销也会比较大。
+对于NN编译器来说，首先一个显而易见的问题是组合爆炸，就比如说TFGraph为了在TPU上跑，要写生成TPU IR的代码，在CPU上跑要写对接LLVM IR的代码，对接到TensorRT上又有其他的工作量，类似的，其他PyTorch这样的框架也需要做同样的事情，但是每个组织发布的自己的框架，比如Pytorch、TensorFlow、MXNet他们的IR设计都是不一样的，不同的IR之间的可迁移性差，这也就代表着大量重复的工作与人力的浪费，这个问题是一个软件的碎片化问题，MLIR的一个设计目的就是为这些DSL提供一种统一的中间表示；其次，各个层次之间的优化无法迁移，比如说在XLA HLO这个层面做了一些图优化，在LLVM IR阶段并不知道XLA HLO做了哪方面的优化，所以有一些优化方式可能会在不同的层级那边执行多次（嘛，我觉得这个问题还好，最后跑起来快就行了，编译慢点没事）；最后，NN编译器的IR一般都是高层的计算图形式的IR，但是LLVM这些是基于三地址码的IR，他们的跨度比较大，这个转换过程带来的开销也会比较大。
 
 最后，MLIR的这一篇Paper的标题是摩尔定律终结下的编译器基础架构，我理解的其含义是在摩尔定律终结，工艺已经到达临界的情况下，针对各种领域设计的DSA用的多了，异构系统的情况下的软件栈需要巨大的人力是一个很大的问题，而MLIR可以提供一种类似脚手架的存在，能够快速融合现有的编译器设计快速的打造软件生态。
 
@@ -191,7 +191,7 @@ def main() {
 
 MLIR的语言详细参考官方文档中的 Lang Ref : https://mlir.llvm.org/docs/LangRef/
 
-其根本上是一个类似图的数据结构，节点就是Operations，边就是Value.每个Value可以是Operation的返回值或者是Block的参数，Operations被包含在Blocks里，Block包含在Regions里，Regions包含在Operations里，如此往复，生生不息。Operations顾名思义可以代表很多内容，高层次比如说函数定义、函数调用、内存分配、进程创建；低层次比如说硬件专属的指令，配置寄存器和逻辑门（应该是指CIRCT这样的HLS项目），这些OP可以被我们随意的扩充。
+其根本上是一个类似图的数据结构（其实是SSA，不过SSA的Define和Use关系构成了图），节点就是Operations，边就是Value.每个Value可以是Operation的返回值或者是Block的参数，Operations被包含在Blocks里，Block包含在Regions里，Regions包含在Operations里，如此往复，生生不息。Operations顾名思义可以代表很多内容，高层次比如说函数定义、函数调用、内存分配、进程创建；低层次比如说硬件专属的指令，配置寄存器和逻辑门（应该是指CIRCT这样的HLS项目），这些OP可以被我们随意的扩充。
 
 `ch2 ../../mlir/test/Examples/Toy/Ch2/codegen.toy -emit=mlir -mlir-print-debuginfo`
 
@@ -337,6 +337,8 @@ void AddOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsState, ::mlir:
 
 还有一些没有写的，比如说验证参数正确性的verifier等等，这里只是做简单的survey就不要继续往下挖。总之，TableGen能帮助我们缩短构建一个新的DSL，添加OP、或者是添加一个新的后端的时间，这一点已经在LLVM里得到了验证。
 
+那怎么创建一个Dialect？需要Follow官方的文档：https://mlir.llvm.org/docs/Tutorials/CreatingADialect/ 粗略扫了一下封装的很好，改动的部分十分少。
+
 #### Transformation
 
 .toy 文本文件 -> Toy AST -> MLIRGen -> **Transformation** -> Lowering -> JIT/LLVM IR.
@@ -446,6 +448,13 @@ func @transpose_transpose(%arg0: tensor<*xf64>) -> tensor<*xf64> {
 除了这种用C++来手撸Pass的方法，MLIR还提供了一种叫做DRR(Declarative, rule-based pattern-match and rewrite)的声明式的方法来快速的完成Pass的编写从而不需要care具体的API，其实也是TableGen的语法，有关DRR的细节，优点和局限具体参考[DeclarativeRewrites](https://mlir.llvm.org/docs/DeclarativeRewrites/)这一节。
 
 MLIR的文档里提到，不同的Dialect之间有很多的Pass具有重复的部分，可能对于这种transpose消除的操作，toy这个语言需要写这样的代码，另一个语言也需要重复实现不少相同的内容，为了更好的复用，MLIR提供了一种叫Interface的解决方案，Inteface分为Dialect和Op两类，其中后者的粒度更细。比如Ch4里演示的内置的DialectInlinerinterface和ShapeInferenceOpInterface，而且也有基于TableGen的设计方法！
+
+```c
+struct ToyInlinerInterface : public DialectInlinerInterface {
+  using DialectInlinerInterface::DialectInlinerInterface;
+  //...
+};
+```
 
 #### Lowering
 
@@ -577,9 +586,11 @@ define void @main()
 }
 ```
 
-### 三、已经使用MLIR的项目
+### 四、已经使用MLIR的项目
 
 从MLIR官方给的toy语言里我们能够感觉到在设计一个新的DSL其带来的便利，但是我更关心的是在其他一些领域比如说NN编译，或者一些更妙的地方MLIR能发挥什么作用？有关MLIR具体可以解决什么样的问题，解决的怎么样了，需要看一下当下使用MLIR的一些项目。
+
+但是，MLIR刚刚起步，很多接口也在不停的变化，所以依托MLIR开发的项目也都是比较新的，文档比较少，功能还不是很丰富，都是处于苦逼的造轮子阶段。
 
 #### CIRCT - Circuit IR Compilers and Tools
 
@@ -591,20 +602,68 @@ Talks：
 
 顾名思义，CIRCT是一个高层次综合的工具。值得注意的是，CIRCT的主要发起者还是Chris，并且FIRRTL的作者也在参与这个项目，此外还有Sifive、Xilinx、Microsoft这些大厂来做支持，MLIR在里面发挥了么作用呢？也是类似于一统IR的作用，在CIRCT的文档里提到，现有的很多的EDA工具都是以Verilog IR为主的，但是这个上世纪的语言显然有太多的缺点了，于是这个项目希望用MLIR来统一，具体怎么做？因为对这个不太感兴趣所以没有编译出来跑个Demo，就来看一下一个由法斯特豪斯大佬给的例子吧:https://www.bilibili.com/video/BV1UV411U7Nk.
 
-看起来，CIRCT至少提供了Hardware、FIRRTL、SystemVerilog这三个Dialect，但最后还不是要lowering到Verilog上嘛.....
+这里我直接贴个他们的视频里的图片：
+
+​	con![image-20211205145350903](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20211205145350903.png)
+
+看起来，CIRCT至少提供了RTL(rtl.and)、FIRRTL(firth.circuit)、SystemVerilog(sv.fwrite)这三个Dialect，但最后还不是要lowering到Verilog上嘛.....
 
 但是，我对高层次综合这个领域这个看法还是比较消极的，主要是他们最后还是都得生成verilog去综合而不是有自己的综合器，虽然使用高层次综合能在一定程度上增加开发的效率，但是对于整个IC设计的Workflow来说，前端的设计只占其中的一部分，后端的测试、验证等等工作用到的很多EDA软件对于生成的可读性不是很好的verilog代码来说反而是增加了难度，其次，前端设计也不是一些dirty work，反而是一些对延迟敏感的clean work，一般来讲，手写verilog RTL都能获得最好的性能，所以核心还是Synopsys这些厂商给不给综合器的支持。
 
-#### ONNX-MLIR
+#### IREE Intermediate Representation Execution Environment
+
+Presentations and Talks
+
+- 2021-06-09: IREE Runtime Design Tech Talk ([recording](https://drive.google.com/file/d/1p0DcysaIg8rC7ErKYEgutQkOJGPFCU3s/view) and [slides](https://drive.google.com/file/d/1CA-FRRjZUbDFS4pGPiLT86lwghNxMN2M/view?usp=sharing))
+- 2020-08-20: IREE CodeGen: MLIR Open Design Meeting Presentation ([recording](https://drive.google.com/file/d/1325zKXnNIXGw3cdWrDWJ1-bp952wvC6W/view?usp=sharing) and [slides](https://docs.google.com/presentation/d/1NetHjKAOYg49KixY5tELqFp6Zr2v8_ujGzWZ_3xvqC8/edit))
+- 2020-03-18: Interactive HAL IR Walkthrough ([recording](https://drive.google.com/file/d/1_sWDgAPDfrGQZdxAapSA90AD1jVfhp-f/view?usp=sharing))
+- 2020-01-31: End-to-end MLIR Workflow in IREE: MLIR Open Design Meeting Presentation ([recording](https://drive.google.com/open?id=1os9FaPodPI59uj7JJI3aXnTzkuttuVkR) and [slides](https://drive.google.com/open?id=1RCQ4ZPQFK9cVgu3IH1e5xbrBcqy7d_cEZ578j84OvYI))
+
+这是Google自家做的一个端到端的基于MLIR的推理项目，根据其框架图：
+
+![IREE Architecture](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/iree_architecture.svg)
+
+目测他是由以下几个成分：
+
+- 把输入的Graph转化成XLA HLO Dialect
+- 将HLO Dialect Lower到Flow Dialect，Flow 这一层来做算子的切分
+- 继续Lower到HAL Dialect、完成与硬件相关的转换与优化
+- VM Dialect，看他官方的文档的描述，是一个隔离硬件与软件的虚拟机IR
+
+![image-20211206134823995](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20211206134823995.png)
+
+但是现在来看只能支持Tensorflow和JAX的模型，现在ONNX和Torch分别由ONNX-MLIR和Torch-MLIR这两个项目在做。并且，我很好奇对于同样的网络，基于MLIR的端到端推理速度会比现在的NN推理框架要快吗？因为调研到现在来看，MLIR似乎侧重于减轻开发的工作量，不知道性能是怎么样的？
+
+在IREE的项目里面，给了几个[CoLab的例子](https://github.com/google/iree/tree/main/colab)，居 然 还 可 以 跑 训 练，但是对于一些推理的Task没有贴上时间，该项目现在还在早期阶段，优先支持的是vulkan-spirv，用于mobile gpu，兼顾cpu和cuda。
+
+#### ONNX/Torch-MLIR
+
+虽然MLIR出身于TensorFlow，并且官方提供了tensorflow的Dialect以及HLO的dialect，但是像是FaceBook的Pytorch现在也有torch-mlir以及微软的ONNX也有onnx-mlir这些项目。
 
 https://github.com/onnx/onnx-mlir
+
+https://github.com/llvm/torch-mlir
+
+基本上是这些框架在发力为MLIR贡献生态，比如说ONNX Dialect、Krnl Dialect，也可以实现端到端的推理，但是还是一样，对于这些项目目前都是处于能跑，对于性能来讲都还在慢慢提升的阶段。
+
+#### TOSA - Tensor Operator Set Architecture Dialect
+
+TOSA应该说是ARM推出的一个算子规范（怎么听起来有ONNX那个味道了，感兴趣的可以去MLIR的官网下载TOSA SPEC文件，定义了八十六页的规范，但支持的算子是否足够使用也不明朗，在文档的开头写到希望这些主流框架的模型里的算子可以被在TOSA里被表示，目前来讲TF的mlho dialect已经可以转到TOSA Dialect，像Pytorch的话，也正在做torch-mlir到tosa dialect支持。
+
+![image-20211206160227567](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20211206160227567.png)
+
+#### Linalg Dialect
+
+针对ML编译器设计的中上层IR？知乎里有过讨论：
+
+https://www.zhihu.com/question/442964082/answer/1718928279
 
 ### 总结
 
 刚刚接触MLIR的时候看了很多Talk和博客，我一直不明白MLIR的定位究竟是什么。从Chris大神一直在说的解决软件碎片化的角度来看，各大AI框架、软件框架之间的碎片化慢慢得转化成了MLIR内部各种Dialect的碎片化，再依托MLIR各种Dialect都属于同一种语言可以混用的特性来减轻这种碎片化带来的影响。
 
-再或者，以前的AI框架诸如Tengine、NCNN这些是根据指令和高层次的IR的意图来手写算子，当出现了新的指令架构或者新的DSA（这个在当下的需求越来越多，因为工艺很难上去了，各种DSA就被设计出来），需要耗费人力来对接后端，而MLIR试图缩减这些人力的开销，但是MLIR现在还是苦逼的造轮子阶段，比如大家都在给MLIR搭建生态，写Dialect，现在肝的内容甚至要比手写还要多一点。但是当MLIR做的比较完善之后，可能只需要写写Schedule和Pass就能把对接新后端的工作给做了！这也是MLIR论文的标题写到摩尔定律终结的原因吧。
+再或者，以前的AI框架诸如Tengine、NCNN这些是根据指令和高层次的IR的意图来手写算子，当出现了新的指令架构或者新的DSA（这个在当下的需求越来越多，因为工艺很难上去了，各种DSA就被设计出来），需要耗费人力来对接后端，而MLIR试图缩减这些人力的开销，但是MLIR现在还是苦逼的造轮子阶段，比如大家都在给MLIR搭建生态，写Dialect，现在肝的内容甚至要比手写还要多一点。但是当MLIR做的比较完善之后，可能只需要写写Schedule和Pass就能把对接新后端的工作给做了！这也是MLIR论文的标题写到摩尔定律终结的原因吧，如果说MLIR可以很轻松的为新出现的DSA编写算子库的话，那就比较舒服了。
 
-总之，至少MLIR绝对是一个优秀的编译器库，他由已经成神的拥有数十年编译器开发经验的Chris组织代码结构，模块化和可扩展性做的极度优秀。但如果把MLIR类比为编译器领域的ONNX，这条路看起来还不太明朗，至少我没有感觉到很便利，根据TVM的经验，ML的编译器有三个核心问题，分别是AutoTensorize，充分利用硬件的指令;AutoSchedule，本质是各种循环变换;AutoTiling，提高Cache命中率降低访存开销，除了Schedule有类似Affine这样的Dialect来做（大概可以吧，其他两个问题的答案似乎在MLIR里都没有找到，我只能希望MLIR不要走上ONNX的老路，成为一个能够真正一统江湖的IR。
+总之，至少MLIR绝对是一个优秀的编译器库，他由已经成神的拥有数十年编译器开发经验的Chris组织代码结构，模块化和可扩展性做的极度优秀，也许MLIR从TensorFlow转换到LLVM项目下维护之后，他就更像是一个开发组件了。但如果把MLIR类比为编译器领域的ONNX，这条路看起来还不太明朗，至少我没有感觉到很便利，根据TVM的经验，ML的编译器有三个核心问题，分别是AutoTensorize，充分利用硬件的指令;AutoSchedule，本质是各种循环变换;AutoTiling，提高Cache命中率降低访存开销，除了Schedule有类似Affine这样的Dialect来做（大概可以吧，其他两个问题的答案似乎在MLIR里都没有找到，我只能希望MLIR不要走上ONNX的老路，真正的解决碎片化，成为一个能够真正一统江湖的IR。
 
-nihui建的mlir交流群：677104663（嘛可能不活跃就是了
+nihui建的mlir交流群：677104663（可能不活跃就是了
