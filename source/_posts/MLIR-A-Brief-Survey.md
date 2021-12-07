@@ -10,7 +10,7 @@ date: 2021-12-01 14:11:35
 
 MLIR 是Google在2019年开源出来的编译框架。不久之前意外加了nihui大佬建的MLIR交流群，不过几个月过去了群里都没什么人说话，说明没人用MLIR（不是。现在刚好组里的老师对MLIR比较感兴趣让我进行一下调研，于是就有这篇比较简单的调研报告啦！
 
-MLIR的全称是 **Multi-Level Intermediate Representation**. 其中的ML不是指Machine Learning，这一点容易让人误解。
+MLIR的全称是 **Multi-Level Intermediate Representation**. 其中的ML不是指Machine Learning，这一点容易让人误解，但现在的一些ML框架有些也在往MLIR靠，比如Tensorflow、Pytorch、ONNX都在写Dialect往MLIR上贴贴，Google的IREE是基于MLIR的End2End推理框架；ML也可以是Mid-Level，因为MLIR要解决Mid-Level IR的碎片化问题；ML也可以是摩尔定律，因为MLIR的Paper的标题是为了摩尔定律终结而诞生的编译器技术设施，当然也可以是Modular Library，现在看来，MLIR至少是一个优秀的编译器库。
 
 一些你可以帮助你了解MLIR的资源：
 
@@ -62,7 +62,7 @@ MLIR SIG 组每周都会有一次 public meeting，如果你有特定的主题�
 
 ![image-20211201162659492](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20211201162659492.png)
 
-每个语言都会有自己的AST，除了AST以外这些语言还得有自己的IR来做language- specific optimization，但是他们的IR最后往往都会接到同样的后端，比如说LLVM IR上来做代码生成，来在不同的硬件上运行。这些语言专属的IR被叫做Mid-Level IR。
+每个语言都会有自己的AST，除了AST以外这些语言还得有自己的IR来做language- specific optimization，但是他们的IR最后往往都会接到同样的后端，比如说LLVM IR上来做代码生成，来在不同的硬件上运行。这些语言专属的IR被叫做Mid-Level IR，而且不通语言自己的IR的优化会有重复的部分，但很难互相复用代码，重复造了很多轮子。
 
 对于NN编译器来说，首先一个显而易见的问题是组合爆炸，就比如说TFGraph为了在TPU上跑，要写生成TPU IR的代码，在CPU上跑要写对接LLVM IR的代码，对接到TensorRT上又有其他的工作量，类似的，其他PyTorch这样的框架也需要做同样的事情，但是每个组织发布的自己的框架，比如Pytorch、TensorFlow、MXNet他们的IR设计都是不一样的，不同的IR之间的可迁移性差，这也就代表着大量重复的工作与人力的浪费，这个问题是一个软件的碎片化问题，MLIR的一个设计目的就是为这些DSL提供一种统一的中间表示；其次，各个层次之间的优化无法迁移，比如说在XLA HLO这个层面做了一些图优化，在LLVM IR阶段并不知道XLA HLO做了哪方面的优化，所以有一些优化方式可能会在不同的层级那边执行多次（嘛，我觉得这个问题还好，最后跑起来快就行了，编译慢点没事）；最后，NN编译器的IR一般都是高层的计算图形式的IR，但是LLVM这些是基于三地址码的IR，他们的跨度比较大，这个转换过程带来的开销也会比较大。
 
@@ -621,7 +621,7 @@ Presentations and Talks
 
 这是Google自家做的一个端到端的基于MLIR的推理项目，根据其框架图：
 
-![IREE Architecture](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/iree_architecture.svg)
+![image-20211207103442664](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20211207103442664.png)
 
 目测他是由以下几个成分：
 
@@ -660,10 +660,10 @@ https://www.zhihu.com/question/442964082/answer/1718928279
 
 ### 总结
 
-刚刚接触MLIR的时候看了很多Talk和博客，我一直不明白MLIR的定位究竟是什么。从Chris大神一直在说的解决软件碎片化的角度来看，各大AI框架、软件框架之间的碎片化慢慢得转化成了MLIR内部各种Dialect的碎片化，再依托MLIR各种Dialect都属于同一种语言可以混用的特性来减轻这种碎片化带来的影响。
+刚刚接触MLIR的时候看了很多Talk和博客，我一直不明白MLIR的定位究竟是什么。从Chris大神一直在说的解决软件碎片化的角度来看，各大AI框架、软件框架之间的碎片化慢慢得转化成了MLIR内部各种Dialect的碎片化，再依托MLIR各种Dialect都属于同一种语言可以混用的特性来减轻这种碎片化带来的影响，虽然上一个说要解决碎片化的框架ONNX会多出一些胶水op，反而起到了一些反作用，但是MLIR逐级向下的策略不会出现A->B->A这样的情况。
 
 再或者，以前的AI框架诸如Tengine、NCNN这些是根据指令和高层次的IR的意图来手写算子，当出现了新的指令架构或者新的DSA（这个在当下的需求越来越多，因为工艺很难上去了，各种DSA就被设计出来），需要耗费人力来对接后端，而MLIR试图缩减这些人力的开销，但是MLIR现在还是苦逼的造轮子阶段，比如大家都在给MLIR搭建生态，写Dialect，现在肝的内容甚至要比手写还要多一点。但是当MLIR做的比较完善之后，可能只需要写写Schedule和Pass就能把对接新后端的工作给做了！这也是MLIR论文的标题写到摩尔定律终结的原因吧，如果说MLIR可以很轻松的为新出现的DSA编写算子库的话，那就比较舒服了。
 
 总之，至少MLIR绝对是一个优秀的编译器库，他由已经成神的拥有数十年编译器开发经验的Chris组织代码结构，模块化和可扩展性做的极度优秀，也许MLIR从TensorFlow转换到LLVM项目下维护之后，他就更像是一个开发组件了。但如果把MLIR类比为编译器领域的ONNX，这条路看起来还不太明朗，至少我没有感觉到很便利，根据TVM的经验，ML的编译器有三个核心问题，分别是AutoTensorize，充分利用硬件的指令;AutoSchedule，本质是各种循环变换;AutoTiling，提高Cache命中率降低访存开销，除了Schedule有类似Affine这样的Dialect来做（大概可以吧，其他两个问题的答案似乎在MLIR里都没有找到，我只能希望MLIR不要走上ONNX的老路，真正的解决碎片化，成为一个能够真正一统江湖的IR。
 
-nihui建的mlir交流群：677104663（可能不活跃就是了
+nihui建的mlir交流群：677104663（可能不活跃就是

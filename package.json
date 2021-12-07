@@ -26,6 +26,7 @@
     "hexo-generator-tag": "^1.0.0",
     "hexo-generator-topindex": "^0.3.0",
     "hexo-render-pug": "^2.1.4",
+    "hexo-render-sass": "^2020.4.16",
     "hexo-renderer-ejs": "^1.0.0",
     "hexo-renderer-marked": "^2.0.0",
     "hexo-renderer-sass": "^0.4.0",
