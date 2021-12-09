@@ -19,7 +19,7 @@ jobs:
         submodules: true
     - name: Install and Build
       run: |
-        npm install
+        npm install --registry=https://registry.npm.taobao.org 
         npm run build
     - name: Deploy to aliyun server
       uses: easingthemes/ssh-deploy@v2.0.7
