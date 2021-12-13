@@ -17,6 +17,10 @@ jobs:
         ref: master
         # hexo需要加载内部子模块
         submodules: true
+    - name: Setup Node
+      uses: actions/setup-node@master
+      with:
+        node-version: '12.14'
     - name: Install and Build
       run: |
         npm install --registry=https://registry.npm.taobao.org 
