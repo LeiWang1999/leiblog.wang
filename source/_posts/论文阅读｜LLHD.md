@@ -10,7 +10,7 @@ date: 2021-12-29 14:27:05
 
 《LLHD: A Multi-level Intermediate Representation for Hardware Description Languages》
 
-因为在CIRCT里有一个叫llhd的dialect，于是稍微survey了一下这个工作，这篇是苏黎世联邦理工学院发表在PLDI 2020上的，借助MLIR的设计思想，想在EDA领域设计一个统一的IR。
+因为在CIRCT里有一个叫llhd的dialect，于是很简单的survey了一下这个工作，这篇是苏黎世联邦理工学院发表在PLDI 2020上的，借助MLIR的设计思想，想在EDA领域设计一个统一的IR。
 
 <!-- more -->
 

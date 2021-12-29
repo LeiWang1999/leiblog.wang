@@ -63,7 +63,7 @@ wordcount:
   time: true
 
 valine:
-  enable: true
+  enable: false
   appId: vTjojtAolevJ2QEt3Ig8gEKD-MdYXbMMI 
   appKey: Ylh2i3sM1fEJrejGuujx52Ja
   placeholder: "说点什么吧!"
@@ -72,6 +72,12 @@ valine:
     - nick
     - mail
   pageSize: 10 
+
+waline:
+  enable: true
+  serverURL: https://blog-api-44rz-4xfw9dtko-leiwang1999.vercel.app/
+  # visitor: true
+  comment: true
 
 google_analytics:
   enable: true
