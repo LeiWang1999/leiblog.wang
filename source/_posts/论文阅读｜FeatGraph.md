@@ -75,3 +75,5 @@ UDFs指的是可以自定义message passing function（个人理解哈.
 ### 结果
 
 ![image-20220117173912408](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220117173912408.png)
+
+Performance如图，看起来还是很不错的，但是看完了这篇文章我比较迷惑，这不还是加速稠密矩阵运算那一套思路么？关于软件加速稀疏运算是有什么奇技淫巧吗，还是说必须得靠硬件单元做支持才能做不失真的加速运算？
