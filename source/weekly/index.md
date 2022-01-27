@@ -3,6 +3,24 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20220123
+
+近些日子在看看图神经网络这种非常稀疏的网络运算系统中有没有什么自己可以做的编译优化，其实在编译现在主流的图神经网络训练框架DGL的时候就不难注意到其依赖项里是有TVM的，这是不是说明现在的DGL也在使用TVM来进行自动调优呢？带着这个疑问我翻了一下DGL的代码，发现和tvm有关的部分只有一个叫做FeatGraph的框架，顺藤摸瓜找到了胡玉炜大佬发表在SC20上的Paper：
+
+[《FeatGraph: A Flexible and Efficient Backend for Graph Neural Network Systems》](http://link.zhihu.com/?target=https%3A//www.csl.cornell.edu/~zhiruz/pdfs/featgraph-sc2020.pdf)
+
+在2021年6月亚马逊云科技 Community Day 上，AWS的张建老师有一个[《图神经网络和DGL在实际落地项目中的挑战和思考》](http://link.zhihu.com/?target=https%3A//www.bilibili.com/video/BV1yK4y1M7B2%3Fshare_source%3Dcopy_web)的Talk，指出现在主流的图神经网络框架DGL的自己裁剪的Gunrock之后制作的minigun来做运算加速的，但是根据代码大胆猜测一下实际上DGL只在在0.3～0.4中才有使用的是minigun来做一些加速，在0.5中就不使用minugun了，而是将主要的运算抽象成了SpMM(稀疏稠密的矩阵乘）和SDDMM（sampled稠密稠密矩阵乘）两种运算，这项工作在DGL达到版本0.6的时候结合tvm的高效代码生成转变为了FeatGraph发表在SC20上，而现在DGL已经前进到了0.7版本了。
+
+我读了FeatGraph的论文和代码（加上benchmark的代码，有效代码只有一千多行），主要就是用tvm的底层api封装了spmm和sddmm这两个操作，不过一作是tvm的作者之一，论文的作者还有李沐等，通过tvm找到最有调度方案的方法来加速，在cpu和gpu上对现有的mkl这种手工的库都取得了一定的加速效果。**但这还是和稠密算法的加速方案是一样的，并不能看到专门针对稀疏做了什么优化，软件层面加速稀疏算子似乎是一件非常困难的事情**，不知道直接使用可以支持硬件稀疏运算的A100训练会不会比V100训练图网络要快很多，但是我们没有A100的卡，没有办法实践。
+
+找了一篇综述《Computing Graph Neural Networks: A Survey from Algorithms to Accelerators》，刚好是今年发的，还在读。
+
+下周：
+
+1. 继续看这篇论文，看看稀疏加速大家的一些工作
+
+2. 需要思考：从稀疏运算到稀疏架构的映射这一条路径这个想法，是指针对A100这种硬件上支持了稀疏运算加速的架构来生成高效的cuda代码？需要与cudnn这一类库对标？
+
 ## 20220109
 
 考完算法课之后，用dgl运行了几个图神经网络在Cora数据集上跑了跑，dgl这个框架本身也使用了TVM来进行自动的调优。关于上周，稀疏架构是什么的问题，我觉得有两个选项吧：
