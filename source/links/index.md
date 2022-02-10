@@ -111,6 +111,8 @@ tip: 友链加载中～如失败请刷新重试～
 
 可以在下方评论区申请友链~
 
+或者前往[此页面](https://github.com/LeiWang1999/leiblog.wang/blob/master/source/links/index.md)提交一个PR。
+
 ## 格式
 
 ```bash
