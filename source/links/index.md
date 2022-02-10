@@ -95,14 +95,14 @@ links:
     blog: "imlk's Blog"
     desc: ⚡️power := INF⚡️
     email: me@imlk.top
-    color: "#000"
+    color: "#000cfa"
   - url: https://lymtics.top
     avatar: https://cdn.jsdelivr.net/gh/lxymtics/static@main/image/avatar_001.4psrcyw7koe0.webp
     name: LYMTICS
     blog: LYMTICS 的个人博客
     desc: 海纳百川，有容乃大
     email: ren@ethy.cn
-    color: “#546e7a”
+    color: "#546e7a"
 placeholder: 还没想好说些什么 # 默认对友链的描述
 tip: 友链加载中～如失败请刷新重试～
 ---
