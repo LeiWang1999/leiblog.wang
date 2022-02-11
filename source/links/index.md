@@ -103,6 +103,12 @@ links:
     desc: 海纳百川，有容乃大
     email: ren@ethy.cn
     color: "#546e7a"
+  - url: https://sianiumiao.xyz/
+    avatar: http://tva1.sinaimg.cn/large/005Q1GhGgy1gz8gov5xgxj30ls0xctka.jpg
+    name: ashui
+    desc: 泥岩和陈都是我的翅膀。
+    email: 1400476531@qq.com
+    color: "#00f5ff"
 placeholder: 还没想好说些什么 # 默认对友链的描述
 tip: 友链加载中～如失败请刷新重试～
 ---
