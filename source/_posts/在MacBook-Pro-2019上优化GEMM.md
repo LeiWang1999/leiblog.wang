@@ -113,4 +113,4 @@ $$
 gemm-optimizer/cmake-build-debug/tools/calc-cpu-flops 4
 ```
 
-这里需要注意，在MacOS上，C/CPP 调用汇编的约定是要在汇编函数前面加个下划线，这样才能对c程序可见。
+这里需要注意，在MacOS上，C/CPP 调用汇编的约定是要在汇编函数前面加个下划线，这样才能对C程序可见。

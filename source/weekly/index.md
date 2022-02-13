@@ -3,6 +3,42 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20220213
+
+关于稀疏硬件mapping的survey：
+
+1. 关于现在的图神经网络训练框架，比如DGL，在A100的卡上跑能不能吃到他的硬件sparse加速，这个答案询问了DGL的作者是不能，sparse tensor core很难适配上，这个单元设计出来是为了network pruning的，所以单纯做稀疏矩阵加速运算不太好适配，但可能还是可以适配的？
+2. 关于FeatGraph，他的作者之一在知乎上看到了我写的论文笔记，同时也是dgl的作者之一，跟我讲featgraph不是一个特别值得follow的工作，提供的insight也有限，那个时候能中可能主要是这个能用jit来优化gnn的饼，当然他觉得给sparse kernel做auto-tuning还是有很大空间的，只是这篇的search sparse不一定对，而且抽象粒度也不是很够，于是我去了解了一下软件上做稀疏加速的方法，学习一了一下一些基本的稀疏格式（CSC、CSR、BCSR）和他们的Auto Tuning方法，除此之外，还看了一片FPGA19的Paper，《Efficient and Effective Sparse LSTM on FPGA with Bank-Balanced Sparsity》提出了一种叫做bank sparsity的压缩格式，主要侧重在对任意的稀疏率，PE都负载均衡，而且硬件实现比较友好，比如对于tensor core而言，加一个multiplexer就可以了，不知道TVM的稀疏是否考虑到了这些特征呢？
+
+下周的工作：
+
+1. 看看tvm里是怎么处理稀疏运算的？
+2. 还有一些魔改sparse tensor cores的文章，看一下去年微软亚研院的《Dual-side Sparse Tensor Core》。
+
+关于存算一体编译器的survey：
+
+1. 回答一下陈晓明老师在上次去会议上提到的问题。
+
+   a . 思考了一下为什么tvm被称为编译器，到底做了哪些事？我本来以为AI编译器是指前端接受模型到生成硬件指令的端到端的软件，但是回来仔细思考了一下发现，tengine、ncnn、tnn、paddle lite这些端到端的软件大家都称之为NN推理引擎，只有TVM、OPENVINO这些被称为编译器，知乎上也有人提出了这个问题，即推理引擎和AI编译器的区别在哪儿，根据我的学习和总结，我觉得最本质的区别就在于适配硬件的解决方法，比如对于一个卷积操作，像Tengine、NCNN的解决方法是手写汇编，手动并行、写向量指令来极致压榨处理器的性能，如下图：
+
+   ![image-20220213225801630](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220213225801630.png)
+
+​		但是这种方案的可复用性差，首先向量指令不同的指令集不一样，即使是同样指令集的处理器，cache大小也不一样。所以Tengine的卷积目录下，有riscv的实现、cortex-a/cortex-m \* arm v7/v8 的实现，而且像这样能把处理器性能压榨到极致的工程师也很少，与爆炸的算子和硬件的组合矛盾。
+
+​		Tengine借鉴了Halide的思想，设计DSL将运算和调度分离，像这样：
+
+![image-20220213230233829](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220213230233829.png)
+
+​	之后通过一些auto tuning的办法找到这些参数，现在已经可以远超人类手写的平均水平了。
+
+​	b. 为啥TVM要用到llvm，tvm用llvm生成cpu侧运行的代码，我觉得最主要的原因是要使用llvm去生成各个处理器对应的vector指令。
+
+2. 思考了一下存算一体编译器，主要和现在的推理框架做的东西都差不多，Tengine的开源协议是Apache2.0，所以可以直接拿来用。假设前面的模型转换和切图、量化等都使用Tengine，那么我们实际上要实现的就是一个计算图到指令的生成软件，有点像Bangc这种东西，我觉得需要设计这样的软件是一个DSA现在的通病，也是一个痛点，但是MLIR说致力于解决这个问题（虽然现在还不知道咋解决的吧，还需要survey一下，是不是可以用MLIR来设计呢？）
+
+下周的工作：
+
+1. 已经开启了一个小项目，在mac上通过手写汇编的方法来优化一下gemm试试。
+
 ## 20220128
 
 本周找了一篇2020编译器的综述《The Deep Learning Compiler: A Comprehensive Survey》
