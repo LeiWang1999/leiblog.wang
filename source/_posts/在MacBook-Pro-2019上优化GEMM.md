@@ -113,4 +113,83 @@ $$
 gemm-optimizer/cmake-build-debug/tools/calc-cpu-flops 4
 ```
 
-这里需要注意，在MacOS上，C/CPP 调用汇编的约定是要在汇编函数前面加个下划线，这样才能对C程序可见。
+这里，分别对几个向量指令编写了测试的汇编程序：
+
+```bash
+❯ tree
+.
+├── CMakeLists.txt
+├── calc-cpu-flops.c
+├── cpufp_kernel_x86.h
+├── cpufp_kernel_x86_avx.s
+├── cpufp_kernel_x86_avx512_vnni.s
+├── cpufp_kernel_x86_avx512f.s
+├── cpufp_kernel_x86_fma.s
+├── cpufp_kernel_x86_sse.s
+├── smtl.c
+└── smtl.h
+```
+
+关于汇编程序的内容，看一下之前分析的fma的程式：
+
+```assembly
+_cpufp_kernel_x86_fma_fp32:
+    mov $0x40000000, %rax
+    vxorps %ymm0, %ymm0, %ymm0
+    vxorps %ymm1, %ymm1, %ymm1
+    vxorps %ymm2, %ymm2, %ymm2
+    vxorps %ymm3, %ymm3, %ymm3
+    vxorps %ymm4, %ymm4, %ymm4
+    vxorps %ymm5, %ymm5, %ymm5
+    vxorps %ymm6, %ymm6, %ymm6
+    vxorps %ymm7, %ymm7, %ymm7
+    vxorps %ymm8, %ymm8, %ymm8
+    vxorps %ymm9, %ymm9, %ymm9
+._cpufp.x86.fma.fp32.L1:
+    vfmadd231ps %ymm0, %ymm0, %ymm0
+    vfmadd231ps %ymm1, %ymm1, %ymm1
+    vfmadd231ps %ymm2, %ymm2, %ymm2
+    vfmadd231ps %ymm3, %ymm3, %ymm3
+    vfmadd231ps %ymm4, %ymm4, %ymm4
+    vfmadd231ps %ymm5, %ymm5, %ymm5
+    vfmadd231ps %ymm6, %ymm6, %ymm6
+    vfmadd231ps %ymm7, %ymm7, %ymm7
+    vfmadd231ps %ymm8, %ymm8, %ymm8
+    vfmadd231ps %ymm9, %ymm9, %ymm9
+    sub $0x1, %rax
+    jne ._cpufp.x86.fma.fp32.L1
+    ret
+```
+
+`rax`存储的是循环的次数，循环初始化的时候执行的一系列异或指令是用来快速将寄存器的内容置零，接着循环内会执行十次乘累加运算，一共执行40000000次，之前分析得，对于32位的浮点数， 一次乘累加运算可以操作8个数，一共是 40000000 \* 8 * 10 * 2（乘法和加法）运算，共这么大的浮点运算量：
+
+```c
+#ifdef _FMA_
+#define FMA_FP32_COMP (0x40000000L * 160)
+#define FMA_FP64_COMP (0x40000000L * 80)
+```
+
+则gflops的计算如下式：
+
+```c
+perf = FMA_FP64_COMP * num_threads / time_used * 1e-9;
+```
+
+**这里有个容易忽略的点，在MacOS上，C/CPP 调用汇编的约定是要在汇编函数前面加个下划线，这样才能对C程序可见，大坑！**
+
+因为mac上运行的程序有点多，所以这里的运算一般是吃不满cpu的资源的，我在这里给一下单核睿频关闭情况下跑出来的perf，这将作为我们调优的目标：
+
+```bash
+Thread(s): 1
+binding to core 0
+fma fp32 perf: 40.9189 gflops.
+fma fp64 perf: 22.0921 gflops.
+binding to core 0
+avx fp32 perf: 21.9944 gflops.
+avx fp64 perf: 11.0741 gflops.
+binding to core 0
+sse fp32 perf: 10.8526 gfops.
+sse fp64 perf: 5.4786 gflops.
+```
+
+之前手算单核FMA的GFLOPS是44.8，差的也不是很多，基本上算是正确了。

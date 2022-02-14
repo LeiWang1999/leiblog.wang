@@ -54,3 +54,23 @@ add_library(${PROJECT_NAME} SHARED
 
 2. 另外一种很常见的是在这个目录下再放一个module文件夹，里面存放的是一些查找Pakcage的Find脚本，例如`FindCUDNN.cmake`之类的，在CMakeList里通过`FIND_PACKAGE(CUDNN REQUIRED)`就会自动的调用FindCUDNN来找到CUDNN并设置XXX_FOUND、XXX_INCLUDE等变量。
 
+   ```cmake
+   find_package(Threads)
+   target_link_libraries(calc-cpu-flops fpkernel ${CMAKE_THREAD_LIBS_INIT})
+   ```
+
+### 用变量表示目录下的一堆文件
+
+```cmake
+file(GLOB LIB_SOURCE "${CMAKE_CURRENT_LIST_DIR}/cpufp_kernel_*.s")
+add_library(fpkernel ${LIB_SOURCE})
+```
+
+### 添加header目录
+
+```cmake
+include_directories(${PROJECT_SOURCE_DIR})
+include_directories(
+        ${PROJECT_SOURCE_DIR}/include
+)
+```
