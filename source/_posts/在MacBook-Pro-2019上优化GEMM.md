@@ -10,6 +10,8 @@ date: 2022-02-12 17:23:39
 
 [how-to-optimiza-gemm](https://github.com/flame/how-to-optimize-gemm) 是大家参考得比较多的gemm优化tutorial，本文是在我的MacBook Pro 2019上进行的实践，处理器型号是`i5-8257U`.
 
+代码在：https://github.com/LeiWang1999/optimize-gemm-on-macbook2019
+
 <!-- more -->
 
 ### 1.浮点峰值计算
