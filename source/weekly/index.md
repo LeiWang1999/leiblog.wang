@@ -3,6 +3,23 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20220220
+
+1. 本周在macbook上手工优化了一下gemm，主要是从循环展开、向量指令、数据pack等方面来做加速，形成了一篇post：https://zhuanlan.zhihu.com/p/468304964，扫码可打开知乎：
+
+   ![image-20220220210018024](/Users/wanglei/Library/Application Support/typora-user-images/image-20220220210018024.png)
+
+2. 简单了解了一下Tensor Core的工作机制，A100卡上的Sparse Tensor Core的稀疏加速用的是上上周读的Bank Sparsity的方法，简单来讲，对于W\*A，把大矩阵W拆分成很多个1\*4的小块，然后强制让稀疏度为50%，即每4个元素，去除掉其中绝对值最小的两个值，这种稀疏压缩方式成为(2:4 bank sarsity)，对原本的tensor core也只需要做很小的修改，像下图中加一个mux四个有值的下标来选出与之匹配的矩阵A中的元素进行运算。
+
+   ![image-20220220210511461](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220220210511461.png)
+
+3. 《Dual-side Sparse Tensor Core》是指出这个sparse tensor core要求稀疏度是固定的50%，而且只考虑到了weight sparsity不能考虑到activation sparsity，于是魔改Sparse Tensor Core的一些工作，在Accel-Sim（GPGPU的模拟器）上进行了验证，但是论文太长，具体是怎么做的也没整明白。
+
+下周计划：
+
+1. 继续看完《Dual-side Sparse Tensor Core》
+2. 看看tvm里是怎么处理稀疏运算的？
+
 ## 20220213
 
 关于稀疏硬件mapping的survey：
