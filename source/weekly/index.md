@@ -42,7 +42,7 @@ date: 2021-02-06 13:56:27
 
 ​		但是这种方案的可复用性差，首先向量指令不同的指令集不一样，即使是同样指令集的处理器，cache大小也不一样。所以Tengine的卷积目录下，有riscv的实现、cortex-a/cortex-m \* arm v7/v8 的实现，而且像这样能把处理器性能压榨到极致的工程师也很少，与爆炸的算子和硬件的组合矛盾。
 
-​		Tengine借鉴了Halide的思想，设计DSL将运算和调度分离，像这样：
+​		TVM借鉴了Halide的思想，设计DSL将运算和调度分离，像这样：
 
 ![image-20220213230233829](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220213230233829.png)
 
