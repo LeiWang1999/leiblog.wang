@@ -14,6 +14,8 @@ A100卡（Ampere GPU Arch）上的Sparse Tensor Core的稀疏加速用的是类�
 
 ![image-20220220210511461](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220220210511461.png)
 
+<!-- more -->
+
 《Dual-side Sparse Tensor Core》指出这个sparse tensor core要求稀疏度是固定的50%，而且只考虑到了weight sparsity不能考虑到activation sparsity，于是魔改Sparse Tensor Core的一些工作(**提出了一种新的、未探索的范例，它结合了 outer-product 计算原语和基于位图的编码格式**)，在Accel-Sim（GPGPU的模拟器）上进行了验证。
 
 ![image-20220222141114032](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220222141114032.png)

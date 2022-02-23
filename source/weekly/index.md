@@ -3,6 +3,22 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20220227
+
+1. 本周读完了《Dual-Side Sparse Tensor Core》(ISCA 21')，这一篇最主要的insight就是第一次在稀疏运算相关的工作中引入了outer-product矩阵乘(其他工作基本是基于inner-product的)和bit-map压缩算法来重新设计了一下tensor core，具体的内容也形成了一篇post:https://zhuanlan.zhihu.com/p/471048499 扫码可打开知乎:
+
+   ![8061559B-1363-42FB-8CA1-7F081E852E4C](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/8061559B-1363-42FB-8CA1-7F081E852E4C.png)
+
+   总结：这篇论文的工作量挺大的，在稀疏网络的推理过程上也取得了不错的加速效果，而面积仅仅大了2%。读完也有不少的收获，比如tensor core的矩阵乘大小为什么要选4\*4\*4，一些典型的稀疏硬件方面的工作等。但是他是把整个tensor core都给改成了8\*8的outer-product模式，**虽然文中没有提，但是在图表中可以看出在稠密矩阵乘法上的效果要比原来的sparse tensor core要差**，属于是拆东墙补西墙了。。这应该是一个tradeoff。
+
+   不知道有没有改进的空间，比如说nv的架构里，一个warp里有两个tensor core，可不可以在矩阵比较稠密的时候把64个乘法器重新换成4\*4\*4的模式？
+
+2. 参加了两次meeting，一次是oneflow社区组织的关于MLIR的应用的，比特大陆、sambanova他们都有讲基于MLIR给AI加速器设计软件栈，但是都是在做比较高层的importer、切图、量化这些的，不是说给加速器设计算子库和驱动（我觉得这个才是问题好么），不过至少说明是有人在使用MLIR来做这些工作的。
+
+下周计划：
+
+1. 读一篇很感兴趣的paper《Modeling Deep Learning Accelerator Enabled GPUs》
+
 ## 20220220
 
 1. 本周在macbook上手工优化了一下gemm，主要是从循环展开、向量指令、数据pack等方面来做加速，形成了一篇post：https://zhuanlan.zhihu.com/p/468304964，扫码可打开知乎：
