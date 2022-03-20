@@ -11,6 +11,10 @@ date: 2022-02-11 14:34:43
 
 <!-- more -->
 
+### 有用的Tutorial
+
+[cmake cook book](https://www.kancloud.cn/csyangbinbin/cmake-cookbook1/2157907)
+
 ### 都塞到lib里吧！
 
 如果我们希望生成的lib能够在制定的目录出现，那么我们需要在最顶层的CMakeList里加上：
@@ -73,4 +77,31 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
 )
+```
+
+### Find Libs
+
+#### openmpi
+
+```cmake
+find_package(MPI REQUIRED)
+add_executable(hello-mpi hello-mpi.cpp)
+
+target_link_libraries(hello-mpi
+  PUBLIC
+ 	  MPI::MPI_CXX
+  )
+```
+
+#### openmp
+
+```cmake
+find_package(OpenMP REQUIRED)
+
+if (OPENMP_FOUND)
+    include_directories("${OPENMP_INCLUDES}")
+    link_directories("${OPENMP_LIBRARIES}")
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif(OPENMP_FOUND)
 ```

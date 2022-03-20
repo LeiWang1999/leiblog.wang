@@ -3,21 +3,41 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20220313
+
+1. 读了《Union: A Unified HW-SW Co-Design Ecosystem inMLIR for Evaluating Tensor Operationson Spatial Accelerators》
+
+   还是gatech(scale-sim)和nvidia(timeloop)两个团队的人打造的模拟器生态。
+
+   Motivation：
+
+   	1. 现有的模拟器都各有侧重点，例如SCALE-sim主要用来仿真脉动阵列， MAESTRO适合应用于仿真的阵列具有可配置的宽高比，Timeloop在模拟的时候可以考虑到复杂的内存层次结构建模，Tetris可以建模3D阵列；
+   	1. 新的算子很难适配到原有的生态中，因为cost model和网络的mapper之间互相约束，
+   	1. 利用mlir把现有的模拟器都耦合到同一套生态里来（前端使用mlir的生态，可以把一些神经网络的模型转化成mlir的常用的dialect来分析，union-opt可以使用各种不同的搜索策略（他们分别来自于现在不同的模拟器采用的解决方案，backend是做什么他没有说清楚，只是说明了是feature work，这样看起来，MLIR的作用似乎只有在前面接受模型转化成affine dialect的前端部分用到了？
+
+   ![image-20220313231405437](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220313231405437.png)
+
+2. 偶然发现今年的2月份，mlir多了一个sparse_tensor的dialect，是google提交的，还有一份附带的arxiv，《Compiler Support for Sparse Tensor Computations in MLIR》，正在研究。
+
 ## 20220227
 
 1. 本周读完了《Dual-Side Sparse Tensor Core》(ISCA 21')，这一篇最主要的insight就是第一次在稀疏运算相关的工作中引入了outer-product矩阵乘(其他工作基本是基于inner-product的)和bit-map压缩算法来重新设计了一下tensor core，具体的内容也形成了一篇post:https://zhuanlan.zhihu.com/p/471048499 扫码可打开知乎:
 
    ![8061559B-1363-42FB-8CA1-7F081E852E4C](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/8061559B-1363-42FB-8CA1-7F081E852E4C.png)
 
-   总结：这篇论文的工作量挺大的，在稀疏网络的推理过程上也取得了不错的加速效果，而面积仅仅大了2%。读完也有不少的收获，比如tensor core的矩阵乘大小为什么要选4\*4\*4，一些典型的稀疏硬件方面的工作等。但是他是把整个tensor core都给改成了8\*8的outer-product模式，**虽然文中没有提，但是在图表中可以看出在稠密矩阵乘法上的效果要比原来的sparse tensor core要差**，属于是拆东墙补西墙了。。这应该是一个tradeoff。
+   总结：这篇论文的工作量挺大的，在稀疏网络的推理过程上也取得了不错的加速效果，而面积仅仅大了2%。读完也有不少的收获，比如tensor core的矩阵乘大小为什么要选4\*4\*4，一些典型的稀疏硬件方面的工作等。但是他是把整个tensor core都给改成了8\*8的outer-product模式，**虽然文中没有提，但是在图表中可以看出在稠密矩阵乘法上的效果要比原来的sparse tensor core要差**，是拆东墙补西墙了，这里应该是一个tradeoff。
 
-   不知道有没有改进的空间，比如说nv的架构里，一个warp里有两个tensor core，可不可以在矩阵比较稠密的时候把64个乘法器重新换成4\*4\*4的模式？
+   为什么不用inner-product? 我觉得是因为有之前的工作做过，Sparten,inner-product加上bitmap压缩算法，下周读一下这篇论文。
 
-2. 参加了两次meeting，一次是oneflow社区组织的关于MLIR的应用的，比特大陆、sambanova他们都有讲基于MLIR给AI加速器设计软件栈，但是都是在做比较高层的importer、切图、量化这些的，不是说给加速器设计算子库和驱动（我觉得这个才是问题好么），不过至少说明是有人在使用MLIR来做这些工作的。
+2. 听了两次meeting，一次是oneflow社区组织的关于MLIR的应用的，比特大陆、sambanova他们都有做自己基于MLIR给AI加速器设计软件栈的报告，但是都是在做比较高层的importer、切图、量化这些的，不是说给加速器设计算子库和驱动（我觉得这个才是问题好么），不过至少说明是有人在使用MLIR来做这些工作的。另外一次是周三晚上的《Real-Time DNN Execution on Mobile Devices with Compiler Optimizations》，虽然标题是说NN优化的，但实际上是讲的今年PLDI 2021上的DNN Fusion的工作，主要内容是对fusion做了分类，分成了One-to-One、One-to-Many、Many-to-Many、Reorganize、Shuffle几种，然后通过代数化简、算子融合来做优化，最后在一些网络上得出的performance和TVM这些比起来简直效果惊人。但是源代码没有公开，不敢相信直接做算子融合就能带来这么大的收益吗？
+
+2. 关注了一个软件所PLCT的buddy-mlir的项目，因为mlir本身是一个lib，这个项目就是搭了一个可以用mlir跑自己的项目的框架，目前可以自己定义dialect、写算子的实现，我本周给这个项目提交了一小部分代码，主要是对他的边缘检测的示例增加了对darwin系统(macos)的支持，作者把我拉进了他们的开发者群，这个项目目前还在起步阶段，还只能跑一个卷积算子，我希望在接下来的时间里可以增加跑网络的feature，并且试试能不能写一个存算一体的dialect.
 
 下周计划：
 
-1. 读一篇很感兴趣的paper《Modeling Deep Learning Accelerator Enabled GPUs》
+1. 读一篇inner-product+sparse tensor的硬件加速方法：《*SparTen*: A Sparse Tensor Accelerator for Convolutional Neural Networks》
+1. 看看tvm里是怎么处理稀疏运算的?..
+1. 借助buddy-mlir学习一下mlir怎么用.
 
 ## 20220220
 
