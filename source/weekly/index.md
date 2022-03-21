@@ -3,6 +3,33 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20220320
+
+1. 研究了一下tvm现在在稀疏上的工作，ANSOR这篇论文最后总结的时候说不支持稀疏计算的自动搜索，但是我发现tvm现在是有一些对稀疏矩阵乘的自动搜索工作的，《Auto-scheduling Sparse Matrix Multiplication on CPU with Custom Sketch Rule[¶](https://tvm.apache.org/docs/how_to/tune_with_autoscheduler/tune_sparse_x86.html#auto-scheduling-sparse-matrix-multiplication-on-cpu-with-custom-sketch-rule)》。我跑了一下，读了一下代码。稀疏和稠密计算的区别就是稀疏矩阵有多层的访存，这个auto schedule的过程我觉得最大的收益来自于考虑到了这个多级访存的关系，我觉得是很make sense的。
+
+   以BCSR的压缩格式，：X->(128,256) W->(256,512) sparsity: 0.6 BS_R:16, BS_C:1，执行一次计算的时间0.195 ms，相比之下，使用numpy/scipy.sparse来进行同样的数据、同样的压缩格式，运行速度在5ms左右，还是快了很多的。
+
+   **但是这个针对稀疏的auto schedule我觉得还是有一些不足，比如不能自己选取合适的压缩格式，例如bcsr的block的长宽仍然需要人为指定，现在的auto schedule不能搜索这个参数。**
+
+2. 翻了一下tvm的关于sparse的issue，发现陈天奇和杨军之前都在issue里提到taco是一个很好的借鉴框架，于是我就去读了taco的论文《The tensor algebra compiler》，MIT做的，2017年的PLDI。
+
+   主要是设计了一个DSL来做稀疏计算的代码生成（生成C程序，编程时，用户得告诉taco输入tensor有多少，每个tensor有几维及每个维度的稠密稀疏性质，每个tensor是按照什么样的稀疏方式存储的，然后给定计算规则，之后通过编译和链接调用taco生成代码就可以了，虽然是codegen，但我个人理解这个东西是给出这个稀疏计算的算子的高效实现可能长成的样子，然后方便工程师根据他生成出来的C程序进行手动调优到最好性能。
+
+   我刚看到这个东西感觉性能应该不咋样，因为他文章里都没有提到tiling和fusion，支持的数据压缩格式也有限，后来发现他在PLDI 2018上的《Format abstraction for sparse tensor algebra compilers》加了很多稀疏格式的支持，PLDI 22《An Asymptotic Cost Model for Autoscheduling Sparse Tensor Programs》和 OOPSLA 20 《A Sparse Iteration Space Transformation Framework for Sparse Tensor Algebra》加上了一些auto tuning方面的工作。
+
+   于是我现在想测一测现在的稀疏加速框架速度都是怎么样的，发现这个taco有点残破，非常难用！
+
+3. taco做代码生成的时候用到了格结构来做代码生成，但为什么用也没有看明白，我花了半天的时间研究了一下偏序集和格结构。
+
+4. taco生成的c程序用到了openmp，正好这学期选了高性能计算系统的课，这周过了一遍MPI的语法和openmp的用法。
+
+5. 关于MLIR的sparse_tensor的dialect，我发现我的cornell的朋友组里也有在基于mlir做稀疏计算的工作，Washington的朋友也在做同样的工作（他说这个sparse_tensor在设计上不如他们的设计），貌似这个方向还是很受关注的。
+
+下周工作：
+
+1. 把mlir的sparse_tensor的dialect用起来，看看性能怎么样，怎么设计的。
+2. 待读论文《MLIR: Scaling Compiler Infrastructure for Domain Specific Computation》
+
 ## 20220313
 
 1. 读了《Union: A Unified HW-SW Co-Design Ecosystem inMLIR for Evaluating Tensor Operationson Spatial Accelerators》
