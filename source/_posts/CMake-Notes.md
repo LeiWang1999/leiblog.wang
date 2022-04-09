@@ -105,3 +105,9 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif(OPENMP_FOUND)
 ```
+
+### 一些小问题
+
+1. Remote SSH的时候，可能有时候会出现环境配置没有问题，但是头文件在clion里就是找不到，会出现红色的下划线
+
+   解决：Tools | Resync with Remote Hosts

@@ -3,6 +3,13 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20220327
+
+1. 学习了google test这个框架的使用。
+2. 学习了CUDA编程，把《CUDA C Programming Guide》过了一遍。
+3. 继续看了TACO，因为mlir的sparse tensor这个dialect上写的也是参考的taco设计的。
+4. TACO也把计算和调度分离了，但是好像没有支持自动调优。
+
 ## 20220320
 
 1. 研究了一下tvm现在在稀疏上的工作，ANSOR这篇论文最后总结的时候说不支持稀疏计算的自动搜索，但是我发现tvm现在是有一些对稀疏矩阵乘的自动搜索工作的，《Auto-scheduling Sparse Matrix Multiplication on CPU with Custom Sketch Rule[¶](https://tvm.apache.org/docs/how_to/tune_with_autoscheduler/tune_sparse_x86.html#auto-scheduling-sparse-matrix-multiplication-on-cpu-with-custom-sketch-rule)》。我跑了一下，读了一下代码。稀疏和稠密计算的区别就是稀疏矩阵有多层的访存，这个auto schedule的过程我觉得最大的收益来自于考虑到了这个多级访存的关系，我觉得是很make sense的。
