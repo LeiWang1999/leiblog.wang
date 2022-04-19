@@ -106,9 +106,18 @@ links:
   - url: https://sianiumiao.xyz/
     avatar: http://tva1.sinaimg.cn/large/005Q1GhGgy1gz8gov5xgxj30ls0xctka.jpg
     name: ashui
-    desc: 泥岩和陈都是我的翅膀。
+    blog: "ashui's Blog"
+    desc: "泥岩和陈都是我的翅膀。"
     email: 1400476531@qq.com
     color: "#00f5ff"
+  - url: https://www.less-bug.com/
+    avatar: https://avatars.githubusercontent.com/u/50045289?s=100&v=4
+    name: Zhang Zijing
+    blog: "pluveto's Blog"
+    desc: "I hope my posts can be useful to you. Friendly discussions are welcomed."
+    email: i@pluvet.com
+    color: "#223311"
+  
 placeholder: 还没想好说些什么 # 默认对友链的描述
 tip: 友链加载中～如失败请刷新重试～
 ---
