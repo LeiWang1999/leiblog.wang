@@ -1844,12 +1844,13 @@ hexo-generator-feed@^3.0.0:
     hexo-util "^2.1.0"
     nunjucks "^3.0.0"
 
-hexo-generator-index@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/hexo-generator-index/-/hexo-generator-index-1.0.0.tgz#8c9f157dcfa0af4f8417f77a4eb5b3831f69a719"
-  integrity sha512-L25MdZ7e5ar/F8lIW+zBNNlA4f5A8CBUOYi1IQZCgL3wPVW+AWn66RSM5UVBAbiw5yxDeTHdk0sJYXbhSBaOFQ==
+hexo-generator-index-pin-top@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/hexo-generator-index-pin-top/-/hexo-generator-index-pin-top-0.2.2.tgz#34b5b9ef90e1bca8fbe957d3b3c183ca33ade937"
+  integrity sha512-1mVXHoUL5a3Q3yvIqoRVFhbJPlVAnRfc9ibToWpIlxU7ILTJwxhT6NFiS/jf/yZ0Suq1HvTI68yViMQMQVoDvg==
   dependencies:
-    hexo-pagination "1.0.0"
+    hexo-pagination "0.0.2"
+    object-assign "^4.0.1"
 
 hexo-generator-search@^2.4.2:
   version "2.4.2"
@@ -1909,6 +1910,13 @@ hexo-log@^2.0.0:
   dependencies:
     chalk "^4.0.0"
 
+hexo-pagination@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/hexo-pagination/-/hexo-pagination-0.0.2.tgz#8cf470c7db0de5b18a3926a76deb194015df7f2b"
+  integrity sha1-jPRwx9sN5bGKOSanbesZQBXffys=
+  dependencies:
+    utils-merge "^1.0.0"
+
 hexo-pagination@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/hexo-pagination/-/hexo-pagination-1.0.0.tgz#c9c0ca3665267b9e9d0a89fc3edcaf3276907dc1"
@@ -1920,6 +1928,14 @@ hexo-render-pug@^2.1.4:
   integrity sha512-i5o+PqOf/hUU4B3ffQwD0egADgMwsU4vGKSM+LoUSlAhSDO4srOj8owlGAA+Vr76/tmNUR7BClSX8tSyEAHQuw==
   dependencies:
     pug "^2.0.3"
+
+hexo-render-sass@^2020.4.16:
+  version "2020.4.16"
+  resolved "https://registry.yarnpkg.com/hexo-render-sass/-/hexo-render-sass-2020.4.16.tgz#56ff202b40c43de4a7e0d054c2e10a2802b7aa53"
+  integrity sha512-vBJKSLmVeZ412LxPrcm88sEV/PEGgwol3QZCiFOo1bNJ3Nm+zT6yOqxYg+J7zbmhYkRfUdauPceXRYIiAVSUXQ==
+  dependencies:
+    graceful-fs "^4.1.11"
+    node-sass "^4.13.1"
 
 hexo-renderer-ejs@^1.0.0:
   version "1.0.0"
@@ -3041,7 +3057,7 @@ node-gyp@^3.8.0:
     tar "^2.0.0"
     which "1"
 
-node-sass@^4.5.3:
+node-sass@^4.13.1, node-sass@^4.5.3:
   version "4.14.1"
   resolved "https://registry.yarnpkg.com/node-sass/-/node-sass-4.14.1.tgz#99c87ec2efb7047ed638fb4c9db7f3a42e2217b5"
   integrity sha512-sjCuOlvGyCJS40R8BscF5vhVlQjNN069NtQ1gSxyK1u9iqvn6tf7O1R4GNowVZfiZUCRt5MmMs1xd+4V/7Yr0g==
@@ -3397,9 +3413,9 @@ pretty-hrtime@^1.0.3:
   integrity sha1-t+PqQkNaTJsnWdmeDyAesZWALuE=
 
 prismjs@^1.17.1:
-  version "1.25.0"
-  resolved "https://registry.yarnpkg.com/prismjs/-/prismjs-1.25.0.tgz#6f822df1bdad965734b310b315a23315cf999756"
-  integrity sha512-WCjJHl1KEWbnkQom1+SzftbtXMKQoezOCYs5rECqMN+jP+apI7ftoflyqigqzopSO3hMhTEb0mFClA8lkolgEg==
+  version "1.27.0"
+  resolved "https://registry.yarnpkg.com/prismjs/-/prismjs-1.27.0.tgz#bb6ee3138a0b438a3653dd4d6ce0cc6510a45057"
+  integrity sha512-t13BGPUlFDR7wRB5kQDG4jjl7XeuH6jbJGt11JHPL96qwsEHNX2+68tFXqc1/k+/jALsbSWJKUOT/hcYAZ5LkA==
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
