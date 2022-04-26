@@ -3,6 +3,12 @@ title: weekly
 date: 2021-02-06 13:56:27
 ---
 
+## 20220424
+
+1. 为了深入了解了一下多面体模型，读了一篇MIT 2019年的《Tiramisu: a polyhedral compiler for expressing fast and portable code》，发现他的设计和Halide和TACO基本上一毛一样，主要是针对多面体模型设计了一个DSL，（Halide的设计是计算和调度分离，然后可以用Autotuning 解决，TACO是数据和算法分离，做稀疏计算的DSL），然后分了四层中间表示来做多面体模型优化。
+2. 读了AutoTVM的那一篇《Learning to Optimize Tensor Programs》，在读ASPLOS 22的《A Full-Stack Search Technique for Domain Optimized Deep Learning Accelerators》，Google基于timeloop来做一个加速器最优调度策略搜索的文章。
+3. 尝试基于MLIR写一个存算一体的dialect，这个框架更新的太快了，导致很多接口都变了，非常不稳定，定义了dialect和运算后，写lower的transformation，很多头文件和函数都变了，非常难用！
+
 ## 20220417
 
 1. 本周看了一点nnfusion的源代码，首先回到一个上古问题，nnfusion的细粒度是怎么实现的？nnfusion的vDevice和vEU，在GPU上对应着SM和CUDA CORE，但是对于GPU来说，写CUDA的kernel函数我们能够控制的粒度是thread，一个thread里的程序会自动分配到多个cuda core上，nnfusion是通过一个叫做persistent programing的技术可以控制每个cuda core的行为（在GPU 社区里好像也挺有名的）
