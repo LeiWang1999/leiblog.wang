@@ -54,8 +54,8 @@ links:
     desc: 雪姐
     color: "#0028e7" # 代表色
     email: # 非必须
-  - url: https://esonhugh.me/
-    avatar: https://esonhugh.me/assets/img/reol.png
+  - url: https://eson.ninja/
+    avatar: https://eson.ninja/img/reol.png
     name: Eson
     blog: Esonhugh's Blog
     desc: 群希望Eson
