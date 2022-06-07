@@ -8,7 +8,13 @@ tags:
 date: 2022-05-31 15:15:14
 ---
 
-最近在使用NNFusion的时候发现Codegen出来的FP16的网络在V100上的性能打不过FP32（甚至要慢一倍以上），但是理论上FP16应该要比FP32有两倍的性能收益才对（V100 Cuda Core的half precision的最大吞吐量是single的两倍，在[s9234](https://developer.download.nvidia.com/video/gputechconf/gtc/2019/presentation/s9234-volta-and-turing-architecture-and-performance-optimization.pdf)的slides中看到直接使用half的情况下peak performance其实和single差不多，都是[15Tops](https://images.nvidia.com/content/technologies/volta/pdf/volta-v100-datasheet-update-us-1165301-r5.pdf)，但是Cuda Core提供了half2类型，可一次做两个half类型的运算，这是half在CUDA Core上的收益来源；Tensor Core相比于FP32的收益是针对fp32可以做4x4x4的运算，针对fp16可以做成8x4x4的，这个比较好弄明白）。
+最近在使用NNFusion的时候发现Codegen出来的FP16的网络在V100上的性能打不过FP32（甚至要慢一倍以上），但是理论上FP16应该要比FP32有两倍的性能收益才对（V100 Cuda Core的half precision的最大吞吐量是single的两倍，在[s9234](https://developer.download.nvidia.com/video/gputechconf/gtc/2019/presentation/s9234-volta-and-turing-architecture-and-performance-optimization.pdf)的slides中看到直接使用half的情况下peak performance其实和single差不多，都是[15Tops](https://images.nvidia.com/content/technologies/volta/pdf/volta-v100-datasheet-update-us-1165301-r5.pdf)，但是Cuda Core提供了half2类型，可一次做两个half类型的运算，这是half在CUDA Core上的收益来源；V100卡上的Tensor Core只支持FP16，利用好Tensor Core可以获得非常强的加速，A100卡上的Tensor Core增加更多的精度支持）。
+
+建议阅读的文章：
+
+[聊聊 GPU 峰值计算能力](ttps://zhuanlan.zhihu.com/p/231302709)
+
+[A100 Tensor Float 32 性能实测](https://zhuanlan.zhihu.com/p/259756077)
 
 拿nvprof测试了一下发现主要的性能瓶颈是：half卷积算子的实现速度要比single慢一倍，而这部分运算又占了总体运行时间的绝大部分。
 
@@ -95,6 +101,8 @@ Device "Tesla V100-PCIE-16GB (0)"
 
 分析nvprof的日志可以看到cutlass_tensorop_h884fprop_analytic_64x64_32x2这个kernel使用了tensor core，但是使用率也很低，是Low(1)。
 
+查看tensorrt过程中
+
 ##### 使用dlprof
 
 实际测试的过程中发现使用nvprof测tensor core metrics的时候会影响程序运行的时间，例如原来的一次推理只需要运行6ms，加上了tensor_precision_fu_utilization 这个metrics之后，就变成了200ms左右才能完成一次推理，而为了测benchmark，我使用了5次warm_up和100次loop，时间还是很长的，而且nvprof拿到的信息也比较少，相比之下dlprof拿到的信息更加全面，不会影响程序的运行时间，输出也是的也是csv格式，更胜一步的是可以用tensorboard打开，这样方便在没有图形界面的情况下也能用网页端可视化查看资源：
@@ -144,3 +152,4 @@ Op ID,Op Name,Op Type,Uses TC,Total GPU Time (ns),TC GPU Time (ns),Non-TC GPU Ti
 ![image-20220601000732050](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220601000732050.png)
 
 未完待续..
+
