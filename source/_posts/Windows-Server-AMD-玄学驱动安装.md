@@ -12,7 +12,71 @@ date: 2022-06-07 11:33:10
 
 <!-- more -->
 
+#### 自动检测驱动
 
+从 [AMD 驱动程序和支持页面](https://www.amd.com/zh-hans/support)下载 AMD 驱动程序自动检测工具，直接运行开始检测。
+
+但是会报错误说不能访问网络资源，尝试了各种解决方案之后还是不work，甚至怀疑是amd的服务器问题，等了一两天之后还是不work，于是只好自己看显卡的型号手动安装驱动。
+
+#### 怎么查看显卡的型号
+
+子系统供应商 ID 和设备 ID 是两组设备识别码，各包含 4 个十六进制数字，使用子系统供应商 ID 和设备 ID，就可判断显卡的制造商和型号。此方式最适合未安装专属显卡驱动程序且无法进行物理检查的系统。
+
+打开设备管理器找到子系统供应商 ID 和设备 ID：
+
+![img](https://www.amd.com/system/files/GPU-55-03.png)
+
+1. 右键点击“Microsoft 基本显示适配器” (Microsoft Basic Display Adapter)，然后点击“属性”(Properties)
+
+   ![img](https://www.amd.com/system/files/GPU-55-04.png)
+
+2. 进入“详细信息”(Details) 标签，在“属性”(Properties) 之下选择“硬件 ID”(Hardware Ids)
+
+   ![image-20220608122023934](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220608122023934.png)
+
+我这里已经安装好了驱动，所以显示的是显卡的ID。
+
+在上方示例中，硬件 ID 为：PCI\VEN_1002&DEV_66AF&xxx
+
+硬件 ID 中粗体部分指出显卡的设备 ID 为 **66AF**，而子系统供应商 ID 为 **1002**。
+
+**注意**：为了识别显卡制造商和型号，只使用 DEV 和 SUBSYS 段值。仅 SUBSYS 字符串段中的最后四个字母数字字符用于确定子系统供应商 ID。
+
+找到显卡子系统供应商 ID 之后，将其与下面的制造商列表比对确定显卡的制造商或原产地。
+
+| **子系统供应商 ID** | **制造商**         |
+| ------------------- | ------------------ |
+| 1002                | AMD                |
+| 1043                | ASUSTeK            |
+| 196D                | Club 3D            |
+| 1092                | Diamond Multimedia |
+| 18BC                | GeCube             |
+| 1458                | Gigabyte           |
+| 17AF                | HIS                |
+| 16F3                | Jetway             |
+| 1462                | MSI                |
+| 1DA2                | Sapphire           |
+| 148C                | PowerColor         |
+| 1545                | VisionTek          |
+| 1682                | XFX                |
+| 1025                | Acer               |
+| 106B                | Apple              |
+| 1028                | Dell               |
+| 107B                | Gateway            |
+| 103C                | HP                 |
+| 17AA                | Lenovo             |
+| 104D                | Sony               |
+| 1179                | Toshiba            |
+
+要通过设备 ID 识别显卡的型号，请参阅第三方网站：[Device Hunt](https://devicehunt.com/)
+
+在 Device Hunt 网站上，在“设备ID”(Device ID) 字段（如下所示）中输入显卡的设备 ID，然后点击搜索图标。
+
+![image-20220608122353574](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220608122353574.png)
+
+这样，就可以拿到显卡的型号了，Radeon VII。
+
+然后去官网下载了Radeon VII的驱动，但是没有看到Windows Server版本的驱动，不过2022这个Server看起来非常像windows 10，于是就下载了win10的版本。
 
 这之前的都很正常，问题是Windows Server的版本太新了，导致在安装驱动的时候会报错 Error 184, 操作系统不支持:
 
@@ -22,7 +86,11 @@ date: 2022-06-07 11:33:10
 
 https://www.tenforums.com/drivers-hardware/191842-driver-can-t-applied-win10-server.html
 
-最后通过手动安装驱动的方法绕过了这个os的检测：
+虽然会提示操作系统不符，但是在系统盘中其实已经有了驱动的文件了，只是没有正常安装而已，选择更新驱动程序》浏览我的计算机以查找驱动程序软件》在以下位置搜索驱动程序,然后找到下载的驱动文件，就会绕过操作系统的检测了。
+
+![image-20220608123231967](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20220608123231967.png)
+
+安装完成之后：
 
 ![MicrosoftTeams-image](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/MicrosoftTeams-image.png)
 
