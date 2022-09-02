@@ -3,14 +3,14 @@ title: a hgemm tvm schedule
 categories:
   - Technical
 tags:
-  - Digilal Design
-  - EEEE
-date: 2022-08-31 12:17:47 
+  - CUDA Programming
+  - MLSys
+date: 2022-08-31 12:17:47
 ---
 
-从tvm的tensor expression出发，参考一下cutlass efficient gemm的思路，一步一步优化一下GEMM，这篇记录一下一些思考和碎碎念。
+这里记录的是我想从tvm的tensor expression出发，参考一下cutlass efficient gemm的思路，一步一步优化一下GEMM的一些思考和碎碎念，目的是为了理解cutlass优化gemm的思路。
 
-我们使用CUTLASS Profiler来进行运算，并且用nsight compute dump下来其运行过程中的一些情况，可以拿到他的一些信息，如grid的大小与block的大小等。对于16384的float32类型数据的gemm，cutlass的grid size是（512, 16, 1）-> 8192个block， block size是（256，1，1），一共是2,097,152个线程，因为最后产生C的大小是（16384，16384），所以平均每个thread需要产生128个C的元素。
+我们使用CUTLASS Profiler来运行一个gemm的运算，并用nsight compute dump下来其运行过程中的一些情况，可以拿到他的一些信息，如grid的大小与block的大小等。比如对于16384的float32类型数据的gemm，cutlass的grid size是（512, 16, 1）-> 8192个block， block size是（256，1，1），一共是2,097,152个线程，因为最后产生C的大小是（16384，16384），所以平均每个thread需要产生128个C的元素，结合这些参数的信息，使用tvm的te进行schedule（其实可以试试tensor ir），最后成功打到了和cublas，cutlass相近的性能。
 
 测试GPU: rtx 3090 24GB
 
@@ -18,7 +18,7 @@ CUDA Version: 11.1
 
 TVM Version: 10.0
 
-代码放在：
+代码放在：https://github.com/LeiWang1999/tvm_gpu_gemm
 
 <!-- more -->
 
@@ -588,5 +588,6 @@ __shared__ float4 B_shared[512];
     s[BB].double_buffer()
 ```
 
-但是在我的case下面，这个操作加上反而变得更慢了（430ms）.
+但是在我的case下面，这个操作加上反而变得更慢（430ms）。。
 
+不过，都已经能打到和cutlass相同的水平，我觉得也就差不多了，前面的区域以后再来探索吧！
