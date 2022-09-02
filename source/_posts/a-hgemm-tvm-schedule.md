@@ -190,7 +190,11 @@ $$
 
 首先，关于block size的大小，一般会有两个具体的限制作约束，`Maximum number of resident blocks per SM` 和 `Maximum number of resident threads per SM`，也就是 SM 上最大同时执行的 block 数量和线程数量。要到达这个目的有多种方法，其中一个最简单的方法是让尽量多的线程同时在 SM 上执行，SM 上并发执行的线程数和SM 上最大支持的线程数的比值，被称为 Occupancy，更高的 Occupancy 代表潜在更高的性能。
 
-显然，一个 kernel 的 block_size 应大于 SM 上最大线程数和最大 block 数量的比值，否则就无法达到 100% 的 Occupancy，对应不同的架构，这个比值不相同，对于 V100 、 A100、 GTX 1080 Ti 是 2048 / 32 = 64，对于 RTX 3090 是 1536 / 16 = 96，所以为了适配主流架构，如果静态设置 block_size 不应小于 96。虑到 block 调度的原子性，那么 block_size 应为 SM 最大线程数的约数，否则也无法达到 100% 的 Occupancy，主流架构的 GPU 的 SM 最大线程数的公约是 512，96 以上的约数还包括 128 和 256，也就是到目前为止，block_size 的可选值仅剩下 128 / 256 / 512 三个值。
+显然，一个 kernel 的 block_size 应大于 SM 上最大线程数和最大 block 数量的比值，否则就无法达到 100% 的 Occupancy，对应不同的架构，这个比值不相同.>
+
+> 对于 V100 、 A100、 GTX 1080 Ti 是 2048 / 32 = 64，对于 RTX 3090 是 1536 / 16 = 96，所以为了适配主流架构，如果静态设置 block_size 不应小于 96。虑到 block 调度的原子性，那么 block_size 应为 SM 最大线程数的约数，否则也无法达到 100% 的 Occupancy，主流架构的 GPU 的 SM 最大线程数的公约是 512，96 以上的约数还包括 128 和 256，也就是到目前为止，block_size 的可选值仅剩下 128 / 256 / 512 三个值。
+>
+> cite from [如何设置CUDA Kernel中的grid_size和block_size？](https://zhuanlan.zhihu.com/p/442304996)
 
 不难发现，cutlass里的绝大多数kernel都选用的是128和256这两个值，当block中的thread数量变多，单个thread能吃到的资源就变小，反而会对编程产生限制。
 
@@ -206,8 +210,6 @@ $$
 回归到每个block里的thread是如何计算的，图二一个Block里有1024个线程，包含了八个warp tile，一个warp Tile包含了四个warp，一个warp有32个线程。
 
 ![image-20220901141011638](C:\Users\Lenovo\AppData\Roaming\Typora\typora-user-images\image-20220901141011638.png)
-
-每个block，
 
 对与fp32的cutlass，测了一下在cudacore上最好的square 16384 kernel是cutlass_simt_sgemm_128x128_8x2_nt_align1，grid_size是（1024，16，1），block size是（256，1，1），平均一个线程处理六十四个数据，一个block处理16384个数据。
 
@@ -590,4 +592,6 @@ __shared__ float4 B_shared[512];
 
 但是在我的case下面，这个操作加上反而变得更慢（430ms）。。
 
-不过，都已经能打到和cutlass相同的水平，我觉得也就差不多了，前面的区域以后再来探索吧！
+### 最后
+
+都已经能打到和cutlass相同的水平，我觉得也就差不多了，至少验证了tvm是真的行（至少在gemm上），当然以上有一些我自己的思考，不一定对，文章里还有一些问题没有解决，比如，（1024，16，1）和（128，128，1）这两个grid size是一样的么？群友觉得是不一样的，而我图编程方便，使用的后者，cutlass用的是前者，但从结果上来看，效果还可以，关于这些，欢迎大佬指正与交流，至于前面的区域，以后有时间了再来探索吧。
