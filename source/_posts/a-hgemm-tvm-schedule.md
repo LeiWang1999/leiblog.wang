@@ -81,9 +81,6 @@ extern "C" __global__ void __launch_bounds__(1024) default_function_kernel0(floa
 
 上图是CUTLASS实现高效GEMM的示意图，cutlass在第一层使用矩阵分块的方式来减少global memory的访问次数，在CPU上优化gemm同样也需要用到矩阵分块，不过cpu上的矩阵分块主要是为了fit L2 Cache的大小，这里的却略有不同，cutlass的图描述地不是很明了，绿色的方块代表的是一个block，负责产出一个C子矩阵的数据，可以通过A的浅蓝色的矩阵部分与B的浅黄色的矩阵部分乘累加得到，因为一个block内的thread共享share memory，**所以可以提前把这两部分浅色的矩阵cache到share memory中**。
 
-$$
-\frac{MN}{b_mb_n}(K*b_m + K*bn) =MNK(\frac{1}{b_m} + \frac{1}{b_n})
-$$
 现在暂时不考虑thread block tile这部分内容，则每个block内的thread各自负责一个计算像素，比如，我们一个block负责产生（32，32）个像素则在16384的gemm场景下：
 
 > M,K,N: 16384，16384，16384
@@ -151,7 +148,7 @@ lower:
 s[CC].compute_at(s[C], yi)
 ```
 
-这样可以生成cuda程序，验证性能，不过只把C缓存到local，对性能没有影响，缓存A和B才是关键，但是缓存了A和B，就会尴尬地发现，share memory的大小不够用了，对于每个block，需要load两个16384，32大小的子矩阵，以单精度浮点数为例子，一共是256KB，一个SM也就128KB的share memory资源，所以不可以像这样一个thread计算一个像素。
+这样可以生成cuda程序，验证性能，不过只把C缓存到local，对性能没有影响，估计是NVCC自己优化掉了，缓存A和B才是关键，但是缓存了A和B，就会尴尬地发现，share memory的大小不够用了，对于每个block，需要load两个16384，32大小的子矩阵，以单精度浮点数为例子，一共是256KB，一个SM也就128KB的share memory资源，所以不可以像这样一个thread计算一个像素。
 
 | RTX 3090                                  |        |
 | ----------------------------------------- | ------ |
