@@ -154,7 +154,7 @@ s[CC].compute_at(s[C], yi)
 | ----------------------------------------- | ------ |
 | register file per SM                      | 256 KB |
 | Maximum number of resident threads per SM | 1536   |
-| Maxnumber of blocks per SM                | 16     |
+| Max number of blocks per SM               | 16     |
 | shared memory size per SM                 | 128 KB |
 
 ### Thread Block Tile

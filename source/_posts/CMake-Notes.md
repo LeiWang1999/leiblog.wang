@@ -106,6 +106,30 @@ if (OPENMP_FOUND)
 endif(OPENMP_FOUND)
 ```
 
+### function 缩减工作量
+
+```cmake
+function(add_mma_test_executable name)
+        add_executable(${name} ${name}.cu)
+        set_target_properties(${name} PROPERTIES CUDA_ARCHITECTURES "86")
+        set_target_properties(${name} PROPERTIES
+                CUDA_SEPARABLE_COMPILATION ON)
+        target_link_libraries(${name} PRIVATE ${CUDA_LIBRARIES})
+endfunction()
+
+add_mma_test_executable(mma_m8n8k4_fp16)
+
+add_mma_test_executable(mma_m8n8k16_int8)
+
+add_mma_test_executable(mma_m8n8k16_int8_ldmatrix)
+
+add_mma_test_executable(mma_int8_64x64x16)
+
+add_mma_test_executable(mma_int8_64x64x64)
+
+add_mma_test_executable(mma_int8_128x256x64)
+```
+
 ### 一些小问题
 
 1. Remote SSH的时候，可能有时候会出现环境配置没有问题，但是头文件在clion里就是找不到，会出现红色的下划线

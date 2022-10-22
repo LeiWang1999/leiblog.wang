@@ -3,8 +3,8 @@ title: tir effcient gemm
 categories:
   - Technical
 tags:
-  - Digilal Design
-  - EEEE
+  - CUDA Programming
+  - MLSys
 date: 2022-09-06 15:31:55
 ---
 
@@ -574,7 +574,7 @@ sch.bind(bx, "blockIdx.x")
 | 4.vectorize     | 423.255      | 431.63       |
 | 5.double_buffer | 435.032      |              |
 
-和cutlass差不多了。
+这里生成出来的kernel和te based的kernel已经一毛一样了，但是还有8ms的延迟我还是没check出来是哪里的问题。。
 
 ### unroll
 
@@ -584,7 +584,7 @@ sch.bind(bx, "blockIdx.x")
 sch.unroll(ko)
 ```
 
-则观察产生的cuda kernel,就会被全部展开(不能直接加一个 pragma 吗？不过在loop的层数比较小的情况下，nvcc会自己做一些unroll的优化，所以也不太需要care。
+则观察产生的cuda kernel,就会被全部展开(不能直接加一个 pragma 吗？不过在loop的层数比较小的情况下，nvcc会自己做一些unroll的优化，所以也不太需要care，。
 
 ### 总结
 
