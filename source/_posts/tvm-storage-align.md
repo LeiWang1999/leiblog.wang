@@ -128,7 +128,7 @@ $$
 
 而且理论上存在解，不需要加padding，控制好每个线程访问的bank让他们不conflict，cutlass里提供了这样的一种解法：
 
-![image-20221108192807163](/Users/wanglei/Library/Application Support/typora-user-images/image-20221108192807163.png)
+![image-20221108192807163](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20221108192807163.png)
 
 这两种情况显然不能用storage_align解决了，可以用tvm的tensorize schdule和decl_buffer来达到这个目的，这种实现方式也更自由，如[这里](https://discuss.tvm.apache.org/t/problem-with-storage-align-and-double-buffer/12601/2)的代码：
 
