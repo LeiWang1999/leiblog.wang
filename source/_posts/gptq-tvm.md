@@ -320,6 +320,6 @@ output is: auto-gptq is auto-gptq is a easy way to use tool command freeto use, 
 
    虽然我习惯用tvm做kernel codegen，但是不得不说triton在这种场景下很方便，对不了解mlc的用户更友好，你只需要像写一个python function一样就可以获得不错的性能；反观TVM的DSL，需要自己写schedule，tune起来也比较麻烦，tune完了之后你获得的还不是一个动态的shape，还得自己在外面包一层。当然tvm也有很多优点，triton走mlir，优化看自己也更底层，tvm走codegen，把部分优化交给了nvcc, llvm，这些编译器的优化在某些情况是很玄学的，但好处是可以更好地支持各种设备和场景，triton换个AMD的GPU都跑不起来了，更别说mlc-llm放出来的一些demo。
 
-2. 基于GPTQ的这种解法对于fuse来说并不好，因为基于pytorch来做很难做compile，比如做一些图上的优化，做算子的fuse，对于LLM来说这部分的收益还是相当大的吗，但很多mlc因为没有像tvm这样社区还算活跃，前端基本都是吃的onnx，这让在跑大的llm和quant的llm上会碰到问题，pytorch 2.0的compile接口出现可能会缓解这一问题(triton和tvm都已经上车了)。
+2. 基于GPTQ的这种解法对于fuse来说并不好，因为基于pytorch来做很难做compile，比如做一些图上的优化，做算子的fuse，对于LLM来说这部分的收益还是相当大的吗，但很多mlc因为没有像tvm这样社区还算活跃，前端基本都是吃的onnx，这让在跑大的llm和quant的llm上会碰到问题，pytorch 2.0的compile接口出现可能会缓解这一问题(triton和tvm都有接入)。
 
-Unity被TVM的社区提出来也有了好一段时间了，但是感觉一直都不温不火，甚至不知道仓库的地址在什么地方，早前关注到这个项目还是说可以解DSA的软件栈问题。
+总的来说，这是个大概没什么卵用的玩具，赶紧上车unity和mlc-llm :|
