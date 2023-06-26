@@ -28,7 +28,7 @@ https://www.zhihu.com/question/565420155
 
 不过上面那一段的分析都不重要，我们只需要知道，一个warp会一起来计算一个16x16x16的矩阵乘法，而bank conflict也是warp level，例如该图:
 
-<img src="C:\Users\Lenovo\AppData\Roaming\Typora\typora-user-images\image-20230202225528597.png" alt="image-20230202225528597" style="zoom:50%;" />
+<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20230202225528597.png" alt="image-20230202225528597" style="zoom:50%;" />
 
 第一个warp的第一个计算需要取到128x32的左上角的16x16大小的数据，这里暂且不说每个线程是如何取数据，不难发现肯定有一半的带宽是浪费掉的，因为一行刚好是16个bank，左半边的数据只能吃到前8个bank，自然会有conflict，我们丢到nsight system里prof一下，结果符合我们的预期：
 
