@@ -14,7 +14,7 @@ https://www.zhihu.com/question/565420155
 
 当时我画了这样一个图片:
 
-<img src="https://pic1.zhimg.com/80/v2-26db4641db3f9a5e605dad8e5a6eb9f9_1440w.webp?source=1940ef5c" alt="img" style="zoom:50%;" />
+<img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/v2-26db4641db3f9a5e605dad8e5a6eb9f9_1440w.webp" alt="img" style="zoom:50%;" />
 
 有一些同学还是不理解为什么这种方式可以解掉bank conflict，再加上我搜一搜也没发现有人讲清楚过这件事情。这篇文章以利用tensor core的矩阵乘法为例，较详细地分析一下解conflict的方法，同样我们选择一个最典型的cutlass tile 128x256x32 的 float16 的tile，用来说明问题，在最后，我会提供一份复现的代码，由Tensor IR实现，方便实现各种Tile(虽然我觉得加pad的性能并不能足够到sota。
 
@@ -24,7 +24,7 @@ https://www.zhihu.com/question/565420155
 
 以A矩阵的第一个Block的第一个bk为例，我们需要把global memory左上角的128x32的矩阵缓存到shared memory，这部分只需要最简单的线程映射就可以做到conflict free shared memory store, 然后我们对这个128x32的矩阵使用16x16x16的wmma指令计算，使用8个warp的话，按照2x4的分法来分，一个线程需要算64x64大小的矩阵，一共需要4x4个mma_sync，因为BK=32，wmma_k=16，所以一共需要8条shared memory load指令。
 
-![image-20230202224713490](C:\Users\Lenovo\AppData\Roaming\Typora\typora-user-images\image-20230202224713490.png)
+![image-20230202224713490](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20230202224713490.png)
 
 不过上面那一段的分析都不重要，我们只需要知道，一个warp会一起来计算一个16x16x16的矩阵乘法，而bank conflict也是warp level，例如该图:
 
