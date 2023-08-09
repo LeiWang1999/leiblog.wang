@@ -20,6 +20,7 @@
     "hexo-generator-baidu-sitemap": "^0.1.6",
     "hexo-generator-category": "^1.0.0",
     "hexo-generator-feed": "^3.0.0",
+    "hexo-generator-index": "^3.0.0",
     "hexo-generator-index-pin-top": "^0.2.2",
     "hexo-generator-search": "^2.4.2",
     "hexo-generator-sitemap": "^2.0.0",
@@ -35,6 +36,7 @@
     "hexo-tag-aplayer": "^3.0.4",
     "hexo-tag-asset-img": "^0.2.0",
     "hexo-tag-dplayer": "^0.3.3",
-    "hexo-wordcount": "^6.0.1"
+    "hexo-wordcount": "^6.0.1",
+    "highlight.js": "^9.18.5"
   }
 }

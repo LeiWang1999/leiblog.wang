@@ -3,8 +3,8 @@ favicon: /favicon.ico
 
 # Open Graph metadata (https://hexo.io/docs/helpers.html#open-graph)
 open_graph:
-  twitter_id: LeiWang43167309
-  twitter_site: https://twitter.com/LeiWang43167309
+  twitter_id: Lei_Wang_1999
+  twitter_site: https://twitter.com/Lei_Wang_1999
   google_plus:
   fb_admins:
   fb_app_id:
@@ -13,23 +13,26 @@ open_graph:
 # It can either be an url to an image or a string if the following option is set.
 # logo:
 #   text: <logo string>
-# logo:
-# text: Lei Blog
+logo:
+  text: "Lei::Blog"
 
 article:
   # Show word count and estimated reading time.
   readtime: true
   # Code highlight theme, please see https://highlightjs.org/static/demo/
-  highlight: atom-one-light
+  highlight: xt256
+  # Date format: relative | full | relative_full | full_relative
+  date_format: relative
+  readmore: 'read more'
+
 
 # Navigation bar menu links.
 menu:
   Home: /
-  Categories: categories
+  # Categories: categories
   Tags: tags
-  Links: links
-  Material: material
-  Games: games
+  # Material: material
+  # Games: games
   About: about
 
 # Search plugin settings.
@@ -40,18 +43,20 @@ search:
 # Navigation bar toc settings
 toc: true
 
-#   type: addthis
-#   install_url: //s7.addthis.com/js/300/addthis_widget.js#pubid=xxxxxxxx # (required)
+# Share plugin settings.
+# share:
+#   type: sharethis
+#   install_url:
 
 # Comment plugin settings.
 comment:
   type: valine
   avatar: retro
-  app_id: FHTOdxyP2AlrrX82EnFifVhS-gzGzoHsz # (required) LeanCloud application id
-  app_key: mzP8JPhypnSm8Pg9RkRj8N38 # (required) LeanCloud application key
+  app_id: vTjojtAolevJ2QEt3Ig8gEKD-MdYXbMMI # (required) LeanCloud application id
+  app_key: Ylh2i3sM1fEJrejGuujx52Ja # (required) LeanCloud application key
   notify: true # (optional) receive email notification
   verify: false # (optional) show verification code
-  placeholder: "不要发布不友善、负能量或引战的内容!" # (optional) comment box placeholder text
+  placeholder: "Happy for sharing!" # (optional) comment box placeholder text
 
 # Other plugins and their settings.
 plugins:

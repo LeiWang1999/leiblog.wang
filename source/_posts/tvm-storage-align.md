@@ -31,6 +31,8 @@ for (size_t i = shape.size(); i != 0; --i) {
 }
 ```
 
+<!-- more -->
+
 显然可以通过图中的公式计算出最后的stride，例如网上能搜到的一个case:
 
 ```python
