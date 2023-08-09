@@ -2056,7 +2056,7 @@
     "titlecase" "^1.1.2"
     "warehouse" "^2.2.0"
 
-"hexo@^5.4.0", "hexo@>= 3":
+"hexo@^5.4.2", "hexo@>= 3":
   "integrity" "sha512-Af6mxKwx9byalaffKgiQ8/bZfbXPo2SGEn2Q9hFh++15g15/IulvOhu8lQkJdyZNzmj3hOuSrJdqoUvIr3K/qw=="
   "resolved" "https://registry.npmjs.org/hexo/-/hexo-5.4.2.tgz"
   "version" "5.4.2"
