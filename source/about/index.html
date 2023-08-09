@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About</title>
     <style type="text/css">
-
         div#resume {
             min-width: 310px;
             width: 100%;
@@ -52,23 +51,35 @@
             font-weight: bold;
         }
 
-        .education {
-            font-size: large;
-        }
-
-        .education img {
-            border-radius: 50%;
-            width: 12vmin;
-            height: 12vmin;
-            object-fit: cover;
-            float: right;
-        }
-
-        .education .rank {
-            color: red;
-            font-size: large;
-            font-weight: bold;
-        }
+    .education {  
+      width: 100%;  
+    }  
+  
+    .school {  
+      display: flex;  
+      flex-direction: column;  
+    }  
+  
+    .school ul {  
+      list-style-type: none;  
+      margin: 0;  
+      padding: 0;  
+    }  
+  
+    .school li {  
+      display: flex;  
+      align-items: center;  
+      margin-bottom: 20px;  
+    }  
+  
+    .school-info {  
+      flex-grow: 1;  
+      margin-left: 20px;  
+    }  
+  
+    .school-logo {  
+      width: 12.5%;  
+    }  
 
         .experience img {
             box-shadow: none;
@@ -88,30 +99,35 @@
             </div> -->
             <h2>Introduction</h2>
             <p>
-                He is currently a second year postgraduate student in University of Chinese Academy of Sciences <a href="https://www.ucas.ac.cn/">UCAS</a>, Institute of
-                Computing Technology <a href="http://www.ict.ac.cn/">ICT</a>. He is also a full-time research intern in <a href="https://www.microsoft.com/en-us/research/group/systems-and-networking-research-group-asia"> System Research Group </a> of Microsoft Research Asia.
-                (MSRA), advised by <a href="https://www.microsoft.com/en-us/research/people/jxue/">Dr. Jilong Xue</a> and <a href="https://xysmlx.github.io/">Dr.Lingxiao Ma</a>.
+                He is currently a second year postgraduate student in University of Chinese Academy of Sciences <a
+                    href="https://www.ucas.ac.cn/">UCAS</a>, Institute of
+                Computing Technology <a href="http://www.ict.ac.cn/">ICT</a>. He is also a full-time research intern in
+                <a href="https://www.microsoft.com/en-us/research/group/systems-and-networking-research-group-asia">
+                    System Research Group </a> of Microsoft Research Asia.
+                (MSRA), advised by <a href="https://www.microsoft.com/en-us/research/people/jxue/">Dr. Jilong Xue</a>
+                and <a href="https://xysmlx.github.io/">Dr.Lingxiao Ma</a>.
             </p>
             <p>
-                And I am now focusing on :
+                And he is now focusing on :
             <ul>
                 <li>
-                    Sparse Tensor Computation
+                    <a href="https://github.com/microsoft/SparTA/tree/nmsparse_artifact">Sparse Tensor Computation</a>
                 </li>
                 <li>
-                    MLIR based compiler system
+                    <a href="https://github.com/microsoft/nnfusion/tree/LadderLLM">on-device llm inference</a>
                 </li>
                 <li>
                     <a href="https://github.com/LeiWang1999/ZYNQ-NVDLA">Opensoure Accelerator System Design</a>
                 </li>
                 <li>
-                    <a href="https://github.com/OAID/Tengine">CPU Fallback based on Tengine</a> [<a href="https://github.com/LeiWang1999/ZYNQ-NVDLA/TengineTalk.pdf">slides</a>] [<a href="https://www.bilibili.com/video/BV1z44y1478k">recording</a>]
+                    <a href="https://github.com/OAID/Tengine">CPU Fallback based on Tengine</a> [<a
+                        href="https://github.com/LeiWang1999/ZYNQ-NVDLA/TengineTalk.pdf">slides</a>] [<a
+                        href="https://www.bilibili.com/video/BV1z44y1478k">recording</a>]
                 </li>
-
             </ul>
             </p>
             <p>
-                You can dive deeply into my technical post @ <a href="https://leiblog.wang">leiblog.wang</a>。
+                He is also enjoying writing <a href="https://leiblog.wang">technical post</a>.
             </p>
             <div class="detail">
                 <img class="avatar" src="http://leiblog.wang/static/image/2020/11/long_avatar.jpg" alt="avatar">
@@ -124,17 +140,44 @@
                 </div>
             </div>
         </div>
+        <div class="education">
+            <h2>Education</h2>
+            <div class="school">
+                <ul>
+                    <li>
+                        <div class="school-info">
+                            <b>University of Chinese Academy of Science</b><br>
+                            <b>Institute of Computing Technology</b><br>
+                            Master in Computer Science(Aug. 2021 - Present)
+                        </div>
+                        <div class="school-logo">
+                            <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/ucasLogo.png" width="100%">
+                        </div>
+                    </li>
+                    <li>
+                        <div class="school-info">
+                            <b>Nanjing Tech University</b><br>
+                            Bachor in Electronic Engineering(Aug. 2017 - Jun. 2021) <br>
+                            Overall GPA: <span class="rank">3.95/4.00</span> <br>
+                            Ranking: <span class="rank">1/59</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
         <div class="honors">
             <h2>Awards & Honors</h2>
             <div class="scholarship">
                 <ul>
-                    <li class="nice">Njtech <b>Person of The Year</b> (10 each academic year / PhD candidate involved)</li>
+                    <li class="nice">Njtech <b>Person of The Year</b> (10 each academic year / PhD candidate involved)
+                    </li>
                     <li class="nice">2018 Chinese National Scholarship(Top 0.3%)</li>
+                    <li>2021 Excellent New Student Award of Chinese Academy of Science</li>
                 </ul>
             </div>
             <div class="awards">
                 <ul>
-                    <li class="nice">First Price of 2019 NUEDC</a> (全国大学生电子设计竞赛)
+                    <li class="nice">First Price of 2019 NUEDC (Top 0.5%)</a> (全国大学生电子设计竞赛)
                     </li>
                     <li>
                         First Price of 2018 Jiangsu Province Electronic Design Competition</a>
@@ -144,32 +187,8 @@
                             href="http://leiblog.wang/FPGA车牌识别/">FPGA hardware
                             Accelerator for digital recognition</a>)
                     </li>
-                    <li>Third prize of National FPGA Competition(<a href="http://leiblog.wang/ZYNQ声源定位波束形成/">FPGA based
-                            FOSDA project</a>)</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="education">
-            <h2>Education</h2>
-            <div class="school">
-                <ul>
-                    <li>
-                        <div class="ucas">
-                            <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/ucasLogo.png" width="20%"">
-                            <b>University of Chinese Academy of Science</b><br>
-                            <b>Institute of Computing Technology</b><br>
-                            Master in Computer Science(Aug. 2021 - Present)
-                        </div>
-                    </li>
-                    <li>
-                        <div class=" njtech">
-                            <b>Nanjing Tech University</b><br>
-                            Bachor in Electronic Engineering(Aug. 2017 - Jun. 2021) <br>
-                            Overall GPA: <span class="rank">3.95/4.00</span> <br>
-                            Ranking: <span class="rank">1/59</span>
-                        </div>
-                    </li>
+                    <li>Third prize of National FPGA Competition (<a href="http://leiblog.wang/ZYNQ声源定位波束形成/">FPGA based
+                            FOSDA Alogrithom Implementation</a>) </li>
                 </ul>
             </div>
         </div>
@@ -191,62 +210,19 @@
         </div>
 
         <div class="research-publication">
-            <h2>RESEARCH & PUBLICATION</h2>
-            <div class="research">
-                <ul>
-                    <li>
-                        Host of《IPV6部署实战教程》Project Funded by cernet with 100,000¥
-                    </li>
-                </ul>
-            </div>
-            <div class="publication">
-                No Publication.
-            </div>
-            <div class="talks">
-                <ul>
-                    <li>
-                       Oral:  <a href="https://www.bilibili.com/video/BV1z44y1478k">Tengine Open Talk : New Backend
-                            OpenDLA.</a>
-                    </li>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="titles">
-            <h2>previous TITLES</h2>
-            <ul>
-                <li>Njtech Class Commissary</li>
-                <li>Njtech Student Party Branch Secretary</li>
-                <li>
-                    <p>Leader of Njtech Mars Studio</p>
-                    <p> Mars Studio Production</p>
-                    <ul>
-                        <li><a href="http://online.njtech.edu.cn">南工在线</a></li>
-                        <li><a href="http://mirrors.njtech.edu.cn">南工镜像站</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-        <div class="skills-toolchain">
-            <h2>SKILLS</h2>
+            <h2>Publications</h2>
             <ul>
                 <li>
-                    <b>Programming</b>: C、C++、Python、JavaScript、VerilogHDL、Latex
+                    Lin Bin*; Zheng Ningxin*; <b>Wang Lei</b>*; Cao Shijie; Ma Lingxiao; Zhang Quanlu; Zhu Yi;
+                    Cao Ting; Xue Jilong; Yang Yuqing; et al. <strong>Efficient GPU Kernels for N: M-Sparse Weights in
+                        Deep
+                        Learning</strong>. <em>Proceedings of Machine Learning and Systems</em>, Vol. 5, 2023. (*
+                    represents co-first author) [<a
+                        href="https://proceedings.mlsys.org/paper_files/paper/2023/file/4552cedd396a308320209f75f56a5ad5-Paper-mlsys2023.pdf">paper</a>]
                 </li>
                 <li>
-                    <b>Toolchain</b>: Keil、Vivado/VitisAI、Docker、Pytorch、Nodejs、Matlab、Kali Linux、Cuda Programming
-                </li>
-            </ul>
-        </div>
-        <div class="contact">
-            <h2>CONTACT</h2>
-            <ul>
-                <li>
-                    <b>Email</b>:<a href="mailto:wanglei21c@mails.ucas.ac.cn" rel="nofollow noreferrer"
-                        target="_blank">wanglei21c@mails.ucas.ac.cn</a>
-                </li>
-                <li>
-                    <b>Github</b>:<a href="https://github.com/LeiWang1999">LeiWang1999</a>
+                    Sun Xiaotian; Wang Xinyu; Li Wanqian; <b>Wang Lei</b>; Han Yinhe; Chen Xiaoming. <strong>PIMCOMP: A Universal Compilation
+                        Framework for Crossbar-based PIM DNN Accelerators</strong>. <em>60th. Design Automation Conference</em>, 2023. [<a href="https://arxiv.org/pdf/2307.01475.pdf">paper</a>]
                 </li>
             </ul>
         </div>
