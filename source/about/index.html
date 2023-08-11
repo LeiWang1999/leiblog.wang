@@ -35,7 +35,7 @@
             padding-top: 20px;
         }
 
-        .intro .rank {
+        .school .rank {
             color: red;
             font-size: large;
             font-weight: bold;
@@ -51,43 +51,54 @@
             font-weight: bold;
         }
 
-    .education {  
-      width: 100%;  
-    }  
-  
-    .school {  
-      display: flex;  
-      flex-direction: column;  
-    }  
-  
-    .school ul {  
-      list-style-type: none;  
-      margin: 0;  
-      padding: 0;  
-    }  
-  
-    .school li {  
-      display: flex;  
-      align-items: center;  
-      margin-bottom: 20px;  
-    }  
-  
-    .school-info {  
-      flex-grow: 1;  
-      margin-left: 20px;  
-    }  
-  
-    .school-logo {  
-      width: 12.5%;  
-    }  
-
-        .experience img {
-            box-shadow: none;
-            border: none;
-            width: 5vmin;
-            display: inline-block;
-            vertical-align: middle;
+        .education {
+            width: 100%;
         }
+
+        .school {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .school ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .school li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .school-info {
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+
+        .school-logo {
+            width: 12.5%;
+        }
+
+        .microsoft-logo {
+            width: 20%;
+        }
+
+        .projects-section {
+            padding: 20px 0;
+        }
+
+        .project {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .project h3 {
+            flex: 1 0 100%;
+        }
+
     </style>
 </head>
 
@@ -103,8 +114,7 @@
                     href="https://www.ucas.ac.cn/">UCAS</a>, Institute of
                 Computing Technology <a href="http://www.ict.ac.cn/">ICT</a>. He is also a full-time research intern in
                 <a href="https://www.microsoft.com/en-us/research/group/systems-and-networking-research-group-asia">
-                    System Research Group </a> of Microsoft Research Asia.
-                (MSRA), advised by <a href="https://www.microsoft.com/en-us/research/people/jxue/">Dr. Jilong Xue</a>
+                    System Research Group </a> of Microsoft Research Asia(MSRA), advised by <a href="https://www.microsoft.com/en-us/research/people/jxue/">Dr. Jilong Xue</a>
                 and <a href="https://xysmlx.github.io/">Dr.Lingxiao Ma</a>.
             </p>
             <p>
@@ -127,7 +137,7 @@
             </ul>
             </p>
             <p>
-                He is also enjoying writing <a href="https://leiblog.wang">technical post</a>.
+                He also enjoys writing <a href="https://leiblog.wang">technical posts</a> and contributes to various open-source communities, including Microsoft NNFusion, Apache TVM, and Tengine etc.
             </p>
             <div class="detail">
                 <img class="avatar" src="http://leiblog.wang/static/image/2020/11/long_avatar.jpg" alt="avatar">
@@ -140,6 +150,7 @@
                 </div>
             </div>
         </div>
+
         <div class="education">
             <h2>Education</h2>
             <div class="school">
@@ -159,12 +170,17 @@
                             <b>Nanjing Tech University</b><br>
                             Bachor in Electronic Engineering(Aug. 2017 - Jun. 2021) <br>
                             Overall GPA: <span class="rank">3.95/4.00</span> <br>
-                            Ranking: <span class="rank">1/59</span>
+                            Ranking: 1/59
+                        </div>
+                        <div class="school-logo">
+                            <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/20230810200621.png"
+                                width="100%">
                         </div>
                     </li>
                 </ul>
             </div>
         </div>
+
         <div class="honors">
             <h2>Awards & Honors</h2>
             <div class="scholarship">
@@ -179,7 +195,7 @@
                     <li class="nice">First Price of 2019 NUEDC (Top 0.5%)</a> (全国大学生电子设计竞赛)
                     </li>
                     <li>
-                        First Price of 2018 Jiangsu Province Electronic Design Competition</a>
+                        First Price of 2018 Electronic Design Competition of Province</a>
                     </li>
                     <li>
                         Third Price of Integrated Circuit Innovation and Entrepreneurship Competition (<a
@@ -192,20 +208,37 @@
             </div>
         </div>
 
-        <div class="experience">
-            <h2>Work Experience</h2>
-            <ul>
-                <li>
-                    <div class="netease">
-                        <b><a href="https://www.youdao.com/">Netease Intelligent Hardware R&D Department</a></b>
-                        <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/600px-NetEase_logo.png">
+        <div class="education">
+            <h2>Experience</h2>
+            <div class="school">
+                <ul>
+                    <li>
+                        <div class="school-info">
+                            <b><a href="https://www.youdao.com/">Netease Intelligent Hardware R&D Department</a></b>
+                            <br>
+                            <span>Bei Jing, China</span>
+                            <br>
+                            <span>NPU Development intern. (Sep. 2021 - Oct. 2021)</span>
+                        </div>
+                        <div class="school-logo">
+                            <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/600px-NetEase_logo.png" width="100%">
+                        </div>
+                    </li>
+                    <li>
+                        <div class="school-info">
+                        <b><a href="https://www.microsoft.com/en-us/research/group/systems-and-networking-research-group-asia/">Microsoft
+                                Research Asia</a></b>
                         <br>
                         <span>Bei Jing, China</span>
                         <br>
-                        <span>NPU / DLA Development intern. (Sep. 2021 - Oct. 2021)</span>
-                    </div>
-                </li>
-            </ul>
+                        <span>Systems Research intern. (April. 2022 - now)</span>
+                        </div>
+                        <div class="microsoft-logo">
+                            <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/20230810201214.png" width="100%">
+                        </div>
+                    </li>
+                </ul>
+            </div>
         </div>
 
         <div class="research-publication">
@@ -220,11 +253,55 @@
                         href="https://proceedings.mlsys.org/paper_files/paper/2023/file/4552cedd396a308320209f75f56a5ad5-Paper-mlsys2023.pdf">paper</a>]
                 </li>
                 <li>
-                    Sun Xiaotian; Wang Xinyu; Li Wanqian; <b>Wang Lei</b>; Han Yinhe; Chen Xiaoming. <strong>PIMCOMP: A Universal Compilation
-                        Framework for Crossbar-based PIM DNN Accelerators</strong>. <em>60th. Design Automation Conference</em>, 2023. [<a href="https://arxiv.org/pdf/2307.01475.pdf">paper</a>]
+                    Sun Xiaotian; Wang Xinyu; Li Wanqian; <b>Wang Lei</b>; Han Yinhe; Chen Xiaoming. <strong>PIMCOMP: A
+                        Universal Compilation
+                        Framework for Crossbar-based PIM DNN Accelerators</strong>. <em>60th. Design Automation
+                        Conference</em>, 2023. [<a href="https://arxiv.org/pdf/2307.01475.pdf">paper</a>]
+                </li>
+                <li>
+                    <b>Lei Wang</b>; Lingxiao Ma; Shijie Cao; Ningxin Zheng; Quanlu Zhang. <strong>Ladder: Efficient
+                        Tensor Compilation on Customized Data Format</strong>. <em>17th USENIX Symposium on Operating
+                        Systems Design and Implementation (Poster)</em>, 2023.
                 </li>
             </ul>
         </div>
+
+        <div class="projects-section">
+            <h2>Projects</h2>
+            <ul>
+                <li>
+                    <div class="project">
+                        <h3>FPGA Accelerator for Digital Recognition</h3>
+                        <p>Short description of Project 1. What it is about, the technologies used, and any other pertinent
+                            information.</p>
+                            [<a href="https://leiblog.wang/FPGA%E8%BD%A6%E7%89%8C%E8%AF%86%E5%88%AB/">video</a>]
+                    </div>
+                </li>
+                <li>
+                    <div class="project">
+                        <h3>FPGA Accelerator for Beem Forming</h3>
+                        <p>Short description of Project 2. Elaborate on the purpose, the problem it solves, and the tools or
+                            tech stack used.</p>
+                        [<a href="https://leiblog.wang/ZYNQ%E5%A3%B0%E6%BA%90%E5%AE%9A%E4%BD%8D%E6%B3%A2%E6%9D%9F%E5%BD%A2%E6%88%90/">video</a>
+                        ]
+                    </div>
+                </li>
+                <li>
+                    <div class="project">
+                        <h3>Full Stack FPGA Implementation of NVDLA</h3>
+                        <p>Short description of Project 2. Elaborate on the purpose, the problem it solves, and the tools or
+                            tech stack used.</p>
+                            [<a
+                                href="https://leiblog.wang/ZYNQ%E5%A3%B0%E6%BA%90%E5%AE%9A%E4%BD%8D%E6%B3%A2%E6%9D%9F%E5%BD%A2%E6%88%90/">video</a>
+                            ]
+                            [<a href="https://leiblog.wang/ZYNQ%E5%A3%B0%E6%BA%90%E5%AE%9A%E4%BD%8D%E6%B3%A2%E6%9D%9F%E5%BD%A2%E6%88%90/">video</a>
+                            ]
+                    </div>
+                </li>
+                <!-- Add more projects as needed -->
+            </ul>
+        </div>
+
     </div>
 </body>
 
