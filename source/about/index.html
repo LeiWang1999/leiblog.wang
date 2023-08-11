@@ -85,18 +85,13 @@
             width: 20%;
         }
 
-        .projects-section {
-            padding: 20px 0;
-        }
-
-        .project {
-            display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 30px;
-        }
-
-        .project h3 {
-            flex: 1 0 100%;
+        .projects-section h3 {
+            font-size: 16px;       /* Default size for many browsers' paragraph text */
+            font-weight: normal;   /* Removes the bold styling of h3 */
+            margin: 1em 0;        /* Default margin for many browsers' paragraph text */
+            line-height: 1.5;     /* Line spacing similar to paragraphs */
+            margin-top: 10px;  /* Adjust this value as needed */
+            margin-bottom: 5px;  /* Adjust this value as needed */
         }
 
     </style>
@@ -114,7 +109,8 @@
                     href="https://www.ucas.ac.cn/">UCAS</a>, Institute of
                 Computing Technology <a href="http://www.ict.ac.cn/">ICT</a>. He is also a full-time research intern in
                 <a href="https://www.microsoft.com/en-us/research/group/systems-and-networking-research-group-asia">
-                    System Research Group </a> of Microsoft Research Asia(MSRA), advised by <a href="https://www.microsoft.com/en-us/research/people/jxue/">Dr. Jilong Xue</a>
+                    System Research Group </a> of Microsoft Research Asia(MSRA), advised by <a
+                    href="https://www.microsoft.com/en-us/research/people/jxue/">Dr. Jilong Xue</a>
                 and <a href="https://xysmlx.github.io/">Dr.Lingxiao Ma</a>.
             </p>
             <p>
@@ -137,7 +133,8 @@
             </ul>
             </p>
             <p>
-                He also enjoys writing <a href="https://leiblog.wang">technical posts</a> and contributes to various open-source communities, including Microsoft NNFusion, Apache TVM, and Tengine etc.
+                He also enjoys writing <a href="https://leiblog.wang">technical posts</a> and contributes to various
+                open-source communities, including Microsoft NNFusion, Apache TVM, and Tengine etc.
             </p>
             <div class="detail">
                 <img class="avatar" src="http://leiblog.wang/static/image/2020/11/long_avatar.jpg" alt="avatar">
@@ -221,20 +218,23 @@
                             <span>NPU Development intern. (Sep. 2021 - Oct. 2021)</span>
                         </div>
                         <div class="school-logo">
-                            <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/600px-NetEase_logo.png" width="100%">
+                            <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/600px-NetEase_logo.png"
+                                width="100%">
                         </div>
                     </li>
                     <li>
                         <div class="school-info">
-                        <b><a href="https://www.microsoft.com/en-us/research/group/systems-and-networking-research-group-asia/">Microsoft
-                                Research Asia</a></b>
-                        <br>
-                        <span>Bei Jing, China</span>
-                        <br>
-                        <span>Systems Research intern. (April. 2022 - now)</span>
+                            <b><a
+                                    href="https://www.microsoft.com/en-us/research/group/systems-and-networking-research-group-asia/">Microsoft
+                                    Research Asia</a></b>
+                            <br>
+                            <span>Bei Jing, China</span>
+                            <br>
+                            <span>Systems Research intern. (April. 2022 - now)</span>
                         </div>
                         <div class="microsoft-logo">
-                            <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/20230810201214.png" width="100%">
+                            <img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/20230810201214.png"
+                                width="100%">
                         </div>
                     </li>
                 </ul>
@@ -266,41 +266,64 @@
             </ul>
         </div>
 
-        <div class="projects-section">
-            <h2>Projects</h2>
-            <ul>
-                <li>
-                    <div class="project">
-                        <h3>FPGA Accelerator for Digital Recognition</h3>
-                        <p>Short description of Project 1. What it is about, the technologies used, and any other pertinent
-                            information.</p>
-                            [<a href="https://leiblog.wang/FPGA%E8%BD%A6%E7%89%8C%E8%AF%86%E5%88%AB/">video</a>]
-                    </div>
-                </li>
-                <li>
-                    <div class="project">
-                        <h3>FPGA Accelerator for Beem Forming</h3>
-                        <p>Short description of Project 2. Elaborate on the purpose, the problem it solves, and the tools or
-                            tech stack used.</p>
-                        [<a href="https://leiblog.wang/ZYNQ%E5%A3%B0%E6%BA%90%E5%AE%9A%E4%BD%8D%E6%B3%A2%E6%9D%9F%E5%BD%A2%E6%88%90/">video</a>
-                        ]
-                    </div>
-                </li>
-                <li>
-                    <div class="project">
-                        <h3>Full Stack FPGA Implementation of NVDLA</h3>
-                        <p>Short description of Project 2. Elaborate on the purpose, the problem it solves, and the tools or
-                            tech stack used.</p>
-                            [<a
-                                href="https://leiblog.wang/ZYNQ%E5%A3%B0%E6%BA%90%E5%AE%9A%E4%BD%8D%E6%B3%A2%E6%9D%9F%E5%BD%A2%E6%88%90/">video</a>
-                            ]
-                            [<a href="https://leiblog.wang/ZYNQ%E5%A3%B0%E6%BA%90%E5%AE%9A%E4%BD%8D%E6%B3%A2%E6%9D%9F%E5%BD%A2%E6%88%90/">video</a>
-                            ]
-                    </div>
-                </li>
-                <!-- Add more projects as needed -->
-            </ul>
-        </div>
+<div class="projects-section">
+    <h2>Projects</h2>
+    <ul>
+        <!-- Project 1 -->
+        <li class="project-item">
+            <h3><strong>FPGA Accelerator for Digital Recognition, 2020</strong></h3>
+            <p>
+                Utilizing FPGA technology, this project aims to provide accelerated digital analysis during the time
+                when convolutional neural networks began to gain prominence. This enhancement allowed for faster and
+                more efficient digital recognition processes.
+                <br>
+                [<a href="https://leiblog.wang/FPGA%E8%BD%A6%E7%89%8C%E8%AF%86%E5%88%AB/" class="project-link">
+                    <i class="fa fa-video"></i> Watch the Video
+                </a>]
+            </p>
+        </li>
+
+        <!-- Project 2 -->
+        <li class="project-item">
+            <h3><strong>FPGA Accelerator for Beam Forming, 2020</strong></h3>
+            <p>
+                With the aim of identifying sound location, this FPGA accelerator leverages a tetragonal microphone
+                array to enhance sounds from specific points, we named the project FOSDA.
+                <br>
+                [<a href="https://leiblog.wang/ZYNQ%E5%A3%B0%E6%BA%90%E5%AE%9A%E4%BD%8D%E6%B3%A2%E6%9D%9F%E5%BD%A2%E6%88%90/"
+                    class="project-link">
+                    <i class="fa fa-video"></i> Watch the Video
+                </a>]
+            </p>
+        </li>
+
+        <!-- Project 3 -->
+        <li class="project-item">
+            <h3><strong>Full Stack FPGA Implementation of NVDLA, 2021</strong></h3>
+            <p>
+                This project involved a full-stack FPGA implementation of the open-source Deep Learning Accelerator
+                Framework, NVDLA. To enhance the utility of this accelerator, our team developed a new compiler and
+                runtime framework. This allowed networks to seamlessly transition between CPU fallbacks and hardware
+                acceleration, ensuring optimal performance.
+                <br>
+                [<a href="https://zhuanlan.zhihu.com/p/378202360" class="project-link">
+                    <i class="fa fa-book"></i> Read the Post: DLA Deploy
+                </a>]
+                [<a href="https://zhuanlan.zhihu.com/p/401943271" class="project-link">
+                    <i class="fa fa-post"></i> Read the Post: Compiler Design
+                </a>]
+                [<a href="https://github.com/LeiWang1999/ZYNQ-NVDLA" class="project-link">
+                    <i class="fa fa-code"></i> View Github
+                </a>]
+            </p>
+        </li>
+        <li class="project-item">
+            <h3><strong>Opensource Contributions [<a href="https://github.com/LeiWang1999/">Github</a>]</strong></h3>
+            Familar with Microsoft NNFusion, Apache TVM, Tengine, etc.
+        </li>
+    </ul>
+</div>
+
 
     </div>
 </body>
