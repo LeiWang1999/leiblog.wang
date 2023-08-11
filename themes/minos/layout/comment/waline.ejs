@@ -1,0 +1,20 @@
+<% if (!has_config('comment.app_id') || !has_config('comment.app_key')) { %>
+<div class="notification is-danger">
+    You forgot to set the <code>appId</code> or <code>appKey</code> for Valine. Please set it in <code>_config.yml</code>.
+</div>
+<% } else { %>
+
+    
+<div id="waline-thread"></div>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css" />
+<!-- 脚本文件 -->
+<script type="module">
+    import { init } from 'https://unpkg.com/@waline/client@v2/dist/waline.mjs';
+
+    init({
+        el: '#waline-thread',
+        serverURL: '<%= get_config('comment.serverURL') %>',
+        // options
+    });
+</script>
+<% } %>

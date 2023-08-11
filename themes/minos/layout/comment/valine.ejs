@@ -17,7 +17,8 @@
         placeholder: '<%= get_config('comment.placeholder', 'Say something...') %>',
         meta: ['nick', 'mail'],
         visitor: true,
-        lang: '<%= get_config('comment.lang') %>'
+        lang: '<%= get_config('comment.lang') %>',
+        serverURLs: '<%= get_config('comment.serverURL') %>',
     })
 </script>
 <% } %>

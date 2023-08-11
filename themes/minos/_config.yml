@@ -51,6 +51,7 @@ toc: true
 # Comment plugin settings.
 comment:
   type: valine
+  serverURL: https://vtjojtao.api.lncldglobal.com
   avatar: retro
   app_id: vTjojtAolevJ2QEt3Ig8gEKD-MdYXbMMI # (required) LeanCloud application id
   app_key: Ylh2i3sM1fEJrejGuujx52Ja # (required) LeanCloud application key
@@ -64,8 +65,8 @@ plugins:
   katex: true
   gallery: true
   clipboard: true
-  google-analytics:
-    tracking_id:
+  # google-analytics:
+  #   tracking_id:
 
 # Additional navigation bar links on the right.
 # Links can either be text or icon. The following link is set to be an icon link whose icon
