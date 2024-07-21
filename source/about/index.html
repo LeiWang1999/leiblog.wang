@@ -98,6 +98,13 @@
             font-weight: bold;
         }
 
+
+        .projects-section .special {
+            color: red;
+            font-size: medium;
+            font-weight: bold;
+        }
+
         .projects-section h3 {
             font-size: 16px;
             /* Default size for many browsers' paragraph text */
@@ -335,7 +342,7 @@
             <h2>Projects</h2>
             <ul>
                 <li class="project-item">
-                    <h3><strong>Microsoft BitBLAS, 2024</strong></h3>
+                    <h3><strong>Microsoft BitBLAS, 2024</strong><strong class="special"> Lead! </strong></h3>
                     <p>
                         BitBLAS is a library to support mixed-precision BLAS operations on GPUs, for example, the <code>W<sub>wdtype</sub>A<sub>adtype</sub></code> mixed-precision matrix multiplication where <code>C<sub>cdtype</sub>[M, N] = A<sub>adtype</sub>[M, K] &times; W<sub>wdtype</sub>[N, K]</code>.
                         BitBLAS aims to support efficient mixed-precision DNN model deployment, especially the <code>W<sub>wdtype</sub>A<sub>adtype</sub></code> quantization in large language models (LLMs), for example:
