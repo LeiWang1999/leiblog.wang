@@ -20,7 +20,7 @@ jobs:
     - name: Setup Node
       uses: actions/setup-node@master
       with:
-        node-version: '12.14'
+        node-version: '20.17'
     - name: Install and Build
       run: |
         npm install
