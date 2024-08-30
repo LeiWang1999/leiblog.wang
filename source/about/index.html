@@ -91,6 +91,9 @@
             font-weight: bolder;
         }
 
+        .research-publication .title:hover {
+            color: black; /* Sets the blog link color */
+        }
 
         .research-publication .special {
             color: red;
@@ -98,6 +101,37 @@
             font-weight: bold;
         }
 
+        .research-publication li {
+            list-style-type: none;
+        }
+
+        .details {
+            font-style: italic; /* Italicizes the text */
+            color: #6c757d; /* Sets a light gray color */
+            margin-top: 5px; /* Adds some spacing above */
+            display: block; /* Makes sure it takes a full line */
+        }
+        
+        .blog-link {
+            color: #2c6bcb; /* Sets the blog link color */
+            text-decoration: none; /* Removes the underline from the link */
+        }
+        
+        .blog-link:hover {
+            text-decoration: underline; /* Adds underline on hover for the link */
+        }
+
+        .icon {
+            width: 1.2em; /* Matches the typical size of Font Awesome icons */
+            height: 1.2em; /* Ensures the image is square like the icons */
+            margin-left: 2px; /* Adds some space to the left */
+            vertical-align: -0.15em; /* Slightly adjusts the vertical alignment */
+        }
+        
+        .fa {
+            font-size: 1.2em; /* Ensures Font Awesome icons are the same size as the image */
+            vertical-align: -0.15em; /* Slightly adjusts the vertical alignment */
+        }
 
         .projects-section .special {
             color: red;
@@ -268,78 +302,123 @@
 
         <div class="research-publication">
             <h2>Publications</h2>
-            <ul>
-                <li>
-                    Lin Bin*; Zheng Ningxin*; <b>Wang Lei</b>*; Cao Shijie; Ma Lingxiao; Zhang Quanlu; Zhu Yi;
-                    Cao Ting; Xue Jilong; Yang Yuqing; et al. <strong class="title">Efficient GPU Kernels for N:
-                        M-Sparse Weights in
-                        Deep
-                        Learning</strong>. <em>Proceedings of Machine Learning and Systems</em>, <em>MLSYS</em>, 2023.
-                    (*
-                    represents co-first author) [<a
-                        href="https://www.microsoft.com/en-us/research/uploads/prod/2023/05/N_M_Sparse_kernels__MLSys23.pdf">paper</a>]
-                </li>
-                <li>
-                    Sun Xiaotian; Wang Xinyu; Li Wanqian; <b>Wang Lei</b>; Han Yinhe; Chen Xiaoming. <strong
-                        class="title">PIMCOMP: A
-                        Universal Compilation
-                        Framework for Crossbar-based PIM DNN Accelerators</strong>. <em>60th. Design Automation
-                        Conference</em>, <em>DAC</em>, 2023. [<a href="https://arxiv.org/pdf/2307.01475.pdf">paper</a>]
-                </li>
-                <li>
-                    <b>Lei Wang</b>; Lingxiao Ma; Shijie Cao; Ningxin Zheng; Quanlu Zhang. <strong
-                        class="title">Efficient
-                        Tensor Compilation on Customized Data Format</strong>. <em>17th USENIX Symposium on Operating
-                        Systems Design and Implementation (Poster)</em>, <em>OSDI</em>, 2023.
-                </li>
-                <li>
-                    Yuetao Chen; Kun Li; Yuhao Wang; Donglin Bai; <b>Lei Wang</b>; Lingxiao Ma; Liang Yuan; Yunquan
-                    Zhang; Ting Cao;
-                    Mao Yang;
-                    <strong class="title">ConvStencil: Transform Stencil Computation to Matrix
-                        Multiplication on Tensor Cores</strong>.
-                    <em>Symposium on Principles and Practice of Parallel Programming</em>, <em>PPoPP</em>, 2024. [<a
-                        href="https://dl.acm.org/doi/10.1145/3627535.3638476">paper</a>]<strong class="special"> Best
-                        Paper Award!</strong>
-                </li>
-                <li>
-                    Wanqian Li; Xiaotian Sun; Xinyu Wang; <b>Lei Wang</b>; Yinhe Han; Xiaoming Chen; <strong
-                        class="title">PIMSYN: Synthesizing
-                        Processing-in-memory CNN Accelerators</strong>. <em>Design, Automation and Test in Europe
-                        Conference</em>,
-                    <em>DATE</em>, 2024. [<a
-                        href="https://github.com/chenxm1986/PIM-Toolchain/tree/main/papers/pimsyn-nn.pdf">paper</a>]
-                </li>
-                <li>
-                    Haoran Wang; <b>Lei Wang</b>; Haobo Xu; Ying Wang; Yinhe Han;
-                    <strong class="title">PrimPar: Efficient Spatial-temporal Tensor Partition for Large Transformer
-                        Model Training.</strong>
-                    <em>ACM International Conference on Architectural Support for Programming Languages and Operating
-                        Systems</em>, <em>ASPLOS</em>, 2024.
-                </li>
-                <li>
-                    Shuming Ma; Hongyu Wang; Lingxiao Ma; <b>Lei Wang</b>; Wenhui Wang; Shaohan Huang; Li Dong; Ruiping
-                    Wang; Jilong Xue; Furu Wei;
-                    <strong class="title">The Era of 1-bit LLMs: All Large Language Models are in 1.58 Bits</strong>.
-                    <em>Preprint</em>, 2024. [<a href="https://arxiv.org/pdf/2402.17764.pdf">paper</a>]<strong
-                        class="special"> HG Daily Paper TOP1!</strong>
-                </li>
-                <li>
-                    <b>Lei Wang</b>; Lingxiao Ma; Shijie Cao; Quanlu Zhang, Jilong Xue, Yining Shi, Ningxin Zheng;
-                    Ziming Miao; Fan Yang; Ting Cao; Yuqing Yang; Mao Yang; <strong class="title">Ladder: Enabling
-                        Efficient Low-Precision Deep Learning Computing through Hardware-aware Tensor
-                        Transformation</strong>. <em>18th USENIX Symposium on Operating
-                        Systems Design and Implementation</em>, <em>OSDI</em>, 2024.
-                </li>
-                <li>
-                    Jianyu Wei; Shijie Cao; Ting Cao; Lingxiao Ma; <b>Lei Wang</b>; Yanyong Zhang; Mao Yang; <strong class="title">T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge</strong>. <em>Preprint</em>, 2024. [<a href="https://arxiv.org/html/2407.00088v1">paper</a>]<strong
-                    class="special"></strong>
-                </li>
-                <li>
-                    Zhiwen Mo; <b>Lei Wang</b>; Jianyu Wei; Zhichen Zeng; Shijie Cao; Lingxiao Ma; Naifeng Jing; Ting Cao; Jilong Xue; Fan Yang; Mao Yang; <strong class="title">LUT TENSOR CORE: Lookup Table Enables Efficient Low-Bit LLM Inference Acceleration</strong>. <em>Preprint</em>, 2024. [<a href="https://arxiv.org/abs/2408.06003">paper</a>]<strong
-                    class="special"></strong>
-                </li>
-            </ul>
+            <div>
+                <div id="t-mac">
+                    <a href="https://arxiv.org/html/2407.00088v1" class="title"><strong>T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge</strong></a>
+                    <a href="https://github.com/microsoft/T-MAC"><i class="fa-brands fa-github" style="color: #B197FC;"></i></a>
+                    <a href="https://github.com/microsoft/T-MAC"><i class="fa-regular fa-folder-open"></i></a>
+                    <a href="https://www.acm.org/publications/policies/artifact-review-and-badging-current#available"><img src="https://www.acm.org/binaries/content/gallery/acm/publications/replication-badges/artifacts_available_dl.jpg" alt="ACM artifact Logo" class="icon"></a>  
+                    <a href="https://www.acm.org/publications/policies/artifact-review-and-badging-current#functional"><img src="https://www.acm.org/binaries/content/gallery/acm/publications/replication-badges/artifacts_evaluated_functional_dl.jpg" alt="ACM artifact Logo" class="icon"></a>  
+                    <a href="https://www.acm.org/publications/policies/artifact-review-and-badging-current#reproduced"><img src="https://www.acm.org/binaries/content/gallery/acm/publications/replication-badges/results_reproduced_dl.jpg" alt="ACM artifact Logo" class="icon"></a>  
+                    <br>
+                    <span class="authors">Jianyu Wei, Shijie Cao, Ting Cao, Lingxiao Ma, <b>Lei Wang</b>, Yanyong Zhang, Mao Yang</span><br>
+                    <span class="details">
+                        <em>Proceedings of the Nineteenth European Conference on Computer Systems.</em>, <em>EuroSys</em> 2025
+                    </span>
+                    <br>
+                </div>
+
+                <div id="ladder">
+                    <a href="https://www.usenix.org/system/files/osdi24-wang-lei.pdf" class="title"><strong>Enabling Efficient Low-Precision Deep Learning Computing through Hardware-aware Tensor Transformation</strong></a>
+                    <a href="https://github.com/microsoft/BitBLAS"><i class="fa-brands fa-github" style="color: #B197FC;"></i></a>
+                    <a href="https://github.com/microsoft/BitBLAS/tree/osdi24_ladder_artifact"><i class="fa-regular fa-folder-open"></i></a>
+                    <a href="https://www.acm.org/publications/policies/artifact-review-and-badging-current#available"><img src="https://www.acm.org/binaries/content/gallery/acm/publications/replication-badges/artifacts_available_dl.jpg" alt="ACM artifact Logo" class="icon"></a>  
+                    <a href="https://www.acm.org/publications/policies/artifact-review-and-badging-current#functional"><img src="https://www.acm.org/binaries/content/gallery/acm/publications/replication-badges/artifacts_evaluated_functional_dl.jpg" alt="ACM artifact Logo" class="icon"></a>  
+                    <a href="https://www.acm.org/publications/policies/artifact-review-and-badging-current#reproduced"><img src="https://www.acm.org/binaries/content/gallery/acm/publications/replication-badges/results_reproduced_dl.jpg" alt="ACM artifact Logo" class="icon"></a>  
+                    <br>
+                    <span class="authors"><b>Lei Wang</b>, Lingxiao Ma, Shijie Cao, Quanlu Zhang, Jilong Xue, Yining Shi, Ningxin Zheng, Ziming Miao, Fan Yang, Ting Cao, Yuqing Yang, Mao Yang</span><br>
+                    <span class="details">
+                        <em>18th USENIX Symposium on Operating Systems Design and Implementation</em>, <em>OSDI</em>, 2024
+                    </span>
+                    <br>
+                </div>
+                
+                <div id="1.58b">
+                    <a href="https://arxiv.org/pdf/2402.17764.pdf" class="title"><strong>The Era of 1-bit LLMs: All Large Language Models are in 1.58 Bits</strong></a>
+                    <br>
+                    <span class="authors">Shuming Ma, Hongyu Wang, Lingxiao Ma, <b>Lei Wang</b>, Wenhui Wang, Shaohan Huang, Li Dong, Ruiping Wang, Jilong Xue, Furu Wei</span><br>
+                    <span class="details">
+                        <em>Arxiv</em>, 2024. <strong class="special"> HG Daily Paper TOP1!</strong>
+                    </span>
+                    <br>
+                </div>
+                
+                <div id="primpar">
+                    <a href="https://dl.acm.org/doi/pdf/10.1145/3620666.3651357" class="title"><strong>PrimPar: Efficient Spatial-temporal Tensor Partition for Large Transformer Model Training</strong></a>
+                    <br>
+                    <span class="authors">Haoran Wang, <b>Lei Wang</b>, Haobo Xu, Ying Wang, Yinhe Han</span><br>
+                    <span class="details">
+                        <em>ACM International Conference on Architectural Support for Programming Languages and Operating Systems</em>, <em>ASPLOS</em>, 2024
+                    </span>
+                    <br>
+                </div>  
+                
+                <div id="lut-tensorcore">
+                    <a href="https://arxiv.org/abs/2408.06003" class="title"><strong>LUT TENSOR CORE: Lookup Table Enables Efficient Low-Bit LLM Inference Acceleration</strong></a>
+                    <br>
+                    <span class="authors">Zhiwen Mo, <b>Lei Wang</b>, Jianyu Wei, Zhichen Zeng, Shijie Cao, Lingxiao Ma, Naifeng Jing, Ting Cao, Jilong Xue, Fan Yang, Mao Yang</span><br>
+                    <span class="details">
+                        <em>Arxiv</em>, 2024
+                    </span>
+                    <br>
+                </div>
+                
+                <div id="conv-stencil">
+                    <a href="https://dl.acm.org/doi/10.1145/3627535.3638476" class="title"><strong>ConvStencil: Transform Stencil Computation to Matrix Multiplication on Tensor Cores</strong></a>
+                    <br>
+                    <span class="authors">Yuetao Chen, Kun Li, Yuhao Wang, Donglin Bai, <b>Lei Wang</b>, Lingxiao Ma, Liang Yuan, Yunquan Zhang, Ting Cao, Mao Yang</span><br>
+                    <span class="details">
+                        <em>Symposium on Principles and Practice of Parallel Programming</em>, <em>PPoPP</em>, 2024. <strong class="special"> Best Paper Award!</strong>
+                    </span>
+                    <br>
+                </div>
+                
+                <div id="ladder-poster">
+                    <a href="#" class="title"><strong>Efficient Tensor Compilation on Customized Data Format</strong></a>
+                    <br>
+                    <span class="authors"><b>Lei Wang</b>, Lingxiao Ma, Shijie Cao, Ningxin Zheng, Quanlu Zhang</span><br>
+                    <span class="details">
+                        <em>17th USENIX Symposium on Operating Systems Design and Implementation (Poster)</em>, <em>OSDI</em>, 2023
+                    </span>
+                    <br>
+                </div>
+                
+                <div id="pimcomp">
+                    <a href="https://arxiv.org/pdf/2307.01475.pdf" class="title"><strong>PIMCOMP: A Universal Compilation Framework for Crossbar-based PIM DNN Accelerators</strong></a>
+                    <br>
+                    <span class="authors">Sun Xiaotian, Wang Xinyu, Li Wanqian, <b>Wang Lei</b>, Han Yinhe, Chen Xiaoming</span><br>
+                    <span class="details">
+                        <em>60th Design Automation Conference</em>, <em>DAC</em>, 2023
+                    </span>
+                    <br>
+                </div>
+                
+                <div id="pimsyn">
+                    <a href="https://github.com/chenxm1986/PIM-Toolchain/tree/main/papers/pimsyn-nn.pdf" class="title"><strong>PIMSYN: Synthesizing Processing-in-memory CNN Accelerators</strong></a>
+                    <br>
+                    <span class="authors">Wanqian Li, Xiaotian Sun, Xinyu Wang, <b>Lei Wang</b>, Yinhe Han, Xiaoming Chen</span><br>
+                    <span class="details">
+                        <em>Design, Automation and Test in Europe Conference</em>, <em>DATE</em>, 2024
+                    </span>
+                    <br>
+                </div>
+
+                <div id="nmsparse">
+                    <a href="https://www.microsoft.com/en-us/research/uploads/prod/2023/05/N_M_Sparse_kernels__MLSys23.pdf" class="title"><strong>Efficient GPU Kernels for N:M-Sparse Weights in Deep Learning</strong></a>
+                    <a href="https://github.com/microsoft/SparTA/tree/nmsparse"><i class="fa-brands fa-github" style="color: #B197FC;"></i></a>
+                    <a href="https://github.com/microsoft/SparTA/tree/nmsparse_artifact"><i class="fa-regular fa-folder-open"></i></a>
+                    <a href="https://www.acm.org/publications/policies/artifact-review-and-badging-current#available"><img src="https://www.acm.org/binaries/content/gallery/acm/publications/replication-badges/artifacts_available_dl.jpg" alt="ACM artifact Logo" class="icon"></a>
+                    <a href="https://www.acm.org/publications/policies/artifact-review-and-badging-current#functional"><img src="https://www.acm.org/binaries/content/gallery/acm/publications/replication-badges/artifacts_evaluated_functional_dl.jpg" alt="ACM artifact Logo" class="icon"></a>
+                    <a href="https://www.acm.org/publications/policies/artifact-review-and-badging-current#reproduced"><img src="https://www.acm.org/binaries/content/gallery/acm/publications/replication-badges/results_reproduced_dl.jpg" alt="ACM artifact Logo" class="icon"></a>
+                    <br>
+                    <span class="authors">Lin Bin*, Zheng Ningxin*, <b>Wang Lei*</b>, Cao Shijie, Ma Lingxiao, Zhang Quanlu, Zhu Yi, Cao Ting, Xue Jilong, Yang Yuqing, et al. (* represents co-first author)</span><br>
+                    <span class="details">
+                        <em>Proceedings of Machine Learning and Systems</em>, <em>MLSYS</em>, 2023
+                    </span>
+                <br>
+                </div>
+
+            </div>
         </div>
 
         <div class="projects-section">
