@@ -8,7 +8,7 @@ tags:
 date: 2024-09-14 15:13:08
 ---
 
-近期在基于TVM(其实是bitblas.tl) 复现PPoPP 2023的一篇论文[Stream-K: Work-centric Parallel Decomposition for Dense Matrix-Matrix Multiplication on the GPU](http://arxiv.org/abs/2301.03598) . 简单来说，这个方法可以把k轴均匀地切分到每个SM上，从而缓解小shape下的SM浪费问题（BitBLAS在Contiguous Batching等场景上确实碰到了这样的问题，为了优化这部分性能不得已去复现这个论文的方法。然而这篇Blog不讲Stream-K的算法与实现细节，也不讲BitBLAS, 而是来分析一下TVM的MergeSharedMemoryAllocations这一个Pass，原因是高效的Stream-K实现需要引入大量的shared memory，而TVM中负责进行Liveness分析来合并shared memory访存的这个Pass，在复杂场景下存在BUG，导致shared memory的复用达不到预期，阻止了我们探索更大的tile size. 为此不得不对这个Pass进行一下改进，本文记录一下对这个Pass的分析和修改，以及我相信大部分TVM的用户在Hack TVM的代码的时候都会头秃，穿插一些TVM的设计和调试经验）
+近期在基于TVM(其实是bitblas.tl) 复现PPoPP 2023的一篇论文[Stream-K: Work-centric Parallel Decomposition for Dense Matrix-Matrix Multiplication on the GPU](http://arxiv.org/abs/2301.03598) . 简单来说，这个方法可以把k轴均匀地切分到每个SM上，从而缓解小shape下的SM Waves浪费（BitBLAS在Contiguous Batching等场景上确实碰到了这样的问题，为了优化这部分性能不得已去复现这个论文的方法。然而这篇Blog不讲Stream-K的算法与实现细节，也不讲BitBLAS, 而是来分析一下TVM的MergeSharedMemoryAllocations这一个Pass，原因是高效的Stream-K实现需要引入大量的shared memory，而TVM中负责进行Liveness分析来合并shared memory访存的这个Pass，在复杂场景下存在BUG，导致shared memory的复用达不到预期，阻止了我们探索更大的tile size. 为此不得不对这个Pass进行一下改进，本文记录一下对这个Pass的分析和修改，以及我相信大部分TVM的用户在Hack TVM的代码的时候都会头秃，穿插一些TVM的设计和调试经验）
 
 
 <div align="center" ><img src="https://github.com/LeiWang1999/Stream-k.tvm/raw/master/figures/image.png" alt="example" style="zoom:33%;" /></div>
