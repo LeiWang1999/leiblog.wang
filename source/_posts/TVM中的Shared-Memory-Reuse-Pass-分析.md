@@ -527,7 +527,7 @@ if (it != alloc_info_.end() && it->second.alloc) {
 }
 ```
 
-不难发现，其每次都会把touched buffer放到最外围的(除了AttrStmt)Entry上，这个对于矩阵乘法来说刚好是对的，但是细想来看，这个touched buffer其实应该放到最内层的Entry上，Liveness分析中的Gen和Kill Point才不会出错，为了验证这个猜想，我们可以使用一个简单的batched gemm为例子（batch维度不并行化），这样最外围的(除了AttrStmt)Entry就是一个完整的ForLoop，这样所有的touched buffer都会被放到这个Entry上，那么该Pass就完全不会复用任何Buffer(因为每个代Buffer的Gen Point都在AttrStmt的开头，到AttrStmt的结尾), 在Stream-K的实现中，这个场景是更加复杂的，其表达式为:
+不难发现，其每次都会把touched buffer放到最外围的(除了AttrStmt)Entry上，这个对于矩阵乘法来说刚好是对的，但是细想来看，这个touched buffer其实应该放到最内层的Entry上，Liveness分析中的Gen和Kill Point才不会出错，为了验证这个猜想，我们可以使用一个简单的batched gemm为例子（batch维度不并行化），这样最外围的(除了AttrStmt)Entry就是一个完整的ForLoop，这样所有的touched buffer都会被放到这个Entry上，那么该Pass就完全不会复用任何Buffer(因为每个Buffer的Gen Point都在AttrStmt的开头，Kill Point在AttrStmt的结尾), 在Stream-K的实现中，这个场景是更加复杂的，其表达式为:
 
 ```python
 while xxx:
