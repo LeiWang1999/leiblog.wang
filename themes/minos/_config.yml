@@ -20,7 +20,7 @@ article:
   # Show word count and estimated reading time.
   readtime: true
   # Code highlight theme, please see https://highlightjs.org/static/demo/
-  highlight: xt256
+  highlight: atom-one-dark
   # Date format: relative | full | relative_full | full_relative
   date_format: relative
   readmore: 'read more'

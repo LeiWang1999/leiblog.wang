@@ -46,10 +46,10 @@ relative_link: false
 future: true
 
 highlight:
-  enable: false
-  auto_detect: false
+  enable: true
+  auto_detect: true
   line_number: true
-  line_threshold: 0
+  line_threshold: 5
   tab_replace: ''
   exclude_languages:
     - example
