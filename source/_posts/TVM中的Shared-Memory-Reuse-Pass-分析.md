@@ -13,7 +13,6 @@ date: 2024-09-14 15:13:08
 
 <div align="center" ><img src="https://github.com/LeiWang1999/Stream-k.tvm/raw/master/figures/image.png" alt="example" style="zoom:33%;" /></div>
 
-
 <!-- more -->
 
 ### 为什么需要 `MergeSharedMemoryAllocations` 这个 Pass
@@ -52,9 +51,9 @@ C[row + threadIdx.y][col + threadIdx.x] = Csub[threadIdx.y][threadIdx.x];
 
 ### MergeSharedMemoryAllocations 的分析和改进
 
-首先，我们需要简要回顾一下这个Pass的修改历史，社区的大佬**[masahi](https://github.com/masahi)**在2021年的时候写了最原始的Pass，[CUDA\] Support multiple TIR-level dynamic shared memory allocations by masahi · Pull Request #8571 · apache/tvm (github.com)](https://github.com/apache/tvm/pull/8571) ，当时还没有活跃变量分析的内容，猜想只是因为dynamic shared memory只能声明一次，所以必须要把原本的多个alloc给整合成一个，年底的时候**[jinhongyii](https://github.com/jinhongyii)** 在这个Pass上增加了对各个Buffer的活跃变量分析，使得Buffer可以被复用，再这之后的一些更改大部分是打打补丁（例如针对一些TVM的buildin intrin，例如异步拷贝和TensorCore相关的指令)，去年的时候，我对这个Pass做了一个简单的改进，提高了一些场景下的复用率，并且将这个内容扩展到静态Shared Memory中去[CUDA\] Simple extend to optimize reuse for static shared memory. by LeiWang1999 · Pull Request #16342 · apache/tvm (github.com)](https://github.com/apache/tvm/pull/16342)，与此同时，这个Pass的名字也从`MergeDynamicSharedMemoryAllocations`变成了`MergeSharedMemoryAllocations `.（至于为什么不all in dynamic shared memory呢？其实作者当时是被ThreadSync这个Pass给坑了，在dynamic的时候莫名其妙多插了很多sync，导致笔者认为static在某些case下要更快，如今看来，这两者别无二致）。
+首先，我们需要简要回顾一下这个Pass的修改历史，社区的大佬**[masahi](https://github.com/masahi)**在2021年的时候写了最原始的Pass，[\[CUDA\] Support multiple TIR-level dynamic shared memory allocations by masahi · Pull Request #8571 · apache/tvm (github.com)](https://github.com/apache/tvm/pull/8571) ，当时还没有活跃变量分析的内容，猜想只是因为dynamic shared memory只能声明一次，所以必须要把原本的多个alloc给整合成一个，年底的时候**[jinhongyii](https://github.com/jinhongyii)** 在这个Pass上增加了对各个Buffer的活跃变量分析，使得Buffer可以被复用，再这之后的一些更改大部分是打打补丁（例如针对一些TVM的buildin intrin，例如异步拷贝和TensorCore相关的指令)，去年的时候，我对这个Pass做了一个简单的改进，提高了一些场景下的复用率，并且将这个内容扩展到静态Shared Memory中去[\[CUDA\] Simple extend to optimize reuse for static shared memory. by LeiWang1999 · Pull Request #16342 · apache/tvm (github.com)](https://github.com/apache/tvm/pull/16342)，与此同时，这个Pass的名字也从`MergeDynamicSharedMemoryAllocations`变成了`MergeSharedMemoryAllocations `.（至于为什么不all in dynamic shared memory呢？其实作者当时是被ThreadSync这个Pass给坑了，在dynamic的时候莫名其妙多插了很多sync，导致笔者认为static在某些case下要更快，如今看来，这两者别无二致）。
 
-讲过历史，我们来分析一下这个Pass的执行过程，代码的主体在[merge_shared_memory_allocations.cc — LeiWang1999/tvm — GitHub](https://github.com/LeiWang1999/tvm/blob/bitblas/src/tir/transforms/merge_shared_memory_allocations.cc). 如图所示，最主要的Class是SharedMemoryRewriter，主要的流程氛围三部，第一步是使用Visitor `SharedMemLinearAccessPatternFinder`来获得一个Buffer的LinearAccessPattern，他会返回一个作用域条目，这个条目有助于我们直接进行Livness分析（生成每个buffer的gen和kill point），最后Pass会根据Liveness分析的结果算出内存池的大小，和每个buffer的偏置，并改写语法书中对应Buffer的访问节点。
+讲过历史，我们来分析一下这个Pass的执行过程，代码的主体在[merge_shared_memory_allocations.cc — LeiWang1999/tvm — GitHub](https://github.com/LeiWang1999/tvm/blob/bitblas/src/tir/transforms/merge_shared_memory_allocations.cc). 如图所示，最主要的Class是SharedMemoryRewriter，主要的流程氛围三部，第一步是使用Visitor `SharedMemLinearAccessPatternFinder`来获得一个Buffer的LinearAccessPattern，他会返回一个作用域条目，这个条目有助于我们直接进行Livness分析（生成每个buffer的gen和kill point），最后Pass会根据Liveness分析的结果算出内存池的大小，和每个buffer的偏置，并改写语法树中对应Buffer的访问节点。
 
 <div align='center'><img src="https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20240914230856853.png" alt="image-20240914230856853" style="zoom:50%;" /></div>
 
@@ -546,3 +545,8 @@ for n in :
 ```cpp
 scope_[scope_.size() - 1].touched.push_back(buf);
 ```
+
+### 总结
+
+好久没有写blog了，一千个基于TVM的项目，就有一千个被爆改过的TVM。相信很多TVM的使用者和初学者对改动CPP的Pass望而却步，笔者觉得最主要的坑还是文档太少了(但是社区也正在施工)，TVM的CPP代码非常之优美，常看常新😭，感谢chengyu一起分析和定位了一下Bug，我正在糊Stream-K的实现正在施工中:) [LeiWang1999/Stream-k.tvm (github.com)](https://github.com/LeiWang1999/Stream-k.tvm)，以及欢迎大家关注我最近在写的项目[microsoft/BitBLAS](https://github.com/microsoft/BitBLAS) !
+
