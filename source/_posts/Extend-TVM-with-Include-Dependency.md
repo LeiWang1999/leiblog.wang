@@ -8,7 +8,7 @@ tags:
 date: 2024-10-11 23:18:53
 ---
 
-之前在一篇文章中我提到过一句：`一千个基于TVM的项目，就有一千个被爆改过的TVM`，这是我对基于TVM开发项目现状的吐槽。理解TVM的代码对于开发者来说已经是一件不容易的事情，更不用说开发者们在面对一个当前TVM无法解决的场景，想要修改进行扩展的时候是怎样的困难。往往，基于TVM的项目都是Fork一份TVM的代码来修改，例如为TVM添加一个新的优化Pass，就在`src/tir/transformation`文件夹下面新建一个Pass文件，然后通过`ffi`绑定到python侧的代码，其他的需求，例如注册一个新的语法树节点，添加新的代码生成等，也都是如此来实现,我自己的github上fork的[LeiWang1999/tvm](https://github.com/LeiWang1999/tvm)就包含十几个分支，有为了[BitBLAS](https://github.com/microsoft/BitBLAS)扩展(引入了一些新的Node和Schedule来进行优化)的bitblas分支，有为了[Ladder/Welder](https://github.com/microsoft/BitBLAS/tree/osdi24_ladder_artifact)做高性能的算子融合而添加了一些优化Pass的ladder分支，有为给AMD上做代码生产的`amd_hip`分支。这些分支的关系已经非常错综复杂了，我以[BitBLAS](https://github.com/microsoft/BitBLAS)为例，探讨一下为什么这样的开发方式会导致困难，并且提供一种解决方法(参考自[MLC-LLM](https://github.com/mlc-ai/mlc-llm))，供大家一起讨论。
+之前在一篇文章中我提到过一句：`一千个基于TVM的项目，就有一千个被爆改过的TVM`，这是我对基于TVM开发项目现状的吐槽。理解TVM的代码对于开发者来说已经是一件不容易的事情，更不用说开发者们在面对一个当前TVM无法解决的场景，想要修改进行扩展的时候是怎样的困难。往往，基于TVM的项目都是Fork一份TVM的代码来修改，例如为TVM添加一个新的优化Pass，就在`src/tir/transformation`文件夹下面新建一个Pass文件，然后通过`ffi`绑定到python侧的代码，其他的需求，例如注册一个新的语法树节点，添加新的代码生成等，也都是如此来实现,我自己的github上fork的[LeiWang1999/tvm](https://github.com/LeiWang1999/tvm)就包含十几个分支，有为了[BitBLAS](https://github.com/microsoft/BitBLAS)扩展(引入了一些新的Node和Schedule来进行优化)的bitblas分支，有为了[Ladder/Welder](https://github.com/microsoft/BitBLAS/tree/osdi24_ladder_artifact)做高性能的算子融合而添加了一些优化Pass的ladder分支，有为给AMD上做代码生产的`amd_hip`分支。这些分支的关系已经非常错综复杂了，我以[BitBLAS](https://github.com/microsoft/BitBLAS)为例，探讨一下为什么这样的开发方式会导致困难，并且提供一种解决方法(参考自[MLC-LLM](https://github.com/mlc-ai/mlc-llm))，供大家一起讨论，代码放在[LeiWang1999/TVM.CMakeExtend](https://github.com/LeiWang1999/TVM.CMakeExtend)。
 
 <!-- more -->
 
@@ -257,4 +257,4 @@ import tvm as tvm
 
 ### 总结
 
-本文介绍了一种基于 CMake 的模块化开发方案，用于构建 TVM 的扩展模块，帮助和我一样基于TVM开发项目的同学们一点小启发。通过将 TVM 核心库与自定义扩展模块相分离，我们不仅能够更加灵活地管理和组合功能，还避免了直接修改 TVM 源码所带来的种种问题。试想一下，当我们安装基于 TVM 的项目时，不需要单独编译一份 TVM，只需通过 `pip install apache-tvm` 安装最上游版本的 TVM，然后再使用 `pip install xxx` 安装自己的扩展模块。从源码安装时，也无需构建完整的 TVM 代码，只需先用 `pip install apache-tvm` 下载最新的 TVM 发行版，扩展模块的库文件就能自动链接到已安装的 TVM 包中，大家如果都这么做，tvm的体验应该会变得美好一些 (
+本文介绍了一种基于 CMake 的模块化开发方案，例子参考[LeiWang1999/TVM.CMakeExtend](https://github.com/LeiWang1999/TVM.CMakeExtend)，用于构建 TVM 的扩展模块，帮助和我一样基于TVM开发项目的同学们一点小启发。通过将 TVM 核心库与自定义扩展模块相分离，我们不仅能够更加灵活地管理和组合功能，还避免了直接修改 TVM 源码所带来的种种问题。试想一下，当我们安装基于 TVM 的项目时，不需要单独编译一份 TVM，只需通过 `pip install apache-tvm` 安装最上游版本的 TVM，然后再使用 `pip install xxx` 安装自己的扩展模块。从源码安装时，也无需构建完整的 TVM 代码，只需先用 `pip install apache-tvm` 下载最新的 TVM 发行版，扩展模块的库文件就能自动链接到已安装的 TVM 包中，大家如果都这么做，tvm的体验应该会变得美好一些 (
