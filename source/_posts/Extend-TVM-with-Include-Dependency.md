@@ -77,9 +77,9 @@ relax_mod = welder.tune(relax_mod)
 2.	灵活的路径管理：使用 TVM_SOURCE_DIR 和 TVM_PREBUILD_PATH 环境变量来定位TVM的核心代码，支持从源码构建和预构建二进制两种模式。这样做的好处是能够灵活地切换开发模式（例如，当上游TVM代码更新时，只需替换 TVM_PREBUILD_PATH 的路径即可）。
 3.	最小化外部依赖冲突：特别是针对CUDA和其他第三方依赖项（如 cutlass），在项目中进行精细的依赖路径管理（如 target_include_directories），确保每个模块使用自己明确的依赖路径，避免动态链接时出现库覆盖的问题。
 
-6.2 详细分析 CMake 配置文件
+详细分析 CMake 配置文件
 
-以下是 TileLang 项目的 CMake 配置文件的核心部分，并且对重要的代码片段进行了解释：
+以下是项目的 CMake 配置文件的核心部分，并且对重要的代码片段进行了解释：
 
 ```cmake
 if (DEFINED TVM_PREBUILD_PATH)
