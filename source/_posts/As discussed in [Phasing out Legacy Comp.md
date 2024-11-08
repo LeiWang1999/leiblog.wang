@@ -1,4 +1,16 @@
+---
+title: Extending TVM with CMake Include Dependencies
+categories:
+  - Technical
+tags:
+  - MLSYS
+  - TVM
+date: 2024-10-11 23:18:53
+---
+
 As discussed in [Phasing out Legacy Components](https://discuss.tvm.apache.org/t/phasing-out-legacy-components/17703), Third-party developers often choose to directly apply inplace modification to TVM rather than contributing their changes upstream for several reasons. First, TVM’s codebase is complex, and understanding or modifying it requires significant effort. Developers frequently face scenarios where TVM’s existing capabilities cannot meet their specific optimization needs, such as adding custom schedules, transformation passes, or backends for certain hardware architectures. These custom modifications are often too specific or “hacky” to meet the high code quality and design standards required by the TVM community, making it difficult for such changes to be merged upstream. Furthermore, the process of contributing upstream can be cumbersome and time-consuming, requiring rigorous testing and CI checks, which may outweigh the benefits for individual projects. Additionally, developers often lock their forks to specific versions of TVM to stabilize their custom modifications, making it harder to keep up with upstream updates. As a result, it is easier and faster for developers to maintain their own fork rather than engage in the lengthy and complex process of merging code upstream. Finally, the diverse nature of TVM-based projects means that different forks often have highly specialized code, which is not always applicable to the broader community, further reducing the motivation to merge changes back into TVM’s mainline codebase.
+
+<!-- more -->
 
 As @tianqi mentioned in the discussion, developers are recommended to avoid directly modifying TVM’s core code in their individual projects. Instead, the goal is to ensure that all downstream projects (such as ProjectA and ProjectB) can rely on a shared, unmodified core TVM library. This approach prevents compatibility issues that arise when each project forks and customizes TVM independently. To achieve this, @tianqi suggests taking inspiration from projects like [MLC-LLM](https://github.com/mlc-ai/mlc-llm), where custom passes and optimizations are added as separate, modular extensions rather than inline modifications to TVM itself (a perfect example). 
 
