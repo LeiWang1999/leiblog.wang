@@ -8,7 +8,7 @@ tags:
 date: 2024-11-12 14:26:25
 ---
 
-最近给BitBLAS添加了AMD的后端，发现AMD的异步拷贝等和Nvidia有很大的不同(然而FA3在MI300上需要用到这一个Feature)，然而官方根本没有文档，只有[Instruction Set](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf)，我在这里做一下自己的理解和解读，大部分内容是参考自这个Instruction Set。
+最近给BitBLAS添加了AMD的后端，发现AMD的异步拷贝等和Nvidia有很大的不同(但是FA3在MI300上需要用到这一个Feature)，然而官方根本没有文档，只有[Instruction Set](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf)，我在这里做一下自己的理解和解读，大部分内容是参考自这个Instruction Set。
 
 <!-- more -->
 
@@ -18,17 +18,17 @@ date: 2024-11-12 14:26:25
 
 ![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img20241112165228.png)
 
-这个指令的引入可以分别做到计算Core和Load/Store的Pipeline，并且可以节省寄存器文件的开销，提高带宽利用率。
+这个指令的引入可以分别做到计算Core和Load/Store的Pipeline，并且可以节省寄存器文件的开销，缓解Kernel对寄存器文件的压力。
 
 和Nvidia不同，AMD的异步拷贝可以被看做是Nvidia的异步拷贝拆开的两个部分：
 1. 异步的 load gmem to register/ register to shared 的过程，然后使用同步原语来sync。
 2. 直接的 global memory to shared memory的通路
 
-注意: 在AMD的架构中，Global Memory一般被缩写成GDS（Global Data Share，全局数据共享），而Shared Memory被缩写成LDS（Local Data Share，本地数据共享）。
-
-在AMD GPU汇编编程中，`lgkmcnt` 和 `vmcnt` 是用来控制流水线的等待指令，用于优化GPU线程的同步和数据依赖。这两条指令在AMD的GPU指令集架构（如GCN、RDNA）中非常重要，特别是在编写高性能的计算内核时，有助于提高内核的并行度和吞吐量。
+**注意: 在AMD的架构中，Global Memory一般被缩写成GDS（Global Data Share，全局数据共享），而Shared Memory被缩写成LDS（Local Data Share，本地数据共享）。**
 
 ## Async Copy的等待指令
+
+在AMD GPU汇编编程中，lgkmcnt 和 vmcnt 是用来控制流水线的等待指令，用于优化GPU线程的同步和数据依赖，分别来看这两条指令：
 
 ### 指令 `lgkmcnt`
 
@@ -113,6 +113,8 @@ M0 寄存器是一个特殊的寄存器，主要用于管理内存访问的地�
 
 ## 总结
 
-不得不吐槽一句，正常人谁会去看AMD的Instruction Set呢？这对开发者来说是很不友好的。AMD社区里做BLAS的团队也有独立的好几个(HIPBLAS, RocBLAS, Composable Kernel, RocWMMA, Tensile)，大家代码风格也不一样，往往一个community里找不到的Feature，在另一个Repo下面就能找到一点蛛丝马迹。
+综上所述，AMD的异步拷贝严格意义上不是MI300才引入的，而是一个存在了很久但是没人用的Feature，MI300上引入是一个从Global Memory直接到Shared Memory的DMA，而且相比原先的通路来说反而利用好带宽变得更加困难，其主要的功能是节省寄存器文件的开销(最典型的寄存器文件怪兽 Kernel 就是Flash Attention)，也可能是为了Flash才设计了这样一个功能？这不得而知。
 
-其实AMD还有很多有意思的问题值得讨论，例如Matrix Core的Layout，如何做Swizzle解决Bank Conflict, 这里笔者也踩了不少的坑，过段时间在和大家分享:)
+最后，不得不吐槽一句，正常人谁会去看AMD的Instruction Set呢？这对开发者来说是很不友好的，希望AMD在设计完指令之后可以提供一个像样的文档和Sample。再吐槽一句AMD社区里做BLAS的团队貌似也有独立的好几个(HIPBLAS, RocBLAS, Composable Kernel, RocWMMA, Tensile)，代码风格也都不一样，目前来看RocWMMA其实比Composable Kernel更像Cutlass。
+
+AMD还有很多有意思的问题值得讨论，例如Matrix Core（一个类似Tensor Core的计算单元）的Layout，如何做Swizzle解决Bank Conflict, 在OSDI 24' Ladder这篇论文里，作者(笔者）在MI250显卡上获得了比rocblas还要快许多的矩阵乘法性能，这又是如何做到的呢？此处按下不表，过段时间再分享 :)
