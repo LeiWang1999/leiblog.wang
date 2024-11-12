@@ -72,7 +72,7 @@ s_waitcnt vmcnt(0);
 
 ## ByPass Resgiter Files
 
-但是不难发现，这和Nvidia的异步拷贝还是有一定的区别的，因为Nvidia的异步拷贝有一个很重要的功能，就是ByPass Register File，及时的将数据从Global Memory拷贝到Shared Memory，而不是先拷贝到寄存器文件，然后再拷贝到Shared Memory, 这样可以节省大量的寄存器文件，在计算卡（A100, H100等）这一特征非常重要。
+但是不难发现，这和Nvidia的异步拷贝还是有一定的区别的，因为Nvidia的异步拷贝有一个很重要的功能，就是ByPass Register File，直接将数据从Global Memory拷贝到Shared Memory，而不是先拷贝到寄存器文件，然后再拷贝到Shared Memory, 这样可以节省大量的寄存器文件，在计算卡（A100, H100等）这一特征非常重要。
 
 上述的AMD的异步拷贝虽然在一定程度上可以做到异步，但是不能做到ByPass Register Files，而且这一个异步拷贝的Feature在十年前就已经存在了(但是基本没啥人用)。
 
