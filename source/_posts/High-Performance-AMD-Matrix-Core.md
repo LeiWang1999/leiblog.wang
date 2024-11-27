@@ -213,7 +213,18 @@ extern "C" __global__ void __launch_bounds__(256) main_kernel(half_t* __restrict
 
 ## AMD Kernel性能分析
 
-AMD没有像Nsight System和Nsight Compute那样强大的profile工具。他提供了`rocprof`，在一年之前我还对这个工具比较熟悉，现在已经基本忘了咋用了，基于`rocprof`, AMD还有一个图形化(以webui的形式提供)工具，`omniperf`，目前amd上的性能分析主要依靠该工具。
+AMD 提供了`rocprof`，但没有像Nsight Compute那样强大的profile工具，由于用起来过于麻烦，在一年之前我还对这个工具比较熟悉，现在已经基本忘了咋用了，基于`rocprof`, AMD还有一个图形化(以webui的形式提供)工具，`omniperf`，目前amd上的性能分析主要依靠该工具。
+
+```bash
+omniperf profile -n profile_file_name -- ./your_program arg1 arg2
+omniperf analyze -p ./workloads/profile_file_name/Arch --gui
+```
+
+![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/202411261423428.png)
+
+![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/202411261426838.png)
+
+![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/202411261504863.png)
 
 ## Memory Layout 优化
 
