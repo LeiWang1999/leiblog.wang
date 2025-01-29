@@ -220,17 +220,71 @@ omniperf profile -n profile_file_name -- ./your_program arg1 arg2
 omniperf analyze -p ./workloads/profile_file_name/Arch --gui
 ```
 
+该命令会打开一个Web图形化界面帮助我们拿到一些Metrics，当然我们要选择需要分析的Kernel：
+
 ![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/202411261423428.png)
 
+界面和Nsight Compute类似，我们可以看到一些Memory Utilization相关的信息，但是相比Nsigth Compute缺少了很多细节（例如指令数量统计），以及观察他的profile过程，感觉很多number其实是算出来的，而不是硬件真的提供了这些信息。
+
 ![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/202411261426838.png)
+
+话说回来，AMD上的Profile，笔者主要关注两项，一项是 L2 Cache 命中率，另一项是 Bank Conflict，其中L2 Cache命中率对于大Kernel来说很重要，这一点我的解决办法和在NV上一样，是使用Block Level的Swizzle来解决，具体可以参考BitBLAS里的[rasterization.py](https://github.com/microsoft/BitBLAS/blob/main/bitblas/base/roller/rasterization.py)。然而 MI 300由于架构设计，使得他有一些NUMA架构的特性，对于L2 Cache的解决办法貌似有一些特殊的优化，这里笔者没有深入研究，在[Triton for Rocm](https://www.youtube.com/watch?v=Lbm08twNTAQ)里有一些讨论。
 
 ![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/202411261504863.png)
 
 ## Memory Layout 优化
 
-## Flash Attention
+在前文中，我们已经提到了MFMA指令潜在的Layout缺陷:
+  - 其中，B矩阵和C矩阵的每个线程期望访问的数据之间存在着很大Stride，没有连续的数据访问。
+  - 即使A矩阵的访问是连续的4个float16, 这也不是最优的，因为访问数据的指令最大支持128bits(8xfp16),这和Nvidia是一样的。
 
+我们先解决第一个B矩阵和C矩阵访存不连续的问题，对于B矩阵来说，我们只需要对B矩阵进行Transpose，即可以解决（也就是假设input都是NT layout, 因为在绝大部分模型中，Weight都是静态权重，可以在Compilation的时候就做完变换），对于C矩阵来说，我们也可以做一个Transpose:
 
+```cpp
+for (int i_4 = 0; i_4 < 2; ++i_4) {
+  for (int j_1 = 0; j_1 < 2; ++j_1) {
+    {
+*(((float32x4*)C_local) + ((i_4 * 2) + j_1)) = __builtin_amdgcn_mfma_f32_16x16x16f16(*(((float16x4*)A_local) + i_4),
+            *(((float16x4*)B_local) + j_1),
+            *(((float32x4*)C_local) + ((i_4 * 2) + j_1)), 0, 0, 0);
+};
+  }
+}
+->
+for (int i_4 = 0; i_4 < 2; ++i_4) {
+  for (int j_1 = 0; j_1 < 2; ++j_1) {
+    {
+*(((float32x4*)C_local) + ((i_4 * 2) + j_1)) = __builtin_amdgcn_mfma_f32_16x16x16f16(*(((float16x4*)B_local) + j_1),
+            *(((float16x4*)A_local) + i_4),
+            *(((float32x4*)C_local) + ((i_4 * 2) + j_1)), 0, 0, 0);
+};
+  }
+}
 ```
 
+这样C的layout就由原本的[i, j]变换到了[j, i]，由此A, B, C三者的Layout就变得一致，这样不仅可以优化访存，也能够方便我们做Flash Attention(因为A和C需要在寄存器上进行连接)。
+
+再Apply上Swizzle，我们就可以得到一个非常高效的Kernel了，有关Swizzle的具体实现，请参考BitBLAS里的[make_mfma_swizzle_layout](https://github1s.com/microsoft/BitBLAS/blob/main/bitblas/tl/mfma_layout.py#L103)，以图为例：
+
+![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/imgSwizzleMFMA.png)
+
+第二个问题，及A矩阵的访问是连续的4个float16，这是由于一个warp的64个线程由一个mfma指令一起计算一个m16n16k16的小矩阵乘法，例如A矩阵访问的大小是16x16,一共256个元素，而平均到每个线程就会有4个float16，这样就会导致访存的效率不高，因为AMD的内存访问带宽是128bits, 例如可以使用指令`ds_write_b128`和`ds_read_b128`，以及`global_vload_b128`这样的指令来访存，如果按照他给定的layout来访存，那么我们只能使用`ds_write_b64`这样的指令来访存了。
+
+![](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/imgDataReorderMFMA.png)
+
+而如果我们把两个m16n16k16矩阵拼在一起变成一个m16n16k32的矩阵乘，那么我们就会发现每个线程访问的数据之间存在Stride, 这样仍然不能满足每个线程访问连续的数据的需求，为了解决这个问题，笔者绞尽脑汁终于发现了其中最妙的变换方法:
+
+原来的张量计算表达式为:
 ```
+a0*b0+a1*b1+*a2*b2*a3*b3+a4*b4+a5*b5+…+a16*b16+a17*17+a18*b18+a19*b19+a20*b20+a21*b21+…
+```
+
+其中对应MFMA的Layout就是线程0访问数据a0,a1,a2,a3,b0,b1,b2,b3以及a16,a17,a18,a19,b16,b17,b18,b19, 而线程1访问的数据是a4,a5,a6,a7,b4,b5,b6,b7以及a20,a21,a22,a23,b20,b21,b22,b23, 以此类推。而由表达式可知，任意调换线程之间的映射关系，这个表达式仍然是成立的，只需要确保线程A和线程B访问的数据是一一对应的，由此，即使在构建Layout访问次序的时候按照图中下半部分的方式，我们仍然可以确保程序的正确性，并且使得访存变得连续。
+
+一个有趣的问题是，英伟达的MMA指令，例如m16n8k16，也是每个线程hold 4个数据，同样需要把两个m16n8k16拼成一个m16n16k16指令就没这么麻烦，这是因为ldmatrix指令帮你隐藏掉了这一层变换。
+
+最后，讨论一下AMD CDNA架构下的Flash Attention会面临的问题, 从Matrix Core上来看，在Flash Attention中，第一个矩阵乘法的输出寄存器Tile(例如大小为16x16的这一块小矩阵)会和第二个矩阵乘法的寄存器Tile复用，AMD MFMA的奇怪Shape会导致第二个矩阵乘法并不能使用Pack好的m16n16k32来计算，这样第二个矩阵乘法的输入是m16k32,与第一个矩阵乘法的m16n16的数据无法对上。从Memory上来看，FA需要节省寄存器需要使用到`dword_lds`这一指令，在前文中我们讨论过，该指令只能以32bits为单位访问global memory，这同样给Layout的优化带来了更多的限制。
+
+
+最后分享一些Benchmark结果:
+
