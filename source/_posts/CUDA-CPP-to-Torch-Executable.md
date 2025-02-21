@@ -7,7 +7,7 @@ tags:
 date: 2025-02-07 16:26:23
 ---
 
-很久之前笔者碰到过一个相对棘手的问题: 怎么优雅的在运行时阶段自动把一个tvm生成的CUDA C文件封装成一个Torch Function? 作者大概尝试过三种方法，哥各有利弊：
+很久之前笔者碰到过一个还挺棘手的问题: 怎么优雅的在运行时阶段自动把一个tvm生成的CUDA C文件封装成一个Torch Function? 作者大概尝试过三种方法，各有利弊：
 
 1. PyBind Torch C++ Extension: 最常见的是通过torch基于pybind开发的cpp extension，也是大部分库对接torch的时候使用的方法，但是这种方法的编译时长太久，在runtime下(比如tilelang/bitblas)这种编译的overhead会让用户体验明显变差。
 2. DLPack: DLPack应该是最直接的方式了，先将 Torch 张量转换为 DLPack 格式，然后再将其转换成 TVM 所需的参数。DLPack 的优点是使用时几乎无感，不需要像 PyBind 那样等待数十秒的编译时间。但它也存在一个不足：由于频繁通过 ctypes 进行调用，额外的运行时开销在小 kernel 场景下甚至可能超过 kernel 本身的执行时间。
@@ -191,99 +191,101 @@ rt_mod(*tvm_nd_array_tensors)
 
 1. **使用 `time_evaluator`**  
    首先，利用 `rt_mod.time_evaluator` 对 Kernel 的纯执行时间进行测试，结果显示在 A100 上平均只需 4 微秒左右。可见实际的计算部分非常快。
-   ```python
-   time_evaluator = rt_mod.time_evaluator(rt_mod.entry_name, tvm.cuda(), number=1000000)
-   latency = time_evaluator(*tvm_nd_array_tensors).mean * 1e6
-   print("rt_mod time_evaluator Time: {:.2f} us".format(latency))
-   # rt_mod time_evaluator Time: 4.39 us
-   ```
+
+```python
+time_evaluator = rt_mod.time_evaluator(rt_mod.entry_name, tvm.cuda(), number=1000000)
+latency = time_evaluator(*tvm_nd_array_tensors).mean * 1e6
+print("rt_mod time_evaluator Time: {:.2f} us".format(latency))
+# rt_mod time_evaluator Time: 4.39 us
+```
 
 2. **直接在 Python 循环中调用（无动态 DLPack 转换）**  
    如果不在每次调用时都重新构造 TVM NDArray，而是将构造好的 TVM NDArray 对象传入 `rt_mod`，耗时大约为 13 微秒。
-   ```python
-   # 先构造好 tvm_nd_array_tensors
-   for _ in range(1000):
-       rt_mod(*tvm_nd_array_tensors)
-   
-   start = time.time()
-   for _ in range(1000000):
-       rt_mod(*tvm_nd_array_tensors)
-   end = time.time()
-   print("rt_mod only Time: {:.2f} us".format(float(end - start)))
-   # rt_mod only Time: 13.44 us
-   ```
+
+```python
+# 先构造好 tvm_nd_array_tensors
+for _ in range(1000):
+    rt_mod(*tvm_nd_array_tensors)
+
+start = time.time()
+for _ in range(1000000):
+    rt_mod(*tvm_nd_array_tensors)
+end = time.time()
+print("rt_mod only Time: {:.2f} us".format(float(end - start)))
+# rt_mod only Time: 13.44 us
+```
    可以看到，尽管 Kernel 本身只有 4 微秒左右，但实际完整调用却达到了 13 微秒上下，说明仅从 Python 层面调用（包括函数检索、参数打包等）也带来了额外的开销。
 
 3. **在每次调用时重新构造 DLPack 并转换成 TVM NDArray**  
    若每次调用都动态执行
-   ```python
-   dlpack_tensors = [to_dlpack(torch_tensor) for torch_tensor in torch_tensors]
-   tvm_nd_array_tensors = [
-       tvm.runtime.ndarray.from_dlpack(dlpack_tensor)
-       for dlpack_tensor in dlpack_tensors
-   ]
-   ```
+```python
+dlpack_tensors = [to_dlpack(torch_tensor) for torch_tensor in torch_tensors]
+tvm_nd_array_tensors = [
+    tvm.runtime.ndarray.from_dlpack(dlpack_tensor)
+    for dlpack_tensor in dlpack_tensors
+]
+```
    然后再执行 `rt_mod`，最终在测量中耗时达到了约 53 微秒：
-   ```python
-   # warmup
-   for _ in range(1000):
-       dlpack_tensors = [to_dlpack(torch_tensor) for torch_tensor in torch_tensors]
-       tvm_nd_array_tensors = [
-           tvm.runtime.ndarray.from_dlpack(dlpack_tensor)
-           for dlpack_tensor in dlpack_tensors
-       ]
-       rt_mod(*tvm_nd_array_tensors)
+```python
+# warmup
+for _ in range(1000):
+    dlpack_tensors = [to_dlpack(torch_tensor) for torch_tensor in torch_tensors]
+    tvm_nd_array_tensors = [
+        tvm.runtime.ndarray.from_dlpack(dlpack_tensor)
+        for dlpack_tensor in dlpack_tensors
+    ]
+    rt_mod(*tvm_nd_array_tensors)
 
-   start = time.time()
-   for _ in range(1000000):
-       dlpack_tensors = [to_dlpack(torch_tensor) for torch_tensor in torch_tensors]
-       tvm_nd_array_tensors = [
-           tvm.runtime.ndarray.from_dlpack(dlpack_tensor)
-           for dlpack_tensor in dlpack_tensors
-       ]
-       rt_mod(*tvm_nd_array_tensors)
-   end = time.time()
-   print("rt_mod with dlpack Time: {:.2f} us".format(float(end - start)))
-   # rt_mod with dlpack Time: 53.40 us
-   ```
+start = time.time()
+for _ in range(1000000):
+    dlpack_tensors = [to_dlpack(torch_tensor) for torch_tensor in torch_tensors]
+    tvm_nd_array_tensors = [
+        tvm.runtime.ndarray.from_dlpack(dlpack_tensor)
+        for dlpack_tensor in dlpack_tensors
+    ]
+    rt_mod(*tvm_nd_array_tensors)
+end = time.time()
+print("rt_mod with dlpack Time: {:.2f} us".format(float(end - start)))
+# rt_mod with dlpack Time: 53.40 us
+```
    这说明每次调用都需要多次的 Python 端封装、解封装以及底层的 CTypes 调用，导致在极小的 Kernel 上额外成本更为突出。
 
 4. **直接从指针构造 TVM NDArray**  
    为了减少这部分开销，笔者尝试了直接从裸指针构造 TVM NDArray。这样做可以在一定程度上减轻每次通过 `to_dlpack -> from_dlpack` 的操作，但仍需要一些 Python→C 的调用过程。结果显示耗时大约为 20 微秒左右：
-   ```python
-   # 省略前面获取 function_handle、TVMValue 等上下文的代码
-   time_arr = []
-   for _ in range(100):
-       start = time.time()
-       for _ in range(1000):
-           for i, torch_tensor in enumerate(torch_tensors):
-               attr_handle = TVMArrayHandle()
-               data = ctypes.cast(torch_tensor.data_ptr(), ctypes.c_void_p)
-               check_call(
-                   _LIB.TVMArrayFromDataPointerOnly(
-                       data,
-                       device,
-                       ctypes.byref(attr_handle),
-                   )
-               )
-               values[i].v_handle = ctypes.cast(attr_handle, ctypes.c_void_p)
+```python
+# 省略前面获取 function_handle、TVMValue 等上下文的代码
+time_arr = []
+for _ in range(100):
+    start = time.time()
+    for _ in range(1000):
+        for i, torch_tensor in enumerate(torch_tensors):
+            attr_handle = TVMArrayHandle()
+            data = ctypes.cast(torch_tensor.data_ptr(), ctypes.c_void_p)
+            check_call(
+                _LIB.TVMArrayFromDataPointerOnly(
+                    data,
+                    device,
+                    ctypes.byref(attr_handle),
+                )
+            )
+            values[i].v_handle = ctypes.cast(attr_handle, ctypes.c_void_p)
 
-           check_call(
-               _LIB.TVMFuncCall(
-                   function_handle,
-                   values,
-                   tcodes,
-                   ctypes.c_int(num_args),
-                   ctypes.byref(ret_val),
-                   ctypes.byref(ret_tcode),
-               )
-           )
-       torch.cuda.synchronize()
-       end = time.time()
-       time_arr.append(end - start)
-   print("Overall Time: {:.2f} us".format(sum(time_arr) / len(time_arr) * 1e3))
-   # 结果大约在 20+ us 左右
-   ```
+        check_call(
+            _LIB.TVMFuncCall(
+                function_handle,
+                values,
+                tcodes,
+                ctypes.c_int(num_args),
+                ctypes.byref(ret_val),
+                ctypes.byref(ret_tcode),
+            )
+        )
+    torch.cuda.synchronize()
+    end = time.time()
+    time_arr.append(end - start)
+print("Overall Time: {:.2f} us".format(sum(time_arr) / len(time_arr) * 1e3))
+# 结果大约在 20+ us 左右
+```
    相比之前的 53 微秒已经大幅下降，但相比起单纯 Kernel 的 4 微秒仍有明显差距。
 
 综合以上结果，可以得出以下结论：在非常小的 Kernel（几微秒级别）场景中，**任何来自 Python 和运行时的额外调用开销（例如通过ctypes调用一个cpp的函数）** 都可能比计算本身更大；  
