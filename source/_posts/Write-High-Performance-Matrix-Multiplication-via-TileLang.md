@@ -7,7 +7,7 @@ tags:
 date: 2025-01-27 12:20:42
 ---
 
-在Tile Language目前的设计理念中，我们提供了三种不同的编程接口，分别面向初学者、开发者和写Kernel的专家这三个等级，我们对Level 1的使用者的定义是不清楚目标硬件架构的开发者（例如不知道GPU的cache一般需要用到tiling，把数据层层cache），这个时候用户编写的程序只是一个简单的计算表达式，不包含任何schedule相关的信息（和tvm的设计一样），这种方法理论上来讲对于不太kernel的人是最舒服的，但是因为很多现存未解决的问题：
+前段时间我们悄咪咪release了[tilelang](https://github.com/tile-ai/tilelang)，tilelang设计了三种不同的编程语法，设计中将分成了初学者、开发者和写Kernel的专家这三个等级，我们对Level 1的使用者的定义是不清楚目标硬件架构的开发者（例如不知道GPU的cache一般需要用到tiling，把数据层层cache），这个时候用户编写的程序只是一个简单的计算表达式，不包含任何schedule相关的信息（这样就和tvm的设计理念一样了），这种方法理论上来讲对于不太kernel的人是最舒服的，但是因为很多现存未解决的问题：
 
 	1. 从调优的角度来看，从计算到具体的schedule的自动调优时间一般要花比较久的时间，虽然一些工作例如MSRA System Research的Roller，利用硬件感知的白盒搜索空间生成缓解了这一问题, 请看BitBLAS对Roller的复现[Tutorial](https://github.com/microsoft/BitBLAS/blob/main/tutorials/1.fast_and_efficient_codegen.ipynb), 但知道并使用这种方法的人的人也不是很多
 	1. 从Kernel的表达能力角度来看，目前一些主流的复杂的计算并不能够通过schedule描述出来，例如Flash Attention, 虽然理想上应该可以通过推导 matmul+softmax+matmul 简单计算表达式的一种算子融合版本得到，但是这个问题从写文章的时间点来看仍然很困难。
@@ -295,4 +295,4 @@ print(f"Latency: {latency} ms")
 
 ![image-20250130010129930](https://leiblog-imgbed.oss-cn-beijing.aliyuncs.com/img/image-20250130010129930.png)
 
-结尾处丢一下triton和tilelang level 2的矩阵乘法代码的对比，看上去tile language还是比较简洁的(, 但是在简洁的基础上，tilelang可以允许用户通过annotate手动控制memory layout，和pipeline，以及将一些代码替换为Level 3的实现，增强了很多灵活性(，虽然现在人手有点捉急，但这是一个计划值得持续维护的项目，欢迎大家关注一下中国玩家自己的triton :)  https://github.com/tile-ai/tilelang
+结尾处丢一下triton和tilelang level 2的矩阵乘法代码的对比，看上去tile language还是比较简洁的(, 但是在简洁的基础上，tilelang可以允许用户通过annotate手动控制memory layout，和pipeline，以及将一些代码替换为Level 3的实现，增强了很多灵活性(，欢迎大家关注一下中国玩家自己的triton :)  https://github.com/tile-ai/tilelang 
