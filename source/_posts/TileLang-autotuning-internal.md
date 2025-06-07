@@ -8,9 +8,10 @@ tags:
 date: 2025-06-01 16:28:36
 ---
 
-最近狠狠重构了一下tilelang的auto tuning, 目前tilelang的自动调优可以本文介绍一下tilelang的自动调优部分，以及顺道回顾一下机器学习编译领域的自动调优发展。
+最近狠狠重构了一下tilelang的auto tuning, 本文介绍一下tilelang的自动调优部分当作一个小文档，以及顺道回顾一下本作者眼中的机器学习编译领域的自动调优发展。
 
 <!-- more -->
+
 ## 机器学习编译领域的自动调优
 
 2018年，天奇在OSDI 2018上发表了机器学习编译开山之作[tvm](https://www.usenix.org/conference/osdi18/presentation/chen)，观察到针对不同的硬件后端编写不同的编译算子(如矩阵乘法)，算子开发人员都需要编写不同的代码来实现，这导致算子开发成本非常高（即使是同一个架构，例如H100的各种阉割版，因为memory配比等不同导致最好的算子实现也会不一样），虽然用户使用的优化手段千千万，针对不同的硬件更需要使用不同的优化策略，但是用户想要优化的计算(算子)确实一样的，例如都是矩阵乘法。于是tvm首先将用户编写的算子变成了计算描述和调度原语两部分，对于同一个算子，上层的计算描述保持一致，针对不同的后端使用不同的调度原语对计算进行调度，最后通过codegen将调度之后的IR再lower到不同的硬件后端生成代码，如此，理想上用户只需要学习tvm提供的这一套基于compute和schedule的dsl就可以优化各种后端了。
@@ -43,7 +44,7 @@ AutoTVM仍然需要根据当前的计算模式与目标的硬件信息，自己�
 
 那么，针对一个如矩阵乘法的简单算子，还有两个很难受的问题没有解决，一个是搜索时间过长，一个是性能还差点意思，接下来介绍两个来自微软亚洲研究院针对这些问题的相关工作。OSDI 22上，微软亚洲研究院发表了一篇名为Roller的论文，题目是[Fast and Efficient Tensor Compilation for Deep Learning](https://www.usenix.org/conference/osdi22/presentation/zhu), 以前的自动调优都假设硬件是一个黑盒子，对于一个搜索空间来说，我们其实很显然就能知道某一些点是十分不高效的，为了筛序出相对高效的点，Roller巧妙的利用了硬件的一些信息，如带宽，合并访存，计算访存比等，遍历一个大的搜搜空间，然后根据这些信息筛选出top k个点，然后遍历这Top K个点选择最优，一般而言这个k为10就足够，这样花几秒钟就可以完成整个搜索空间的遍历，并且能够媲美前文花费七八个小时才能搜索出来的结果，可以将调优速度提高数千倍。
 
-虽然Roller的实现感觉有一些trivial，但是他真的work。。笔者在两年前一直用进化算法来完成程序的调优(Roller之前基本上都是)，一个算子要花费数个小时才能完成调优，并且发现性能问题之后改进代码又得花上数个小时，在某一天突发奇想接上Roller之后，调优过程被缩短到几秒钟之后那种救赎感至今难忘...拥抱cost model, 节约阳寿。目前Roller被笔者重构，代码在tilelang下: https://github.com/tile-ai/tilelang/tilelang/carver 。以及MSRA后续还有一个基于Roller的跨算子融合策略Welder。
+虽然Roller的实现感觉有一些trivial，但是他真的work。笔者在两年前一直用进化算法来完成程序的调优(Roller之前基本上都是)，一个算子要花费数个小时才能完成调优，并且发现性能问题之后改进代码又得花上数个小时，在某一天突发奇想接上Roller之后，调优过程被缩短到几秒钟之后那种救赎感至今难忘...拥抱cost model, 节约阳寿。目前Roller被笔者重构，代码在tilelang下: https://github.com/tile-ai/tilelang/tilelang/carver 。以及MSRA后续还有一个基于Roller的跨算子融合策略Welder。
 
 更进一步，我们再Trace一下这些框架的性能问题。如在类GPU的架构中，一个张量计算的高效实现往往需要经过多层分块，数据首先从全局存储中被读到共享缓存中，然后再从共享缓存中读到寄存器上参与计算。影响这种分块编程方法的性能因素主要有两个：第一个因素是每一层分块的大小，以及软件流水的程度决定了整体的计算访存比，合适的访存比可以使计算单元与存储访问单元能够重叠工作，进而隐藏延迟；第二个因素是带宽的利用程度，Roller指出，在英伟达上一代的GPU(Volta, Ampere等)上，当设备上的高吞吐率量单元Tensor Core被完全利用时，其各级存储的带宽也都会处于完全使用的状态，因此一个高性能的程序想要充分利用硬件上的加速单元，必然需要充分利用好带宽。
 
@@ -55,6 +56,232 @@ AutoTVM仍然需要根据当前的计算模式与目标的硬件信息，自己�
 
 而输入的数据排布往往是固定的行优先或者为列优先存储，这多个级别的缓存每个级别都对最优的访存格式有不一样的需求，这导致简单的内存访问，即从全局存储到共享缓存用分块顺序存取，从缓存取数据到寄存器按照寄存器需要的排布取数据的方法必然会引入Bank冲突，导致内存带宽无法被充分利用。为了解决这一个问题，我们需要引入Swizzle的概念(nvidia在asplos2019的[Swizzle Inventor](https://mangpo.net/papers/swizzle-inventor-asplos19.pdf)中首次提出)，来精心控制一下内存的排布，刚好规避这一问题。其实针对某一个特定的后端，这种Swizzle策略基本上是一样的，所以知道有这个东西就行也不需要调优，要调优这个Layout还是一个有意思+比较难的问题，本作者在OSDI 24上的工作Ladder提出了一个有意思的想法来化解这个Layout问题。
 
-## TileLang自动调优
+## TileLang的自动调优
 
-回到tilelang本身，上述的自动调优工作实际上的出发点是把schedule隐藏，不希望用户来操作schedule从而实现真正的自动优化和代码生成，不得不说如今tvm based的compiler已经能够然而随着硬件越来越复杂，而triton和tilelang都选择将schedule暴露给用户，从而实现真正的自动调优。
+回到tilelang本身，上述的自动调优工作实际上的出发点是把schedule隐藏，不希望用户来操作schedule从而实现真正的自动优化和代码生成，不得不说如今tvm based的compiler已经能够做的相当自动了。tvm先有relay/relax的计算图IR来表示算子，针对每个算子有一个纯计算表达的实现，再通过自动调优来完成fuse和代码生产，感兴趣的用户可以体验一下我们之前的工作[Welder/Ladder](https://github.com/tile-ai/Ladder)，应该是这一思路工作的集大成者了(笔者觉得这一条路比现在torch inductor codegen triton要优雅的多，但是torch team并没用用tvm来做这一件事，感觉略可惜)。
+
+其次，随着硬件和算法的设计越来越复杂，tvm提供的schedule渐渐不能够满足要求了，例如如何完成attention的flash版本的fuse，如何描述求逆，有依赖关系的新算子。于是schedule base的策略逐渐开始退环境。现在大家喜欢写的triton和tilelang选择将一些schedule暴露给用户，实践证明这一路线非常正确（虽然我觉得最终形态还是应该回归tvm一开始的设想，compiler自动都做了就好了）。
+
+以tilelang的实现的矩阵乘法为例，我们研究一下现在tilelang和triton的自动调优的形态，一个没有autotune的tilelang程序是这样的:
+
+```python
+import tilelang
+import tilelang.language as T
+
+@tilelang.jit
+def matmul(M, N, K, block_M, block_N, block_K, dtype="float16", accum_dtype="float"):
+
+    @T.prim_func
+    def main(
+        A: T.Tensor((M, K), dtype),
+        B: T.Tensor((K, N), dtype),
+        C: T.Tensor((M, N), dtype),
+    ):
+        # Initialize Kernel Context
+        with T.Kernel(T.ceildiv(N, block_N), T.ceildiv(M, block_M), threads=128) as (bx, by):
+            A_shared = T.alloc_shared((block_M, block_K), dtype)
+            B_shared = T.alloc_shared((block_K, block_N), dtype)
+            C_local  = T.alloc_fragment((block_M, block_N), accum_dtype)
+
+            # Clear local accumulation
+            T.clear(C_local)
+
+            for ko in T.Pipelined(T.ceildiv(K, block_K), num_stages=3):
+                # Copy tile of A
+                # This is a sugar syntax for parallelized copy
+                T.copy(A[by * block_M, ko * block_K], A_shared)
+
+                # Copy tile of B
+                T.copy(B[ko * block_K, bx * block_M], B_shared)
+
+                # Perform a tile-level GEMM on the shared buffers
+                # Currently we dispatch to the cute/hip on Nvidia/AMD GPUs
+                T.gemm(A_shared, B_shared, C_local)
+
+            # Copy result back to global memory
+            T.copy(C_local, C[by * block_M, bx * block_N])
+
+    return main
+
+kernel = matmul(1024, 1024, 1024, 128, 128, 32)
+```
+
+`@tilelang.jit`可以把一个tilelang的程序编译成可以接受torch tensor的jit kernel，生成函数有6个主要参数，分别是M、N、K、block_M、block_N、block_K，其中前三项M、N、K决定了计算的矩阵乘法的shape（M×K矩阵与K×N矩阵相乘得到M×N矩阵），后三项block_M、block_N、block_K则是跟硬件相关的schedule参数，它们决定了每个CUDA线程块处理的子矩阵大小。对于一个给定shape的M,N,K，我们需要知道哪一组block_M、block_N、block_K是性能最好的，这就需要自动调优来帮我们找到最优配置。tilelang目前使用了和triton一样的设计，通过装饰器`@tilelang.autotune`来指定一系列候选配置，运行时会自动选择最优的配置。
+
+```python
+import tilelang
+import tilelang.language as T
+
+def get_configs():
+  return [
+    {"block_M": 128, "block_N": 128, "block_K": 32},
+    {"block_M": 128, "block_N": 256, "block_K": 32},
+    {"block_M": 256, "block_N": 128, "block_K": 32},
+    ... 
+  ]
+
+@tilelang.autotune(
+  configs=get_configs()
+)
+@tilelang.jit
+def matmul(M, N, K, block_M, block_N, block_K, dtype="float16", accum_dtype="float"):
+  ...
+
+```
+
+回顾前文中提到的若干调优方法，这其实是最原始的手动设计空间遍历一个最优解的策略，那么是不是可以用一些更加好的策略呢，比如像Roller那样利用一些硬件信息来约束搜索空间? 我们实现了一个简单例子，在[gemm的example](https://github.com/tile-ai/tilelang/blob/main/examples/gemm/example_gemm_autotune.py#L18)中，我们利用一些硬件信息来约束搜索空间:
+
+```python
+def get_configs(M, N, K, with_roller=False, topk=20):
+    if with_roller:
+        arch = CUDA("cuda")
+        carve_template = MatmulTemplate(
+            M=M,
+            N=N,
+            K=K,
+            in_dtype="float16",
+            out_dtype="float16",
+            accum_dtype="float",
+        ).with_arch(arch)
+
+        func = carve_template.equivalent_function()
+        assert func is not None, "Function is None"
+        roller_hints = carve_template.recommend_hints(topk=topk)
+        if roller_hints is None:
+            raise ValueError("No Roller Hints Found for TensorCore Scheduling")
+        configs = []
+        for hint in roller_hints:
+            config = {}
+            block_m, block_n = hint.block
+            warp_m, warp_n = hint.warp
+            # block_rows, block_cols represents warp partitioning
+            block_rows, block_cols = block_m // warp_m, block_n // warp_n
+            config["block_M"] = block_m
+            config["block_N"] = block_n
+            config["block_K"] = hint.rstep[0]
+            config["num_stages"] = hint.pipeline_stage if hint.pipeline_stage > 1 else 0
+            config["thread_num"] = block_rows * block_cols * 32
+            config["enable_rasteration"] = hint.rasterization_plan is not NoRasterization
+            configs.append(config)
+    else:
+        block_M = [64, 128, 256]
+        block_N = [64, 128, 256]
+        block_K = [32, 64]
+        num_stages = [0, 1, 2, 3]
+        thread_num = [128, 256]
+        enable_rasterization = [True, False]
+        _configs = list(
+            itertools.product(
+                block_M,
+                block_N,
+                block_K,
+                num_stages,
+                thread_num,
+                enable_rasterization,
+            ))
+
+        configs = [
+            {
+                "block_M": c[0],
+                "block_N": c[1],
+                "block_K": c[2],
+                "num_stages": c[3],
+                "thread_num": c[4],
+                "enable_rasteration": c[5],  # keep param name for backward-compat
+            } for c in _configs
+        ]
+    return configs
+```
+
+虽然有趣，不过这个方法还有一些改进的空间，程序的输入现在是依靠`MatmulTemplate`来模拟一个计算程序，实际上我们可以通过分析tilelang program来得到具体的访存量等metrics；其次，CostModel沿用的Roller，再Hopper以前这个CostModel意外的非常work(甚至在MI300上也挺work的)，但是Hopper之后就差点意思，大概是还需要考虑到TMA的Pipeline。不过现在大家写triton/tilelang大都是一些空间比较小的算子，加上大家对triton/tilelang的期待大部分都是性能够用就行，所以关注度也不是很大，研究的兴趣也不是很高。
+
+对于`@tilelang.autotune`, 我们提供了这些参数,
+
+```python
+
+def autotune(  # This is the new public interface
+    func: Union[Callable[_P, _RProg], PrimFunc, None] = None,
+    *,  # Indicates subsequent arguments are keyword-only
+    configs: Any,
+    # profile arguments
+    warmup: int = 25,
+    rep: int = 100,
+    timeout: int = 100,
+    # compile arguments
+    supply_type: tilelang.TensorSupplyType = tilelang.TensorSupplyType.Auto,
+    ref_prog: Callable = None,
+    supply_prog: Callable = None,
+    rtol: float = 1e-2,
+    atol: float = 1e-2,
+    max_mismatched_ratio: float = 0.01,
+    skip_check: bool = False,
+    manual_check_prog: Callable = None,
+    cache_input_tensors: bool = False,
+):
+```
+
+`supply_type`: 张量供给类型，决定如何为kernel提供输入数据，默认的Auto会针对数据类型来选择一个合适的分布，当shape是动态shape，或者像splitk的scheudle需要改变输入的尺寸，则autotune难以给出benchmark的tensor,此时我们需要  通过`supply_prog`: 用于生成测试数据。还注意到，我们还可以提供一个`ref_prog`: 参考程序，用于验证结果正确性，因为有一些config可能会导致程序的正确性问题(大部分发生在AMD的GPU上)，提供了这一参数的话，每次config还需要过一次正确性的验证。以及`manual_check_prog`: 手动检查程序，允许用户提供自定义的结果验证逻辑，这些参数让用户能够精细地控制自动调优过程。
+
+Autotune的主要overhead，针对每个config进行lower和compile，以及evaluate两部分。其中compile可以并行化，evaluate因为和性能相关，需要串行，所以tilelang目前的策略是采用了编译并行+串行evaluate的策略，此部分由@小乱首先设计，把自动调优的速度相比于串行编译提高了两个数量级。
+
+Autotune的cache分为两级，一级是存储在disk上的，他的key是一个相对完备的key，但是hash这些参数的代价实在是有点大，在4090上hash一个flash attention的语法树需要消耗10+ms的时间，但是相比compile要花费的10s(主要是cute的锅，不用担心之后会逐渐去掉cute):
+
+```python
+def generate_cache_key(self, parameters: Dict[str, Any]) -> Optional[AutotuneResult]:
+    """Generate a cache key for the auto-tuning process.
+    """
+    # extract parameters from the function signature
+    op_parameters = []
+    for _, default_value in parameters.items():
+        if default_value.default is not inspect.Parameter.empty:
+            op_parameters.append(default_value.default)
+
+    if self._kernel_parameters is not None:
+        op_parameters += self._kernel_parameters
+
+    func_source = inspect.getsource(self.fn)
+    key_data = {
+        "version": __version__,
+        "op_parameters": tuple(op_parameters),
+        "func_source": func_source,
+        "configs": self.configs,
+        "compile_args": hash(self.compile_args),
+        "profile_args": hash(self.profile_args),
+    }
+    # Sort keys to ensure consistency
+    key_string = json.dumps(key_data, sort_keys=True)
+    return hashlib.sha256(key_string.encode()).hexdigest()
+```
+
+所以我们还有第二级memory cache, 是对每一个autotune的实例，如果传入的参数一样则就可以避免对整个语法树进行hash:
+
+```python
+key = (key_args_tuple, key_kwargs_tuple)
+```
+
+如此可以把hash的开销基本上削减到0。
+
+除了使用`@tilelang.autotune`作为一个装饰器来调优一个tilelang程序，我们还可以直接实例化一个AutoTuner来完成自动调优，虽然不太优雅但是能够控制的更加精细。
+
+```python
+autotuner = AutoTuner.from_kernel(
+    kernel=kernel, configs=get_configs(N, C, H, W, F, K, S, D, P,
+                                        with_roller)).set_compile_args(
+                                            out_idx=[2],
+                                            target="auto",
+                                        ).set_profile_args(
+                                            supply_type=tl.TensorSupplyType.Integer,
+                                            ref_prog=ref_prog,
+                                            skip_check=False,
+                                        )
+best = autotuner.run(warmup=3, rep=20)
+
+# retrieve element
+ref_latency = best.ref_latency
+config = best.**config**
+latency = best.latency
+kernel = best.kernel
+...
+```
+
+最后，浅谈一下triton/tilelang的autotune，仿佛回到了原始暴力搜索的年代，如果追求一个相对快的调优体验，就需要用户针对每个算子和每个硬件部手动设计一份精简的搜索空间(还不能满足任意的shape)，如果是要全面，空间又会很大，搜索起来非常慢。tilelang虽然通过roller一定程度上缓解了这个问题，但是还不够优雅，对tilelang的autotune的期待是可以根据程序的dataflow以及硬件的信息帮助用户生成空间，或者根据当前的形状自动推导出合适的config，相比于Roller时代把硬件变成一个白盒子，tilelang可以把schedule也变成一个白盒子。我们安排了一些小同学就进行这方面的探索，也欢迎大家关于这方面有意思的idea可以基于tilelang来实现或者合作讨论一下，让大家在这方面的体验变得更好。
